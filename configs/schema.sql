@@ -1,3 +1,11 @@
+CREATE EXTENSION IF NOT EXISTS citext;
+
+CREATE TYPE "user_roles" AS ENUM (
+  'seller',
+  'buyer',
+  'admin'
+);
+
 CREATE TYPE "verification_status" AS ENUM (
   'unverified',
   'pending',
@@ -6,39 +14,43 @@ CREATE TYPE "verification_status" AS ENUM (
   'banned'
 );
 
-CREATE TABLE "buyers" (
+CREATE TYPE "property_status" AS ENUM (
+  'active',
+  'sold',
+  'archived'
+);
+
+CREATE TABLE "users" (
   "id" SERIAL PRIMARY KEY,
   "full_name" VARCHAR NOT NULL,
-  "email" VARCHAR UNIQUE,
+  "email" citext UNIQUE,
   "phone" VARCHAR UNIQUE,
   "password_hash" VARCHAR NOT NULL,
-  "created_at" TIMESTAMPTZ DEFAULT (now())
+  "role" user_roles NOT NULL,
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  CHECK (email IS NOT NULL OR phone IS NOT NULL)
+);
+
+CREATE TABLE "seller_profile" (
+  "id" SERIAL PRIMARY KEY,
+  "user_id" INTEGER UNIQUE NOT NULL,
+  "company_id" INTEGER,
+  "status" verification_status NOT NULL DEFAULT 'unverified'
 );
 
 CREATE TABLE "saved" (
   "id" SERIAL PRIMARY KEY,
-  "buyer_id" INTEGER,
-  "propertiy_id" INTEGER
-);
-
-CREATE TABLE "sellers" (
-  "id" SERIAL PRIMARY KEY,
-  "company_id" INTEGER,
-  "full_name" VARCHAR,
-  "email" VARCHAR UNIQUE,
-  "phone" VARCHAR UNIQUE,
-  "password_hash" VARCHAR,
-  "status" verification_status NOT NULL,
-  "created_at" TIMESTAMPTZ DEFAULT (now())
+  "user_id" INTEGER NOT NULL,
+  "property_id" INTEGER NOT NULL
 );
 
 CREATE TABLE "companies" (
   "id" SERIAL PRIMARY KEY,
-  "name" VARCHAR UNIQUE,
+  "name" VARCHAR UNIQUE NOT NULL,
   "address" VARCHAR NOT NULL,
   "manager" INTEGER UNIQUE NOT NULL,
-  "status" verification_status NOT NULL,
-  "created_at" TIMESTAMPTZ DEFAULT (now())
+  "status" verification_status NOT NULL DEFAULT 'unverified',
+  "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "properties" (
@@ -46,50 +58,60 @@ CREATE TABLE "properties" (
   "seller_id" INTEGER NOT NULL,
   "type" VARCHAR NOT NULL,
   "location" VARCHAR NOT NULL,
-  "area" smallint NOT NULL CHECK (area > 0),
-  "floors" smallint NOT NULL CHECK (floors > 0),
-  "rooms" smallint NOT NULL CHECK (rooms > 0),
-  "bathrooms" smallint NOT NULL CHECK (bathrooms > 0),
+  "area" INTEGER NOT NULL CHECK (area > 0),
+  "floors" SMALLINT NOT NULL CHECK (floors > 0),
+  "rooms" SMALLINT NOT NULL CHECK (rooms > 0),
+  "bathrooms" SMALLINT NOT NULL CHECK (bathrooms > 0),
   "city" VARCHAR NOT NULL,
   "district" VARCHAR NOT NULL,
   "description" VARCHAR,
-  "price" INTEGER NOT NULL CHECK (price > 0),
-  "status" VARCHAR,
-  "created_at" TIMESTAMPTZ DEFAULT (now())
+  "price" BIGINT NOT NULL CHECK (price > 0),
+  "status" property_status NOT NULL DEFAULT 'active',
+  "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "property_media" (
   "id" SERIAL PRIMARY KEY,
-  "property_id" INTEGER,
+  "property_id" INTEGER NOT NULL,
   "url" VARCHAR NOT NULL,
   "media_type" VARCHAR NOT NULL,
-  "created_at" TIMESTAMPTZ DEFAULT (now())
+  "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "features" (
   "id" SERIAL PRIMARY KEY,
-  "name" VARCHAR UNIQUE
+  "name" VARCHAR UNIQUE NOT NULL
 );
 
 CREATE TABLE "property_features" (
   "id" SERIAL PRIMARY KEY,
-  "property_id" INTEGER,
-  "feature_id" INTEGER
+  "property_id" INTEGER NOT NULL,
+  "feature_id" INTEGER NOT NULL
 );
 
-CREATE INDEX ON "saved" ("buyer_id");
+CREATE INDEX ON "saved" ("user_id");
+
+CREATE UNIQUE INDEX ON "saved" ("user_id", "property_id");
+
+CREATE INDEX ON "properties" ("seller_id");
 
 CREATE INDEX ON "property_media" ("property_id");
 
-ALTER TABLE "saved" ADD FOREIGN KEY ("buyer_id") REFERENCES "buyers" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+CREATE INDEX ON "property_features" ("feature_id");
 
-ALTER TABLE "saved" ADD FOREIGN KEY ("propertiy_id") REFERENCES "properties" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+CREATE UNIQUE INDEX ON "property_features" ("property_id", "feature_id");
 
-ALTER TABLE "sellers" ADD FOREIGN KEY ("company_id") REFERENCES "companies" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE "seller_profile" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
-ALTER TABLE "companies" ADD FOREIGN KEY ("manager") REFERENCES "sellers" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE "seller_profile" ADD FOREIGN KEY ("company_id") REFERENCES "companies" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
-ALTER TABLE "properties" ADD FOREIGN KEY ("seller_id") REFERENCES "sellers" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE "saved" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "saved" ADD FOREIGN KEY ("property_id") REFERENCES "properties" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "companies" ADD FOREIGN KEY ("manager") REFERENCES "users" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "properties" ADD FOREIGN KEY ("seller_id") REFERENCES "users" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
 ALTER TABLE "property_media" ADD FOREIGN KEY ("property_id") REFERENCES "properties" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
