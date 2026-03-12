@@ -9,7 +9,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./configs/schema.sql:/docker-entrypoint-initdb.d/init.sql
-  
+
   pg_admin:
     image: dpage/pgadmin4:latest
     container_name: pg_admin
@@ -20,3 +20,19 @@ services:
     ports:
       - 81:80
     restart: unless-stopped
+
+  redis-stack:
+    image: redis/redis-stack
+    hostname: redis
+    ports:
+      - "6379:6379"
+      - "8001:8001"
+    environment:
+      REDIS_ARGS: "--requirepass 1234"
+    restart: unless-stopped
+    # healthcheck:
+    #   test: ["CMD-SHELL", "redis-cli -a 1234 ping"]
+    #   interval: 10s
+    #   timeout: 3s
+    #   retries: 3
+    #   start_period: 5s

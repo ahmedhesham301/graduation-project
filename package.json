@@ -19,6 +19,9 @@
     "start": "nodemon server.js"
   },
   "dependencies": {
+    "@redis/client": "^5.11.0",
+    "bcrypt": "^6.0.0",
+    "connect-redis": "^9.0.0",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "morgan": "^1.10.1",
