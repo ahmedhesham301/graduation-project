@@ -7,7 +7,7 @@ export async function initDB() {
         await pool.query("SELECT now()")
 
     } catch (error) {
-        console.error("Failed to initialize connection to db")
+        console.error("error", error)
         process.exit(1)
     }
     pool.on("error", (error) => {

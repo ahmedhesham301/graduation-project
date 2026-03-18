@@ -28,3 +28,12 @@ export async function findByEmail(email) {
         createdAt: result.rows[0].created_at
     }
 }
+export async function findById(id) {
+    const query = {
+        name: 'find-user-by-id',
+        text: 'SELECT id, role FROM users WHERE id = $1',
+        values: [id]
+    }
+    const { rows } = await pool.query(query)
+    return rows[0] || null
+}
