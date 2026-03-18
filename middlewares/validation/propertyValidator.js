@@ -1,34 +1,30 @@
 
 import { z } from "zod"
+import { handleValidationError } from "./handleValidationError.js";
 
 
 const propertySchema = z.object({
-    type:        z.string().min(1).max(100),
-    location:    z.string().min(1).max(255),
+    type: z.string().min(1).max(100),
+    coordinates: z.object({
+        lon:     z.coerce.number().min(-180).max(180),
+        lat:     z.coerce.number().min(-90).max(90  ),
+    }),
     area:        z.coerce.number().int().positive(),
     floors:      z.coerce.number().int().positive(),
     rooms:       z.coerce.number().int().positive(),
     bathrooms:   z.coerce.number().int().positive(),
-    city:        z.string().min(1).max(100),
-    district:    z.string().min(1).max(100),
+    cityID:      z.coerce.number().int().positive(),
+    areaID:      z.coerce.number().int().positive(),
     description: z.string().max(1000).optional(),
     price:       z.coerce.number().int().positive(),
 })
 
 export async function validatePropertyBody(req, res, next) {
-    const result = propertySchema.safeParse(req.body)
+    const result = await propertySchema.safeParseAsync(req.body)
 
     if (!result.success) {
-       
-        const validationErrors = {}
-        const tree = z.treeifyError(result.error).properties
-        for (const field in tree) {
-            validationErrors[field] = tree[field].errors
-        }
-        return res.status(400).json({
-            message: "Invalid input format",
-            errors: validationErrors
-        })
+        handleValidationError(result.error, res)
+        return
     }
 
     req.body = result.data

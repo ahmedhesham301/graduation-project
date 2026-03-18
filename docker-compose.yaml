@@ -8,7 +8,7 @@ services:
       - 5432:5432
     restart: unless-stopped
     volumes:
-      - ./configs/schema.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./configs/sql/:/docker-entrypoint-initdb.d/
 
   pg_admin:
     image: dpage/pgadmin4:latest

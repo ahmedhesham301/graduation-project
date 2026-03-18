@@ -40,7 +40,7 @@ export async function getOne(req, res) {
 
 export async function create(req, res) {
     try {
-        const property = await createProperty(req.seller_id, req.body)
+        const property = await createProperty(req.session.userID, req.body)
         res.status(201).json(property)
     } catch (error) {
         console.error(error)

@@ -1,4 +1,3 @@
-import { save } from "../models/userModel.js";
 import { registerUser, authenticateUser } from "../services/userServices.js";
 
 export async function register(req, res) {
@@ -27,6 +26,14 @@ export async function register(req, res) {
 export async function login(req, res) {
     try {
         let userData = await authenticateUser(req.body.email, req.body.password)
+
+        await req.session.regenerate(function (err) {
+            if (err) {
+                res.status(500).json({ message: "internal server error" })
+                console.error(err)
+                return
+            }
+        })
 
         req.session.userID = userData.id
         req.session.email = userData.email

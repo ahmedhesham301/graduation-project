@@ -1,7 +1,7 @@
 
 
 import { Router } from "express"
-import { getAll, getOne, create } from "../controllers/propertycontroller.js"
+import { getAll, getOne, create } from "../controllers/propertyController.js"
 import { validatePropertyBody } from "../middlewares/validation/propertyValidator.js"
 import { isAuthenticated } from "../middlewares/session.js"
 import { isSellerVerified } from "../middlewares/propertyAuth.js"

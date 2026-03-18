@@ -12,12 +12,12 @@ export async function getPropertyById(id) {
 
 export async function createProperty(sellerId, propertyData) {
     const {
-        type, location, area, floors, rooms,
-        bathrooms, city, district, description, price
+        type, coordinates, area, floors, rooms,
+        bathrooms, cityID, areaID, description, price
     } = propertyData
 
     return await create(
-        sellerId, type, location, area, floors,
-        rooms, bathrooms, city, district, description || null, price
+        sellerId, type, coordinates, area, floors,
+        rooms, bathrooms, cityID, areaID, description || null, price
     )
 }
