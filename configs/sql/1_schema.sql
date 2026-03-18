@@ -64,7 +64,7 @@ CREATE TABLE "properties" (
   "rooms" SMALLINT NOT NULL CHECK (rooms > 0),
   "bathrooms" SMALLINT NOT NULL CHECK (bathrooms > 0),
   "city_id" INTEGER NOT NULL,
-  "area_id" INTEGER NOT NULL,
+  "district_id" INTEGER NOT NULL,
   "description" VARCHAR,
   "price" BIGINT NOT NULL CHECK (price > 0),
   "status" property_status NOT NULL DEFAULT 'active',
@@ -117,7 +117,7 @@ CREATE INDEX ON "properties" ("bathrooms");
 
 CREATE INDEX ON "properties" ("city_id");
 
-CREATE INDEX ON "properties" ("area_id");
+CREATE INDEX ON "properties" ("district_id");
 
 CREATE INDEX ON "properties" ("price");
 
@@ -145,7 +145,7 @@ ALTER TABLE "properties" ADD FOREIGN KEY ("seller_id") REFERENCES "users" ("id")
 
 ALTER TABLE "properties" ADD FOREIGN KEY ("city_id") REFERENCES "cities" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
-ALTER TABLE "properties" ADD FOREIGN KEY ("area_id") REFERENCES "districts" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE "properties" ADD FOREIGN KEY ("district_id") REFERENCES "districts" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
 ALTER TABLE "districts" ADD FOREIGN KEY ("city_id") REFERENCES "cities" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
@@ -154,3 +154,5 @@ ALTER TABLE "property_media" ADD FOREIGN KEY ("property_id") REFERENCES "propert
 ALTER TABLE "property_features" ADD FOREIGN KEY ("property_id") REFERENCES "properties" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
 ALTER TABLE "property_features" ADD FOREIGN KEY ("feature_id") REFERENCES "features" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "properties" ADD FOREIGN KEY ("created_at") REFERENCES "properties" ("status") DEFERRABLE INITIALLY IMMEDIATE;
