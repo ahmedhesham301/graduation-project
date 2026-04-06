@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt"
 import { pool } from "../database/postgresql.js"
-import { save, findByEmail, updateRoleWithClient, createSellerProfileWithClient  } from "../models/userModel.js";
+import { save, findByEmail, upgradeToSeller  } from "../models/userModel.js";
 
 export async function registerUser(fullName, email, phone, password, role) {
     const passwordHash = await bcrypt.hash(password, 10);
@@ -26,16 +26,5 @@ export async function authenticateUser(email, password) {
 }
 
 export async function becomeSeller(userId) {
-    const client = await pool.connect()
-    try {
-        await client.query('BEGIN')
-        await updateRoleWithClient(client, userId, 'seller')      
-        await createSellerProfileWithClient(client, userId)        
-        await client.query('COMMIT')
-    } catch (error) {
-        await client.query('ROLLBACK')
-        throw error
-    } finally {
-        client.release()
-    }
+    await upgradeToSeller(userId)
 }

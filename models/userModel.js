@@ -38,18 +38,30 @@ export async function findById(id) {
     return rows[0] || null
 }
 
-export async function updateRoleWithClient(client, userId, role) {
-    await client.query(
-        'UPDATE users SET role = $1 WHERE id = $2',
-        [role, userId]
-    )
-}
 
-export async function createSellerProfileWithClient(client, userId) {
-    await client.query(
-        `INSERT INTO seller_profile (user_id, status)
-         VALUES ($1, 'unverified')
-         ON CONFLICT (user_id) DO NOTHING`,
-        [userId]
-    )
+export async function upgradeToSeller(userId) {
+    const client = await pool.connect()
+    try {
+        await client.query('BEGIN')
+
+        await client.query(
+            'UPDATE users SET role = $1 WHERE id = $2',
+            ['seller', userId]
+        )
+
+        await client.query(
+            `INSERT INTO seller_profile (user_id, status)
+             VALUES ($1, 'unverified')
+             ON CONFLICT (user_id) DO NOTHING`,
+            [userId]
+        )
+
+        await client.query('COMMIT')
+
+    } catch (error) {
+        await client.query('ROLLBACK')
+        throw error
+    } finally {
+        client.release()
+    }
 }
