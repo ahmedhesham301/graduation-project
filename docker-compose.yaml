@@ -9,6 +9,11 @@ services:
     restart: unless-stopped
     volumes:
       - ./configs/sql/:/docker-entrypoint-initdb.d/
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   pg_admin:
     image: dpage/pgadmin4:latest
@@ -25,14 +30,33 @@ services:
     image: redis/redis-stack
     hostname: redis
     ports:
-      - "6379:6379"
-      - "8001:8001"
+      - 6379:6379
+      - 8001:8001
     environment:
       REDIS_ARGS: "--requirepass 1234"
     restart: unless-stopped
-    # healthcheck:
-    #   test: ["CMD-SHELL", "redis-cli -a 1234 ping"]
-    #   interval: 10s
-    #   timeout: 3s
-    #   retries: 3
-    #   start_period: 5s
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a 1234 ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  api:
+    image: ahmedhesham301/3akarati:latest
+    ports:
+      - 8081:8080
+    environment:
+      PGHOST: db
+      PGPASSWORD: 1234
+      PGUSER: postgres
+      REDIS_HOST: redis-stack
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: 1234
+      SESSION_SECRET: 1234
+    depends_on:
+        db:
+          condition: service_healthy
+        redis-stack:
+          condition: service_healthy
+

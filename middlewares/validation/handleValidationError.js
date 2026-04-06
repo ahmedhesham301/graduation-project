@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+// NOTE: root object error are not being printed
 export function handleValidationError(result, res) {
     let validationErrors = {}
     let tree = z.treeifyError(result).properties

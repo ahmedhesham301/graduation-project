@@ -154,5 +154,3 @@ ALTER TABLE "property_media" ADD FOREIGN KEY ("property_id") REFERENCES "propert
 ALTER TABLE "property_features" ADD FOREIGN KEY ("property_id") REFERENCES "properties" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
 ALTER TABLE "property_features" ADD FOREIGN KEY ("feature_id") REFERENCES "features" ("id") DEFERRABLE INITIALLY IMMEDIATE;
-
-ALTER TABLE "properties" ADD FOREIGN KEY ("created_at") REFERENCES "properties" ("status") DEFERRABLE INITIALLY IMMEDIATE;
