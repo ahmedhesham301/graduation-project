@@ -1,5 +1,4 @@
 import bcrypt from "bcrypt"
-import { pool } from "../database/postgresql.js"
 import { save, findByEmail, upgradeToSeller  } from "../models/userModel.js";
 
 export async function registerUser(fullName, email, phone, password, role) {

@@ -1,5 +1,6 @@
 
 
+import { number } from "zod"
 import {
     getAllProperties,
     getPropertyById,
@@ -21,7 +22,7 @@ export async function getAll(req, res) {
 export async function getOne(req, res) {
     try {
         const id = Number(req.params.id)
-        if (isNaN(id)) {
+        if (Number.isNaN(id)) {
             return res.status(400).json({ error: "Invalid property ID" })
         }
 

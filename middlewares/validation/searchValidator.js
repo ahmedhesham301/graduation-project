@@ -13,7 +13,6 @@ const parametersSchema = z.object({
 })
 
 export async function validateSearchQuery(req, res, next) {
-    console.log(req.query)
     let query = qs.parse(req.query)
 
     const result = await parametersSchema.safeParseAsync(query)

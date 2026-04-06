@@ -31,7 +31,6 @@ export async function login(req, res) {
             if (err) {
                 res.status(500).json({ message: "internal server error" })
                 console.error(err)
-                return
             }
         })
 

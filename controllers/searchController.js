@@ -10,5 +10,4 @@ export async function searchForProperty(req, res) {
         console.error(error)
         res.status(500).json({ error: "Failed to fetch properties" })
     }
-    return
 }
