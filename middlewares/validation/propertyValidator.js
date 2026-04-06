@@ -14,7 +14,7 @@ const propertySchema = z.object({
     rooms:       z.coerce.number().int().positive(),
     bathrooms:   z.coerce.number().int().positive(),
     cityID:      z.coerce.number().int().positive(),
-    areaID:      z.coerce.number().int().positive(),
+    districtID:  z.coerce.number().int().positive(),
     description: z.string().max(1000).optional(),
     price:       z.coerce.number().int().positive(),
 })

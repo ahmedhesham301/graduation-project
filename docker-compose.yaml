@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgis/postgis:18-3.6-alpine
+    image: postgis/postgis
     container_name: postgis
     environment:
       - POSTGRES_PASSWORD=1234
@@ -10,16 +10,7 @@ services:
     volumes:
       - ./configs/sql/:/docker-entrypoint-initdb.d/
 
-  pg_admin:
-    image: dpage/pgadmin4:latest
-    container_name: pg_admin
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=ahmed.hesham.farag@gmail.com
-      - PGADMIN_DEFAULT_PASSWORD=1234
-      - PGADMIN_LISTEN_ADDRESS=0.0.0.0
-    ports:
-      - 81:80
-    restart: unless-stopped
+  
 
   redis-stack:
     image: redis/redis-stack
