@@ -1,6 +1,3 @@
-
-
-import { number } from "zod"
 import {
     getAllProperties,
     getPropertyById,
