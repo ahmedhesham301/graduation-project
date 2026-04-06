@@ -1,4 +1,4 @@
-import { registerUser, authenticateUser } from "../services/userServices.js";
+import { registerUser, authenticateUser, becomeSeller  } from "../services/userServices.js";
 
 export async function register(req, res) {
     try {
@@ -51,5 +51,30 @@ export async function login(req, res) {
             res.status(500).json({ message: "internal server error" })
             console.error(error)
         }
+    }
+}
+
+export async function logout(req, res) {
+    req.session.destroy(function (err) {
+        if (err) {
+            res.status(500).json({ message: "internal server error" })
+            console.error(err)
+            return
+        }
+        res.status(200).json({ message: "logout successful" })
+    })
+}
+
+export async function upgradeTOSeller(req, res) {
+    try {
+        await becomeSeller(req.session.userID)
+
+        
+        req.session.role = 'seller'
+
+        res.status(200).json({ message: "You are now registered as a seller. Your profile is pending verification." })
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: "internal server error" })
     }
 }
