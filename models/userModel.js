@@ -38,25 +38,18 @@ export async function findById(id) {
     return rows[0] || null
 }
 
-export async function updateRole(userId, role) {
-    const query = {
-        name: 'update-user-role',
-        text: 'UPDATE users SET role = $1 WHERE id = $2 RETURNING id, role',
-        values: [role, userId]
-    }
-    const { rows } = await pool.query(query)
-    return rows[0] || null
+export async function updateRoleWithClient(client, userId, role) {
+    await client.query(
+        'UPDATE users SET role = $1 WHERE id = $2',
+        [role, userId]
+    )
 }
 
-
-export async function createSellerProfile(userId) {
-    const query = {
-        name: 'create-seller-profile',
-        text: `INSERT INTO seller_profile (user_id, status)
-               VALUES ($1, 'unverified')
-               RETURNING *`,
-        values: [userId]
-    }
-    const { rows } = await pool.query(query)
-    return rows[0]
+export async function createSellerProfileWithClient(client, userId) {
+    await client.query(
+        `INSERT INTO seller_profile (user_id, status)
+         VALUES ($1, 'unverified')
+         ON CONFLICT (user_id) DO NOTHING`,
+        [userId]
+    )
 }
