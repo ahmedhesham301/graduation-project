@@ -5,7 +5,7 @@ const reqBodySchema = z.object({
     fullName: z.string(),
     email: z.email().max(254),
     password: z.string().min(8).max(72),
-    phone: z.e164()
+    phone: z.e164().optional()
 })
 
 const loginBodySchema = z.object({

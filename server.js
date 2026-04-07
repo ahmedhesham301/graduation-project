@@ -17,10 +17,10 @@ app.use(morgan('dev'))
 app.use(express.json())
 app.use(sessionMiddleware)
 
-app.use(authRouter)
-app.use('/properties', propertyRouter)
-app.use(searchRouter)
+app.use('/api', authRouter)
+app.use('/api', propertyRouter)
+app.use('/api', searchRouter)
 
 app.listen(8080, '0.0.0.0', () => {
-    console.log('Server running on http://0.0.0.0:8080')
+    console.log('Server running on http://0.0.0.0:8080/api')
 })

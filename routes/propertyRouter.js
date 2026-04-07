@@ -9,8 +9,8 @@ import { isSellerVerified } from "../middlewares/propertyAuth.js"
 const router = Router()
 
 
-router.get("/", getAll)
-router.get("/:id", getOne)
+router.get("/properties", getAll)
+router.get("/properties:id", getOne)
 
 
 router.post("/", isAuthenticated, isSellerVerified, validatePropertyBody, create)
