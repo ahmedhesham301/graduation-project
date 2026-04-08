@@ -30,3 +30,16 @@ function populateLocationLookups(locationIdByName, locationNameById, locationRow
         locationIdByName[locationRow['name']] = locationRow['id']
     });
 }
+
+export function mapPropertyLocationNames(row) {
+    const { city_id, district_id, ...rest } = row;
+    return {
+        ...rest,
+        city: cityNameById[city_id] ?? null,
+        district: districtNameById[district_id] ?? null,
+    };
+}
+
+export function mapPropertiesLocationNames(rows) {
+    return rows.map(mapPropertyLocationNames);
+}
