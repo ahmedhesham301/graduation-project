@@ -12,7 +12,6 @@ const router = Router()
 router.get("/properties", getAll)
 router.get("/properties:id", getOne)
 
-
-router.post("/", isAuthenticated, isSellerVerified, validatePropertyBody, create)
+router.post("/properties", isAuthenticated, isSellerVerified, validatePropertyBody, create)
 
 export default router

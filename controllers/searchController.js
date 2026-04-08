@@ -2,9 +2,9 @@ import { search } from "../models/propertyModel.js";
 
 export async function searchForProperty(req, res) {
     try {
-        const { page, ...filters } = req.updatedParameters
+        const { page, orderBy, orderDirection, ...filters } = req.updatedParameters
 
-        let result = await search(page, filters)
+        let result = await search(page, orderBy, orderDirection, filters)
         res.status(200).json(result)
     } catch (error) {
         console.error(error)

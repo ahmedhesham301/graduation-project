@@ -7,8 +7,11 @@ import { sessionMiddleware } from "./middlewares/session.js";
 import authRouter from "./routes/authRouter.js"
 import propertyRouter from "./routes/propertyRouter.js"
 import searchRouter from "./routes/searchRouter.js"
+import { initializeLocationCache } from "./services/locationCache.js";
+
 await initDB()
 await initRedis()
+await initializeLocationCache()
 
 const app = express()
 app.disable('x-powered-by')

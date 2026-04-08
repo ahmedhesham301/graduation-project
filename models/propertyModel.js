@@ -1,5 +1,6 @@
 
 import { pool } from "../database/postgresql.js";
+import { cityIdByName, districtIdByName } from "../services/locationCache.js";
 
 
 
@@ -57,35 +58,45 @@ export async function create(sellerId, type, coordinates, area, floors, rooms, b
     const { rows } = await pool.query(query)
     return rows[0]
 }
-// TODO: use cache for city,district id to handle non existing cities without making round trips to the db
+
 const PAGE_SIZE = 20;
 const filterMap = {
-    city: (i) => `city_id = (SELECT id FROM cities WHERE name = $${i})`,
-    district: (i) => `district_id = (SELECT id FROM districts WHERE name = $${i})`,
+    city: (cityName) => `city_id = ${cityIdByName[cityName]}`,
+    district: (districtName) => `district_id = ${districtIdByName[districtName]}`,
     bathrooms: (i) => `bathrooms = $${i}`,
     rooms: (i) => `rooms = $${i}`,
     area: (i) => `area = $${i}`,
     floors: (i) => `floors = $${i}`,
 };
 
-export async function search(page, filters) {
+export async function search(page, orderBy, orderDirection, filters) {
     let index = 1
     let clauses = []
     let values = []
-    
+    let order
+    if (orderBy && orderDirection) {
+        order = `ORDER BY ${orderBy} ${orderDirection}`
+    }
+
     for (const [key, value] of Object.entries(filters)) {
-        clauses.push(filterMap[key](index))
-        values.push(value)
-        index++
+
+        if (key !== 'city' && key !== 'district') {
+            clauses.push(filterMap[key](index))
+            values.push(value)
+            index++
+        } else {
+            clauses.push(filterMap[key](value))
+        }
     }
     clauses.push("status='active'")
 
-    const offset = (page -1) * PAGE_SIZE 
+    const offset = (page - 1) * PAGE_SIZE
 
     const query = {
-        text: `SELECT *
+        text: `SELECT id, type, area, floors, rooms, bathrooms, city_id, district_id, price
         FROM properties
         WHERE ${clauses.join(" AND ")}
+        ${order ?? ''}
         OFFSET ${offset}
         LIMIT ${PAGE_SIZE};`,
         values: values
