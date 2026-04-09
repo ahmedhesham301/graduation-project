@@ -1,9 +1,6 @@
 
-import { findAll, findById, create } from "../models/propertyModel.js"
+import { findById, create } from "../models/propertyModel.js"
 
-export async function getAllProperties() {
-    return await findAll()
-}
 
 export async function getPropertyById(id) {
     return await findById(id)

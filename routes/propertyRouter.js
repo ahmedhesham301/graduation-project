@@ -1,7 +1,7 @@
 
 
 import { Router } from "express"
-import { getAll, getOne, create } from "../controllers/propertyController.js"
+import { getOne, create } from "../controllers/propertyController.js"
 import { validatePropertyBody } from "../middlewares/validation/propertyValidator.js"
 import { isAuthenticated } from "../middlewares/session.js"
 import { isSellerVerified } from "../middlewares/propertyAuth.js"
@@ -11,7 +11,6 @@ import { resolveLocationNamesToIds } from "../middlewares/searchLocationResolver
 const router = Router()
 
 
-router.get("/properties", getAll)
 router.get("/properties:id", getOne)
 router.get('/search', validateSearchQuery, resolveLocationNamesToIds, searchForProperty)
 

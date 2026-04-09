@@ -1,21 +1,9 @@
 import {
-    getAllProperties,
     getPropertyById,
     createProperty
 } from "../services/propertyServices.js"
 import { search } from "../models/propertyModel.js";
 import { mapPropertiesLocationNames } from "../services/locationCache.js";
-
-export async function getAll(req, res) {
-    try {
-        const properties = await getAllProperties()
-        res.status(200).json(properties)
-    } catch (error) {
-        console.error(error)
-        res.status(500).json({ error: "Failed to fetch properties" })
-    }
-}
-
 
 export async function getOne(req, res) {
     try {
