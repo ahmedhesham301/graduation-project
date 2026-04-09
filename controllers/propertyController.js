@@ -3,7 +3,8 @@ import {
     getPropertyById,
     createProperty
 } from "../services/propertyServices.js"
-
+import { search } from "../models/propertyModel.js";
+import { mapPropertiesLocationNames } from "../services/locationCache.js";
 
 export async function getAll(req, res) {
     try {
@@ -49,5 +50,17 @@ export async function create(req, res) {
             return res.status(422).json({ error: "Invalid values — check area, price, rooms are positive" })
         }
         res.status(500).json({ error: "Failed to create property" })
+    }
+}
+
+export async function searchForProperty(req, res) {
+    try {
+        const { page, orderBy, orderDirection, ...filters } = req.updatedParameters
+
+        let result = await search(page, orderBy, orderDirection, filters)
+        res.status(200).json(mapPropertiesLocationNames(result))
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ error: "Failed to fetch properties" })
     }
 }
