@@ -1,6 +1,5 @@
 
 import { pool } from "../database/postgresql.js";
-import { cityIdByName, districtIdByName } from "../services/locationCache.js";
 
 
 
@@ -61,8 +60,8 @@ export async function create(sellerId, type, coordinates, area, floors, rooms, b
 
 const PAGE_SIZE = 20;
 const filterMap = {
-    city: (cityName) => `city_id = ${cityIdByName[cityName]}`,
-    district: (districtName) => `district_id = ${districtIdByName[districtName]}`,
+    city: (i) => `city_id = ${i}`,
+    district: (i) => `district_id = ${i}`,
     bathrooms: (i) => `bathrooms = $${i}`,
     rooms: (i) => `rooms = $${i}`,
     area: (i) => `area = $${i}`,
