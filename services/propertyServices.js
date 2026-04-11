@@ -1,9 +1,14 @@
 
-import { findById, create } from "../models/propertyModel.js"
+import { findPropertyById, create } from "../models/propertyModel.js"
+import { mapPropertyLocationNames } from "../services/locationCache.js";
+
 
 
 export async function getPropertyById(id) {
-    return await findById(id)
+    let property = await findPropertyById(id)
+    if (!property) return null;
+
+    return mapPropertyLocationNames(property)
 }
 
 

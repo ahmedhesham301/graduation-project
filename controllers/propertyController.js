@@ -5,11 +5,11 @@ import {
 import { search } from "../models/propertyModel.js";
 import { mapPropertiesLocationNames } from "../services/locationCache.js";
 
-export async function getOne(req, res) {
+export async function getPropertyByIdHandler(req, res) {
     try {
         const id = Number(req.params.id)
         if (Number.isNaN(id)) {
-            return res.status(400).json({ error: "Invalid property ID" })
+            return res.status(404).json({ error: "Invalid property ID" })
         }
 
         const property = await getPropertyById(id)
@@ -52,3 +52,4 @@ export async function searchForProperty(req, res) {
         res.status(500).json({ error: "Failed to fetch properties" })
     }
 }
+

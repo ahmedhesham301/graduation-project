@@ -1,19 +1,12 @@
 
 import { pool } from "../database/postgresql.js";
 
-export async function findById(id) {
+export async function findPropertyById(id) {
     const query = {
         name: 'find-property-by-id',
-        text: `SELECT 
-                p.*,
-                u.full_name AS seller_name
-                c.name AS city_name,
-                d.name AS district_name
-               FROM properties p
-               JOIN users u ON u.id = p.seller_id
-               JOIN cities c ON c.id = p.city_id
-               JOIN districts d ON d.id = p.district_id
-               WHERE p.id = $1`,
+        text: `SELECT id, seller_id, type,  ST_Y(coordinates) AS lat, ST_X(coordinates) AS lon, area, floors, rooms, bathrooms, city_id, district_id, description, price
+            FROM properties
+            WHERE id = $1`,
         values: [id]
     }
     const { rows } = await pool.query(query)
