@@ -42,7 +42,7 @@ CREATE TABLE "properties" (
   "id" SERIAL PRIMARY KEY,
   "seller_id" INTEGER NOT NULL,
   "type" VARCHAR NOT NULL,
-  "coordinates" "geometry(Point,4326)" NOT NULL,
+  "coordinates" geometry(Point,4326) NOT NULL,
   "area" INTEGER NOT NULL CHECK (area > 0),
   "floors" SMALLINT NOT NULL CHECK (floors > 0),
   "rooms" SMALLINT NOT NULL CHECK (rooms > 0),
