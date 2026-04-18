@@ -7,10 +7,12 @@ import { sessionMiddleware } from "./middlewares/session.js";
 import authRouter from "./routes/authRouter.js"
 import propertyRouter from "./routes/propertyRouter.js"
 import { initializeLocationCache } from "./services/locationCache.js";
+import { s3Init } from "./s3/s3.js";
 
 await initDB()
 await initRedis()
 await initializeLocationCache()
+await s3Init()
 
 const app = express()
 app.disable('x-powered-by')
