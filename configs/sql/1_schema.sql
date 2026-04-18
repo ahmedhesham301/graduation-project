@@ -29,7 +29,6 @@ CREATE TABLE "users" (
 CREATE TABLE "seller_profile" (
   "id" SERIAL PRIMARY KEY,
   "user_id" INTEGER UNIQUE NOT NULL,
-  "company_id" INTEGER,
   "status" verification_status NOT NULL DEFAULT 'unverified'
 );
 
@@ -39,20 +38,11 @@ CREATE TABLE "saved" (
   "property_id" INTEGER NOT NULL
 );
 
-CREATE TABLE "companies" (
-  "id" SERIAL PRIMARY KEY,
-  "name" VARCHAR UNIQUE NOT NULL,
-  "address" VARCHAR NOT NULL,
-  "manager" INTEGER UNIQUE NOT NULL,
-  "status" verification_status NOT NULL DEFAULT 'unverified',
-  "created_at" timestamptz NOT NULL DEFAULT (now())
-);
-
 CREATE TABLE "properties" (
   "id" SERIAL PRIMARY KEY,
   "seller_id" INTEGER NOT NULL,
   "type" VARCHAR NOT NULL,
-  "coordinates" geometry(Point, 4326) NOT NULL,
+  "coordinates" "geometry(Point,4326)" NOT NULL,
   "area" INTEGER NOT NULL CHECK (area > 0),
   "floors" SMALLINT NOT NULL CHECK (floors > 0),
   "rooms" SMALLINT NOT NULL CHECK (rooms > 0),
@@ -127,13 +117,9 @@ CREATE UNIQUE INDEX ON "property_features" ("property_id", "feature_id");
 
 ALTER TABLE "seller_profile" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
-ALTER TABLE "seller_profile" ADD FOREIGN KEY ("company_id") REFERENCES "companies" ("id") DEFERRABLE INITIALLY IMMEDIATE;
-
 ALTER TABLE "saved" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
 ALTER TABLE "saved" ADD FOREIGN KEY ("property_id") REFERENCES "properties" ("id") DEFERRABLE INITIALLY IMMEDIATE;
-
-ALTER TABLE "companies" ADD FOREIGN KEY ("manager") REFERENCES "users" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
 ALTER TABLE "properties" ADD FOREIGN KEY ("seller_id") REFERENCES "users" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
