@@ -31,12 +31,12 @@ export async function getSavedProperties(userId) {
                 p.district_id,
                 p.description,
                 p.price,
-                p.status,
+                p.deleted_at,
                 p.created_at
                FROM saved s
                JOIN properties p ON p.id = s.property_id
                WHERE s.user_id = $1
-               AND p.status = 'active'
+               AND p.deleted_at IS NULL
                ORDER BY s.id DESC`,
         values: [userId]
     }
