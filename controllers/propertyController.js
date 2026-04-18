@@ -2,17 +2,12 @@ import {
     getPropertyById,
     createProperty
 } from "../services/propertyServices.js"
-import { search } from "../models/propertyModel.js";
+import { search, deletePropertyById } from "../models/propertyModel.js";
 import { mapPropertiesLocationNames } from "../services/locationCache.js";
 
 export async function getPropertyByIdHandler(req, res) {
     try {
-        const id = Number(req.params.id)
-        if (Number.isNaN(id)) {
-            return res.status(404).json({ error: "Invalid property ID" })
-        }
-
-        const property = await getPropertyById(id)
+        const property = await getPropertyById(req.params.id)
         if (!property) {
             return res.status(404).json({ error: "Property not found" })
         }
@@ -20,7 +15,7 @@ export async function getPropertyByIdHandler(req, res) {
         res.status(200).json(property)
     } catch (error) {
         console.error(error)
-        res.status(500).json({ error: "Failed to fetch property" })
+        res.status(500).json({ error: "Internal server error" })
     }
 }
 
@@ -49,7 +44,21 @@ export async function searchForProperty(req, res) {
         res.status(200).json(mapPropertiesLocationNames(result))
     } catch (error) {
         console.error(error)
-        res.status(500).json({ error: "Failed to fetch properties" })
+        res.status(500).json({ error: "Internal server error" })
     }
 }
 
+export async function deleteProperty(req, res) {
+    try {
+        const result = await deletePropertyById(req.params.id)
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "Property not found" })
+        }
+
+        res.status(204).send()
+
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ error: "Internal server error" })
+    }
+}

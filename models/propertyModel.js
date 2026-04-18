@@ -4,7 +4,7 @@ import { pool } from "../database/postgresql.js";
 export async function findPropertyById(id) {
     const query = {
         name: 'find-property-by-id',
-        text: `SELECT id, seller_id, type,  ST_Y(coordinates) AS lat, ST_X(coordinates) AS lon, area, floors, rooms, bathrooms, city_id, district_id, description, price
+        text: `SELECT id, seller_id, type,  ST_Y(coordinates) AS lat, ST_X(coordinates) AS lon, area, floors, rooms, bathrooms, city_id, district_id, description, price, deleted_at
             FROM properties
             WHERE id = $1`,
         values: [id]
@@ -57,7 +57,7 @@ export async function search(page, orderBy, orderDirection, filters) {
             clauses.push(filterMap[key](value))
         }
     }
-    clauses.push("status='active'")
+    clauses.push("deleted_at IS NULL")
 
     const offset = (page - 1) * PAGE_SIZE
 
@@ -73,4 +73,15 @@ export async function search(page, orderBy, orderDirection, filters) {
 
     const { rows } = await pool.query(query)
     return rows
+}
+
+export async function deletePropertyById(id) {
+    const query = {
+        name: 'delete-property-by-id',
+        text: `UPDATE properties
+               SET deleted_at = now()
+               WHERE id = $1 AND deleted_at IS NULL`,
+        values: [id]
+    }
+    return pool.query(query)
 }

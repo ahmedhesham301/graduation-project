@@ -4,11 +4,18 @@ import { mapPropertyLocationNames } from "../services/locationCache.js";
 
 
 
-export async function getPropertyById(id) {
-    let property = await findPropertyById(id)
-    if (!property) return null;
+export async function getPropertyById(propertyId) {
+    const propertyRecord = await findPropertyById(propertyId)
+    if (!propertyRecord) return null;
 
-    return mapPropertyLocationNames(property)
+    const { deleted_at: deletedAt, ...propertyWithLocation } = mapPropertyLocationNames(propertyRecord)
+
+    const isAvailable = !deletedAt
+
+    return {
+        ...propertyWithLocation,
+        available: isAvailable
+    }
 }
 
 

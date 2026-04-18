@@ -33,10 +33,18 @@ function populateLocationLookups(locationIdByName, locationNameById, locationRow
 
 export function mapPropertyLocationNames(row) {
     const { city_id, district_id, ...rest } = row;
+    let city = cityNameById[city_id]
+    let district = districtNameById[district_id]
+    if (!city || !district) {
+        throw new Error(
+            `Failed to map property location names. city_id=${city_id} resolved_city=${city}, district_id=${district_id} resolved_district=${district}.`
+        );
+    }
+    
     return {
         ...rest,
-        city: cityNameById[city_id] ?? null,
-        district: districtNameById[district_id] ?? null,
+        city: city,
+        district: district,
     };
 }
 

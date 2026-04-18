@@ -2,7 +2,7 @@
 import { z } from "zod"
 import { handleValidationError } from "./handleValidationError.js";
 
-
+const idSchema = z.coerce.number().int().positive()
 const propertySchema = z.object({
     type: z.string().min(1).max(100),
     coordinates: z.object({
@@ -28,5 +28,13 @@ export async function validatePropertyBody(req, res, next) {
     }
 
     req.body = result.data
+    next()
+}
+
+export async function validatePropertyId(req, res, next) {
+    const result = await idSchema.safeParseAsync(req.params.id)
+    if (!result.success) {
+        return res.status(400).json({ error: "Invalid property ID" })
+    }
     next()
 }

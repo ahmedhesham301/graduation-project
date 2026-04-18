@@ -15,12 +15,6 @@ CREATE TYPE "verification_status" AS ENUM (
   'banned'
 );
 
-CREATE TYPE "property_status" AS ENUM (
-  'active',
-  'sold',
-  'archived'
-);
-
 CREATE TABLE "users" (
   "id" SERIAL PRIMARY KEY,
   "full_name" VARCHAR NOT NULL,
@@ -67,7 +61,7 @@ CREATE TABLE "properties" (
   "district_id" INTEGER NOT NULL,
   "description" VARCHAR,
   "price" BIGINT NOT NULL CHECK (price > 0),
-  "status" property_status NOT NULL DEFAULT 'active',
+  "deleted_at" timestamptz,
   "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
@@ -121,7 +115,7 @@ CREATE INDEX ON "properties" ("district_id");
 
 CREATE INDEX ON "properties" ("price");
 
-CREATE INDEX ON "properties" ("status");
+CREATE INDEX ON "properties" ("deleted_at");
 
 CREATE UNIQUE INDEX ON "districts" ("city_id", "name");
 
