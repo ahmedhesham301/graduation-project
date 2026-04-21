@@ -2,7 +2,7 @@ import { S3Client, CreateBucketCommand, HeadBucketCommand, PutPublicAccessBlockC
 import { NodeHttpHandler } from "@smithy/node-http-handler";
 
 const s3 = new S3Client({
-    endpoint: process.env.S3_ENDPOINT, // RustFS endpoint
+    endpoint: "http://" + process.env.S3_ENDPOINT, // RustFS endpoint
     region: "eu-central-1", // Any value is accepted
     credentials: {
         accessKeyId: process.env.S3_ACCESS_KEY,
