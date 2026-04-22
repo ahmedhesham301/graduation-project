@@ -15,6 +15,12 @@ CREATE TYPE "verification_status" AS ENUM (
   'banned'
 );
 
+CREATE TYPE "media_types" AS ENUM (
+  'jpeg',
+  'png',
+  'webp'
+);
+
 CREATE TABLE "users" (
   "id" SERIAL PRIMARY KEY,
   "full_name" VARCHAR NOT NULL,
@@ -51,6 +57,7 @@ CREATE TABLE "properties" (
   "district_id" INTEGER NOT NULL,
   "description" VARCHAR,
   "price" BIGINT NOT NULL CHECK (price > 0),
+  "pending_media" bool NOT NULL DEFAULT true,
   "deleted_at" timestamptz,
   "created_at" timestamptz NOT NULL DEFAULT (now())
 );
@@ -69,9 +76,10 @@ CREATE TABLE "districts" (
 CREATE TABLE "property_media" (
   "id" SERIAL PRIMARY KEY,
   "property_id" INTEGER NOT NULL,
-  "url" VARCHAR NOT NULL,
-  "media_type" VARCHAR NOT NULL,
-  "created_at" timestamptz NOT NULL DEFAULT (now())
+  "s3_key" uuid UNIQUE NOT NULL,
+  "extension" media_types NOT NULL,
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  "uploaded_at" timestamptz
 );
 
 CREATE TABLE "features" (
@@ -106,6 +114,8 @@ CREATE INDEX ON "properties" ("district_id");
 CREATE INDEX ON "properties" ("price");
 
 CREATE INDEX ON "properties" ("deleted_at");
+
+CREATE INDEX ON "properties" ("pending_media");
 
 CREATE UNIQUE INDEX ON "districts" ("city_id", "name");
 

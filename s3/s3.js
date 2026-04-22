@@ -1,5 +1,6 @@
-import { S3Client, CreateBucketCommand, HeadBucketCommand, PutPublicAccessBlockCommand, PutBucketPolicyCommand } from "@aws-sdk/client-s3";
+import { S3Client, CreateBucketCommand, HeadBucketCommand, PutPublicAccessBlockCommand, PutBucketPolicyCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const s3 = new S3Client({
     endpoint: "http://" + process.env.S3_ENDPOINT, // RustFS endpoint
@@ -58,5 +59,24 @@ export async function s3Init() {
     } catch (error) {
         console.error(error)
         process.exit(1)
+    }
+}
+
+export async function createPresignedUploadUrl(objectKey, mimeType, fileSize) {
+    const presignedUrl = await getSignedUrl(
+        s3,
+        new PutObjectCommand({
+            Bucket: process.env.BUCKET_NAME,
+            Key: objectKey,
+            ContentType: mimeType,
+            ContentLength: fileSize
+        }),
+        { expiresIn: 600 }
+    );
+
+    return {
+        mimeType,
+        fileSize,
+        presignedUrl
     }
 }

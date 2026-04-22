@@ -4,6 +4,7 @@ import {
 } from "../services/propertyServices.js"
 import { search, deletePropertyById } from "../models/propertyModel.js";
 import { mapPropertiesLocationNames } from "../services/locationCache.js";
+import { preparePropertyMediaUploads } from "../services/propertyMediaService.js";
 
 export async function getPropertyByIdHandler(req, res) {
     try {
@@ -23,7 +24,16 @@ export async function getPropertyByIdHandler(req, res) {
 export async function create(req, res) {
     try {
         const property = await createProperty(req.session.userID, req.body)
-        res.status(201).json(property)
+        const preparedUploads = await preparePropertyMediaUploads(property.id, req.body.media)
+        const uploadUrlsByMimeTypeAndSize = {}
+
+        for (const uploadDescriptor of preparedUploads) {
+            uploadUrlsByMimeTypeAndSize[uploadDescriptor.mimeType] ??= {}
+            uploadUrlsByMimeTypeAndSize[uploadDescriptor.mimeType][uploadDescriptor.fileSize] ??= []
+            uploadUrlsByMimeTypeAndSize[uploadDescriptor.mimeType][uploadDescriptor.fileSize].push(uploadDescriptor.presignedUrl)
+        }
+
+        res.status(201).json(uploadUrlsByMimeTypeAndSize)
     } catch (error) {
         console.error(error)
         if (error.code === '23503') {
