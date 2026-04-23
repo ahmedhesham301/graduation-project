@@ -1,0 +1,58 @@
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+.field-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--soft);
+  text-transform: uppercase;
+  letter-spacing: 0.9px;
+  margin-bottom: 7px;
+}
+
+.input-wrap {
+  display: flex;
+  align-items: center;
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-wrap:focus-within {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(26, 140, 202, 0.1);
+}
+
+/* Icon column — fixed width, separated by a divider */
+.input-ico {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 46px;
+  flex-shrink: 0;
+  color: #3a3a3a;
+  border-right: 1px solid var(--border);
+}
+
+/* Text input — takes remaining space, no left padding overlap */
+.input-wrap input {
+  flex: 1;
+  padding: 13px 14px;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  outline: none;
+  min-width: 0;
+}
+
+.input-wrap input::placeholder {
+  color: #3d3d3d;
+}

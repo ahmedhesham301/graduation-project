@@ -1,0 +1,173 @@
+/* ── Page wrapper ── */
+.auth-page {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeUp 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Card ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 42px 44px 46px;
+  width: 420px;
+  box-shadow:
+    0 40px 100px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+}
+
+/* ── Headings ── */
+.heading {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.1;
+  margin-bottom: 7px;
+}
+
+.heading em {
+  color: var(--blue2);
+  font-style: italic;
+}
+
+.tagline {
+  font-size: 13px;
+  color: var(--soft);
+  font-weight: 300;
+  margin-bottom: 28px;
+}
+
+/* ── Feedback messages ── */
+.msg {
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+.msg.ok {
+  background: rgba(26, 140, 202, 0.1);
+  border: 1px solid rgba(26, 140, 202, 0.25);
+  color: #7ad4f5;
+}
+
+.msg.err {
+  background: rgba(220, 60, 60, 0.09);
+  border: 1px solid rgba(220, 60, 60, 0.22);
+  color: #f08080;
+}
+
+/* ── Form ── */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Forgot password ── */
+.forgot {
+  display: block;
+  text-align: right;
+  font-size: 12px;
+  color: var(--blue);
+  cursor: pointer;
+  margin-top: -8px;
+}
+
+.forgot:hover {
+  color: var(--blue2);
+}
+
+/* ── Primary button ── */
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #1a8cca, #0d6090);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 22px rgba(26, 140, 202, 0.26);
+  transition: all 0.2s;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 28px rgba(26, 140, 202, 0.38);
+}
+
+.btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Divider ── */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── Switch line ── */
+.switch-text {
+  text-align: center;
+  margin-top: 22px;
+  font-size: 13px;
+  color: var(--soft);
+}
+
+.link {
+  color: var(--blue2);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+
+.heading {
+  overflow: hidden;
+}
+
+.heading em {
+  display: inline-block;
+  opacity: 0;
+  transform: translateX(-100%);
+  animation: emSlideIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.6s forwards;
+}
+
+@keyframes emSlideIn {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
