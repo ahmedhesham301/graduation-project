@@ -46,7 +46,7 @@ services:
       REDIS_PASSWORD: 1234
       SESSION_SECRET: 1234
       ENV: dev
-      S3_ENDPOINT: rustfs
+      S3_ENDPOINT: rustfs:9000
       BUCKET_NAME: testpublic
       S3_ACCESS_KEY: rustfsadmin
       S3_SECRET_KEY: rustfsadmin
@@ -55,6 +55,8 @@ services:
           condition: service_healthy
         redis-stack:
           condition: service_healthy
+        rustfs:
+          condition: service_started
 
   rustfs:
     image: rustfs/rustfs:latest
