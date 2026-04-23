@@ -17,9 +17,11 @@ export async function preparePropertyMediaUploads(propertyId, mediaFiles) {
 
     const presignedUploadUrlPromises = propertyMediaRecords.map((mediaRecord) =>
         createPresignedUploadUrl(
-            `${mediaRecord.uuid}.${mediaRecord.extension}`,
+            propertyId,
+            mediaRecord.uuid,
+            mediaRecord.extension,
             mediaRecord.mimeType,
-            mediaRecord.size
+            mediaRecord.size,
         )
     )
 

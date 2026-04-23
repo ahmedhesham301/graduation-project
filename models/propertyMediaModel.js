@@ -17,3 +17,26 @@ export async function createPropertyMediaRecords(propertyId, propertyMediaRecord
     }
     await pool.query(query)
 }
+
+export async function setUploadedToNow(propertyId, mediaId) {
+    const query = {
+        name: 'set-media-uploaded',
+        text: `update property_media SET uploaded_at = NOW() WHERE property_id = $1 AND s3_key = $2;`,
+        values: [propertyId, mediaId]
+    }
+
+    const { rowCount } = await pool.query(query)
+    return rowCount > 0
+}
+
+export async function isMediaFullyUploaded(propertyId) {
+    const query = {
+        name: 'is-media-fully-uploaded',
+        text: `SELECT COUNT(*) FROM property_media WHERE property_id = $1 AND uploaded_at IS NULL`,
+        values: [propertyId]
+    }
+    let result = await pool.query(query)
+    if (result.rows[0].count != '0') return false
+
+    return true
+}

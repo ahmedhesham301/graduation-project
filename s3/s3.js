@@ -1,4 +1,12 @@
-import { S3Client, CreateBucketCommand, HeadBucketCommand, PutPublicAccessBlockCommand, PutBucketPolicyCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import {
+    S3Client,
+    CreateBucketCommand,
+    HeadBucketCommand,
+    HeadObjectCommand,
+    PutPublicAccessBlockCommand,
+    PutBucketPolicyCommand,
+    PutObjectCommand
+} from "@aws-sdk/client-s3";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -20,9 +28,10 @@ export async function s3Init() {
     // Create a bucket if the env is dev
     if (process.env.ENV === "dev") {
         try {
-            await s3.send(new CreateBucketCommand({ 
-                Bucket: process.env.BUCKET_NAME, 
-                CreateBucketConfiguration: { LocationConstraint: "eu-central-1" } }));
+            await s3.send(new CreateBucketCommand({
+                Bucket: process.env.BUCKET_NAME,
+                CreateBucketConfiguration: { LocationConstraint: "eu-central-1" }
+            }));
             await s3.send(new PutPublicAccessBlockCommand({
                 Bucket: process.env.BUCKET_NAME,
                 PublicAccessBlockConfiguration: {
@@ -55,19 +64,19 @@ export async function s3Init() {
 
     // Check if BUcket exists and has access to it
     try {
-        await await s3.send(new HeadBucketCommand({ Bucket: process.env.BUCKET_NAME }));
+        await s3.send(new HeadBucketCommand({ Bucket: process.env.BUCKET_NAME }));
     } catch (error) {
         console.error(error)
         process.exit(1)
     }
 }
 
-export async function createPresignedUploadUrl(objectKey, mimeType, fileSize) {
+export async function createPresignedUploadUrl(propertyId, uuid, extension, mimeType, fileSize) {
     const presignedUrl = await getSignedUrl(
         s3,
         new PutObjectCommand({
             Bucket: process.env.BUCKET_NAME,
-            Key: objectKey,
+            Key: `media/${propertyId}/${uuid}.${extension}`,
             ContentType: mimeType,
             ContentLength: fileSize
         }),
@@ -75,8 +84,19 @@ export async function createPresignedUploadUrl(objectKey, mimeType, fileSize) {
     );
 
     return {
+        objectKey: `${uuid}.${extension}`,
         mimeType,
         fileSize,
         presignedUrl
+    }
+}
+
+export async function checkFileExists(key) {
+    try {
+        let result = await s3.send(new HeadObjectCommand({ Bucket: process.env.BUCKET_NAME, Key: key }));
+        return true
+    } catch (error) {
+        if (error.name === "NotFound") return false;
+        throw error
     }
 }

@@ -6,7 +6,7 @@ export async function findPropertyById(id) {
         name: 'find-property-by-id',
         text: `SELECT id, seller_id, type,  ST_Y(coordinates) AS lat, ST_X(coordinates) AS lon, area, floors, rooms, bathrooms, city_id, district_id, description, price, deleted_at
             FROM properties
-            WHERE id = $1`,
+            WHERE id = $1 AND pending_media=false;`,
         values: [id]
     }
     const { rows } = await pool.query(query)
@@ -57,7 +57,7 @@ export async function search(page, orderBy, orderDirection, filters) {
             clauses.push(filterMap[key](value))
         }
     }
-    clauses.push("deleted_at IS NULL")
+    clauses.push("deleted_at IS NULL", "pending_media=false")
 
     const offset = (page - 1) * PAGE_SIZE
 
@@ -83,5 +83,15 @@ export async function deletePropertyById(id) {
                WHERE id = $1 AND deleted_at IS NULL`,
         values: [id]
     }
-    return pool.query(query)
+    return await pool.query(query)
+}
+
+export async function publishProperty(propertyId) {
+    const query = {
+        name: 'publish-property',
+        text: `update properties SET pending_media = false WHERE id = $1;`,
+        values: [propertyId]
+    }
+
+    let result = await pool.query(query)
 }

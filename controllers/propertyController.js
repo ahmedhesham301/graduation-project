@@ -8,7 +8,7 @@ import { preparePropertyMediaUploads } from "../services/propertyMediaService.js
 
 export async function getPropertyByIdHandler(req, res) {
     try {
-        const property = await getPropertyById(req.params.id)
+        const property = await getPropertyById(req.params.propertyId)
         if (!property) {
             return res.status(404).json({ error: "Property not found" })
         }
@@ -27,13 +27,17 @@ export async function create(req, res) {
         const preparedUploads = await preparePropertyMediaUploads(property.id, req.body.media)
         const uploadUrlsByMimeTypeAndSize = {}
 
+
         for (const uploadDescriptor of preparedUploads) {
             uploadUrlsByMimeTypeAndSize[uploadDescriptor.mimeType] ??= {}
             uploadUrlsByMimeTypeAndSize[uploadDescriptor.mimeType][uploadDescriptor.fileSize] ??= []
-            uploadUrlsByMimeTypeAndSize[uploadDescriptor.mimeType][uploadDescriptor.fileSize].push(uploadDescriptor.presignedUrl)
+            uploadUrlsByMimeTypeAndSize[uploadDescriptor.mimeType][uploadDescriptor.fileSize].push({
+                presignedUrl: uploadDescriptor.presignedUrl,
+                mediaId: uploadDescriptor.objectKey
+            })
         }
 
-        res.status(201).json(uploadUrlsByMimeTypeAndSize)
+        res.status(201).json({ id: property.id, ...uploadUrlsByMimeTypeAndSize })
     } catch (error) {
         console.error(error)
         if (error.code === '23503') {
@@ -60,7 +64,7 @@ export async function searchForProperty(req, res) {
 
 export async function deleteProperty(req, res) {
     try {
-        const result = await deletePropertyById(req.params.id)
+        const result = await deletePropertyById(req.params.propertyId)
         if (result.rowCount === 0) {
             return res.status(404).json({ error: "Property not found" })
         }
