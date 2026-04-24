@@ -21,6 +21,7 @@ export async function findByEmail(email) {
     }
     return {
         id: result.rows[0].id,
+        name: result.rows[0].full_name,
         email: result.rows[0].email,
         passwordHash: result.rows[0].password_hash,
         role: result.rows[0].role,
