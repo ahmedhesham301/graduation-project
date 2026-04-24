@@ -1,11 +1,10 @@
 
 
 import { Router } from "express"
-import { getPropertyByIdHandler, create, deleteProperty } from "../controllers/propertyController.js"
+import { getPropertyByIdHandler, create, deleteProperty, searchForProperty } from "../controllers/propertyController.js"
 import { validatePropertyBody, validatePropertyId, validateMediaId } from "../middlewares/validation/propertyValidator.js"
 import { isAuthenticated } from "../middlewares/session.js"
 import { isSellerVerified, isPropertyOwner } from "../middlewares/propertyAuth.js"
-import { searchForProperty } from "../controllers/propertyController.js";
 import { validateSearchQuery } from "../middlewares/validation/searchValidator.js";
 import { resolveLocationNamesToIds } from "../middlewares/searchLocationResolver.js";
 import { verifyUpload } from "../controllers/propertyMediaController.js";

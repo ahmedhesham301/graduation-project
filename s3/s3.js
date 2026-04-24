@@ -93,7 +93,7 @@ export async function createPresignedUploadUrl(propertyId, uuid, extension, mime
 
 export async function checkFileExists(key) {
     try {
-        let result = await s3.send(new HeadObjectCommand({ Bucket: process.env.BUCKET_NAME, Key: key }));
+        await s3.send(new HeadObjectCommand({ Bucket: process.env.BUCKET_NAME, Key: key }));
         return true
     } catch (error) {
         if (error.name === "NotFound") return false;

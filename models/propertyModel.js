@@ -104,5 +104,5 @@ export async function publishProperty(propertyId) {
         values: [propertyId]
     }
 
-    let result = await pool.query(query)
+    await pool.query(query)
 }

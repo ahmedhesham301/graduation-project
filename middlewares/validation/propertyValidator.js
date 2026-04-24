@@ -1,5 +1,5 @@
 
-import { uuid, uuidv7, z } from "zod"
+import { z } from "zod"
 import { handleValidationError } from "./handleValidationError.js";
 
 const idSchema = z.coerce.number().int().positive()
@@ -8,15 +8,6 @@ const mediaSchema = z.object({
     size: z.coerce.number().int().positive().max(4000000000),
 })
 
-
-// const mediaIdSchema = z.string().refine((value) => {
-
-//     const uuidResult = z.uuidv7().safeParse(parts[0])
-//     if (!uuidResult) return false;
-//     const extResult = allowedExts.safeParse(parts[1])
-//     if (!extResult) return false;
-
-// })
 const propertySchema = z.object({
     type: z.string().min(1).max(100),
     lon: z.coerce.number().min(-180).max(180),

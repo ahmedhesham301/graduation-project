@@ -42,7 +42,3 @@ export async function getMediaUrls(propertyId) {
     return urls
 }
 
-export async function getMainMediaUrl(propertyId) {
-    
-}
-

@@ -36,14 +36,10 @@ export async function isMediaFullyUploaded(propertyId) {
         values: [propertyId]
     }
     let result = await pool.query(query)
-    if (result.rows[0].count != '0') return false
 
-    return true
+    return !(result.rows[0].count != '0')
 }
 
-// export async function getMainPic(propertyId) {
-    
-// }
 
 export async function getAllMedia(propertyId) {
     const query = {
@@ -53,5 +49,4 @@ export async function getAllMedia(propertyId) {
     }
     let result = await pool.query(query)
     return result.rows
-
 }
