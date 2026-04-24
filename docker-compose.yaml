@@ -35,6 +35,7 @@ services:
 
   api:
     image: ahmedhesham301/3akarati:latest
+    restart: unless-stopped
     ports:
       - 8080:8080
     environment:
