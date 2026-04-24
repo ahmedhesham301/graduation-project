@@ -4,8 +4,7 @@ import {
 } from "../services/propertyServices.js"
 import { search, deletePropertyById } from "../models/propertyModel.js";
 import { mapPropertiesLocationNames } from "../services/locationCache.js";
-import { preparePropertyMediaUploads } from "../services/propertyMediaService.js";
-
+import { preparePropertyMediaUploads, getMediaUrls } from "../services/propertyMediaService.js";
 export async function getPropertyByIdHandler(req, res) {
     try {
         const property = await getPropertyById(req.params.propertyId)
@@ -13,7 +12,8 @@ export async function getPropertyByIdHandler(req, res) {
             return res.status(404).json({ error: "Property not found" })
         }
 
-        res.status(200).json(property)
+        const urls = await getMediaUrls(req.params.propertyId) 
+        res.status(200).json({ ...property, media: urls })
     } catch (error) {
         console.error(error)
         res.status(500).json({ error: "Internal server error" })

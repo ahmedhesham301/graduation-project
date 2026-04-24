@@ -40,3 +40,18 @@ export async function isMediaFullyUploaded(propertyId) {
 
     return true
 }
+
+// export async function getMainPic(propertyId) {
+    
+// }
+
+export async function getAllMedia(propertyId) {
+    const query = {
+        name: 'get-all-media',
+        text: `SELECT * FROM property_media WHERE property_id = $1 AND uploaded_at IS NOT NULL ORDER BY uploaded_at`,
+        values: [propertyId]
+    }
+    let result = await pool.query(query)
+    return result.rows
+
+}

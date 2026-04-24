@@ -1,13 +1,13 @@
 
 import { pool } from "../database/postgresql.js";
 
-export async function findPropertyById(id) {
+export async function findPropertyById(id, pendingMedia = null) {
     const query = {
         name: 'find-property-by-id',
         text: `SELECT id, seller_id, type,  ST_Y(coordinates) AS lat, ST_X(coordinates) AS lon, area, floors, rooms, bathrooms, city_id, district_id, description, price, deleted_at
             FROM properties
-            WHERE id = $1 AND pending_media=false;`,
-        values: [id]
+            WHERE id = $1 AND ($2::boolean IS NULL OR pending_media = $2);`,
+        values: [id, pendingMedia ?? null]
     }
     const { rows } = await pool.query(query)
     return rows[0] || null
@@ -62,14 +62,25 @@ export async function search(page, orderBy, orderDirection, filters) {
     const offset = (page - 1) * PAGE_SIZE
 
     const query = {
-        text: `SELECT id, type, area, floors, rooms, bathrooms, city_id, district_id, price
-        FROM properties
-        WHERE ${clauses.join(" AND ")}
-        ${order ?? ''}
-        OFFSET ${offset}
-        LIMIT ${PAGE_SIZE};`,
-        values: values
-    }
+        text: `
+    SELECT
+      p.id, p.type, p.area, p.floors, p.rooms, p.bathrooms, p.city_id, p.district_id, p.price,
+      pm.s3_key || '.' || pm.extension AS media
+    FROM properties p
+    LEFT JOIN LATERAL (
+      SELECT s3_key, extension
+      FROM property_media
+      WHERE property_id = p.id AND uploaded_at IS NOT NULL
+      ORDER BY uploaded_at ASC
+      LIMIT 1
+    ) pm ON true
+    WHERE ${clauses.join(" AND ")}
+    ${order ?? ""}
+    OFFSET ${offset}
+    LIMIT ${PAGE_SIZE};
+  `,
+        values
+    };
 
     const { rows } = await pool.query(query)
     return rows

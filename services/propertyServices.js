@@ -4,7 +4,7 @@ import { mapPropertyLocationNames } from "../services/locationCache.js";
 
 
 export async function getPropertyById(propertyId) {
-    const propertyRecord = await findPropertyById(propertyId)
+    const propertyRecord = await findPropertyById(propertyId, false)
     if (!propertyRecord) return null;
 
     const { deleted_at: deletedAt, ...propertyWithLocation } = mapPropertyLocationNames(propertyRecord)
