@@ -71,7 +71,7 @@ export async function s3Init() {
     }
 }
 
-export async function createPresignedUploadUrl(propertyId, uuid, extension, mimeType, fileSize) {
+export async function createPresignedUploadUrl(propertyId, uuid, extension, mimeType, fileSize, fileName) {
     const presignedUrl = await getSignedUrl(
         s3,
         new PutObjectCommand({
@@ -87,7 +87,8 @@ export async function createPresignedUploadUrl(propertyId, uuid, extension, mime
         objectKey: `${uuid}.${extension}`,
         mimeType,
         fileSize,
-        presignedUrl
+        presignedUrl,
+        fileName
     }
 }
 

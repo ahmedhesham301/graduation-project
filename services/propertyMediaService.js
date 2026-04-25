@@ -1,18 +1,14 @@
 import { v7 as uuidv7 } from "uuid";
 import { createPresignedUploadUrl } from "../s3/s3.js";
 import { createPropertyMediaRecords, getAllMedia } from "../models/propertyMediaModel.js";
-
-const mimeTypeToExtension = {
-    "image/jpeg": "jpeg",
-    "image/png": "png",
-    "image/webp": "webp",
-};
+import mime from 'mime';
 
 export async function preparePropertyMediaUploads(propertyId, mediaFiles) {
     const propertyMediaRecords = mediaFiles.map((mediaFile) => ({
         ...mediaFile,
         uuid: uuidv7(),
-        extension: mimeTypeToExtension[mediaFile.mimeType],
+        extension: mime.getExtension(mime.getType(mediaFile.fileName)),
+        mimeType: mime.getType(mediaFile.fileName),
     }))
 
     const presignedUploadUrlPromises = propertyMediaRecords.map((mediaRecord) =>
@@ -22,6 +18,7 @@ export async function preparePropertyMediaUploads(propertyId, mediaFiles) {
             mediaRecord.extension,
             mediaRecord.mimeType,
             mediaRecord.size,
+            mediaRecord.fileName
         )
     )
 

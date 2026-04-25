@@ -17,6 +17,7 @@ CREATE TYPE "verification_status" AS ENUM (
 
 CREATE TYPE "media_types" AS ENUM (
   'jpeg',
+  'jpg',
   'png',
   'webp'
 );

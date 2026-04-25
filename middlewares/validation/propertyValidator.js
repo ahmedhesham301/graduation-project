@@ -3,8 +3,19 @@ import { z } from "zod"
 import { handleValidationError } from "./handleValidationError.js";
 
 const idSchema = z.coerce.number().int().positive()
+const fileExt = z.enum(["jpeg", "png", "webp", "jpg"])
 const mediaSchema = z.object({
-    mimeType: z.enum(["image/jpeg", "image/png", "image/webp"]),
+    fileName: z.coerce.string().min(5).max(200).refine((fileName) => {
+        const parts = fileName.split(".")
+        if (parts.length !== 2) return false
+
+        const result = fileExt.safeParse(parts[1])
+        return result.success
+    },
+        {
+            message: "unsupported file format"
+        }
+    ),
     size: z.coerce.number().int().positive().max(4000000000),
 })
 
@@ -48,7 +59,7 @@ export async function validatePropertyId(req, res, next) {
 const mediaIdSchema = z.object({
     propertyId: z.coerce.number().int().positive(),
     uuid: z.uuidv7(),
-    ext: z.enum(["jpeg", "png", "webp"])
+    ext: fileExt
 })
 
 export async function validateMediaId(req, res, next) {

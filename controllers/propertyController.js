@@ -25,19 +25,16 @@ export async function create(req, res) {
     try {
         const property = await createProperty(req.session.userID, req.body)
         const preparedUploads = await preparePropertyMediaUploads(property.id, req.body.media)
-        const uploadUrlsByMimeTypeAndSize = {}
-
+        const uploadUrlsByFileName = {}
 
         for (const uploadDescriptor of preparedUploads) {
-            uploadUrlsByMimeTypeAndSize[uploadDescriptor.mimeType] ??= {}
-            uploadUrlsByMimeTypeAndSize[uploadDescriptor.mimeType][uploadDescriptor.fileSize] ??= []
-            uploadUrlsByMimeTypeAndSize[uploadDescriptor.mimeType][uploadDescriptor.fileSize].push({
-                presignedUrl: uploadDescriptor.presignedUrl,
+            uploadUrlsByFileName[uploadDescriptor.fileName] = {
+                uploadUrl: uploadDescriptor.presignedUrl,
                 mediaId: uploadDescriptor.objectKey
-            })
+            }
         }
 
-        res.status(201).json({ id: property.id, ...uploadUrlsByMimeTypeAndSize })
+        res.status(201).json({ id: property.id, media: uploadUrlsByFileName })
     } catch (error) {
         console.error(error)
         if (error.code === '23503') {
