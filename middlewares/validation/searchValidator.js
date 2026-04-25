@@ -27,7 +27,7 @@ export async function validateSearchQuery(req, res, next) {
         handleValidationError(result.error, res)
         return
     }
-    
+
     if (Object.keys(result.data).length < 2 && result.data.page) {
         res.status(400).json({
             "message": "Invalid input format",
@@ -48,7 +48,18 @@ export async function validateSearchQuery(req, res, next) {
             }
         })
         return
+    } else if (result.data.district && !result.data.city) {
+        res.status(400).json({
+            "message": "Invalid input format",
+            "errors": {
+                "city": [
+                    "city has to exist when using distrct"
+                ]
+            }
+        })
+        return
     }
+
 
     req.updatedParameters = result.data
     next()
