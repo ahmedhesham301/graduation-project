@@ -13,7 +13,7 @@ export async function addToFavorites(userId, propertyId) {
 export async function getFavorites(userId) {
     const rows = await getSavedProperties(userId)
    
-    return mapPropertiesLocationNames(rows)
+    return rows
 }
 export async function removeFromFavorites(userId, propertyId) {
     return await removeSavedProperty(userId, propertyId)
