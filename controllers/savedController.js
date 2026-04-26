@@ -33,3 +33,22 @@ export async function saveToFavorites(req, res) {
         res.status(500).json({ error: "Failed to save property" })
     }
 }
+
+
+export async function removeFromFavoritesHandler(req, res) {
+    try {
+        const deleted = await removeFromFavorites(
+            req.session.userID,
+            req.params.propertyId
+        )
+
+        if (!deleted) {
+            return res.status(404).json({ error: "Property not found in favorites" })
+        }
+
+        res.status(204).send()
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ error: "Failed to remove property from favorites" })
+    }
+}

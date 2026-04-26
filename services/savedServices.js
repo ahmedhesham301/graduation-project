@@ -15,3 +15,7 @@ export async function getFavorites(userId) {
    
     return rows
 }
+export async function removeFromFavorites(userId, propertyId) {
+    return await removeSavedProperty(userId, propertyId)
+    return rows
+}

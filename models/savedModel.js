@@ -43,3 +43,14 @@ export async function getSavedProperties(userId) {
     const { rows } = await pool.query(query)
     return rows
 }
+
+export async function removeSavedProperty(userId, propertyId) {
+    const query = {
+        name: 'remove-saved-property',
+        text: `DELETE FROM saved
+               WHERE user_id = $1 AND property_id = $2`,
+        values: [userId, propertyId]
+    }
+    const { rowCount } = await pool.query(query)
+    return rowCount > 0 // true = deleted, false = wasn't saved
+}

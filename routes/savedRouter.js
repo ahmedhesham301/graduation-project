@@ -1,7 +1,8 @@
 import { Router } from "express"
 import {
     getMyFavorites,
-    saveToFavorites
+    saveToFavorites,
+    removeFromFavoritesHandler
     
 } from "../controllers/savedController.js"
 import { validatePropertyId } from "../middlewares/validation/savedValidator.js"
@@ -15,6 +16,7 @@ router.use(isAuthenticated)
 
 router.get("/", getMyFavorites)
 router.post("/:propertyId", validatePropertyId, saveToFavorites)
+router.delete("/:propertyId", validatePropertyId, removeFromFavoritesHandler)
 
 
 export default router
