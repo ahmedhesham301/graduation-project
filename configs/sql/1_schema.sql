@@ -65,13 +65,13 @@ CREATE TABLE "properties" (
 
 CREATE TABLE "cities" (
   "id" SERIAL PRIMARY KEY,
-  "name" VARCHAR UNIQUE NOT NULL
+  "name" citext UNIQUE NOT NULL
 );
 
 CREATE TABLE "districts" (
   "id" SERIAL PRIMARY KEY,
   "city_id" INTEGER NOT NULL,
-  "name" VARCHAR NOT NULL
+  "name" citext NOT NULL
 );
 
 CREATE TABLE "property_media" (
@@ -85,7 +85,7 @@ CREATE TABLE "property_media" (
 
 CREATE TABLE "features" (
   "id" SERIAL PRIMARY KEY,
-  "name" VARCHAR UNIQUE NOT NULL
+  "name" citext UNIQUE NOT NULL
 );
 
 CREATE TABLE "property_features" (
