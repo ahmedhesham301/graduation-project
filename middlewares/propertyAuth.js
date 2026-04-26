@@ -23,15 +23,15 @@ export async function isSellerVerified(req, res, next) {
 
 export async function isPropertyOwner(req, res, next) {
     try {
-        const property = await findPropertyById(req.params.id)
+        const property = await findPropertyById(req.params.propertyId)
         if (property == null) return res.status(404).send()
         if (property.seller_id == req.session.userID) {
             next()
         }
         else {
             return res.status(404).send()
-        } 
-        
+        }
+
     } catch (error) {
         console.error(error)
         return res.status(500).json({ error: "Internal server error" })

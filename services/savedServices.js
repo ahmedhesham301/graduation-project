@@ -3,7 +3,6 @@ import {
     saveProperty,
     getSavedProperties
 } from "../models/savedModel.js"
-import { mapPropertiesLocationNames } from "./locationCache.js"
 
 
 export async function addToFavorites(userId, propertyId) {
@@ -18,4 +17,5 @@ export async function getFavorites(userId) {
 }
 export async function removeFromFavorites(userId, propertyId) {
     return await removeSavedProperty(userId, propertyId)
+    return rows
 }

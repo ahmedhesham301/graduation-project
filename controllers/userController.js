@@ -1,4 +1,4 @@
-import { registerUser, authenticateUser, becomeSeller  } from "../services/userServices.js";
+import { registerUser, authenticateUser, becomeSeller } from "../services/userServices.js";
 
 export async function register(req, res) {
     try {
@@ -38,7 +38,7 @@ export async function login(req, res) {
         req.session.email = userData.email
         req.session.role = userData.role
 
-        res.status(200).json({ message: "login successful" })
+        res.status(200).json({ message: "login successful", name: userData.name })
     } catch (error) {
         if (error.code == "EMAIL_NOT_FOUND") {
             res.status(400).json({ error: 'Email not found' })
@@ -68,7 +68,7 @@ export async function upgradeTOSeller(req, res) {
     try {
         await becomeSeller(req.session.userID)
 
-        
+
         req.session.role = 'seller'
 
         res.status(200).json({ message: "You are now registered as a seller. Your profile is pending verification." })

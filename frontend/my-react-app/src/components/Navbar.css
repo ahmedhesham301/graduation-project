@@ -1,0 +1,105 @@
+.navbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32px; height: 64px;
+  background: var(--nav-bg); backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--nav-border);
+  transition: background 0.3s, border-color 0.3s;
+}
+
+/* ── Logo ── */
+.nav-logo { display: flex; align-items: center; gap: 10px; cursor: pointer; flex-shrink: 0; }
+.nav-logo-icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(145deg, #0c2d43, #1a5a82);
+  border-radius: 9px; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 12px rgba(26,140,202,0.2);
+}
+.nav-logo-text { display: flex; flex-direction: column; line-height: 1; }
+.nav-logo-name { font-size: 14px; font-weight: 700; color: var(--blue2); letter-spacing: 2px; }
+.nav-logo-sub  { font-size: 8px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-top: 2px; }
+
+/* ── Links ── */
+.nav-links { display: flex; align-items: center; gap: 2px; list-style: none; }
+.nav-link {
+  padding: 6px 11px; font-size: 13px; font-weight: 500;
+  color: var(--soft); text-decoration: none; border-radius: 7px;
+  transition: color 0.2s, background 0.2s; white-space: nowrap;
+}
+.nav-link:hover { color: var(--text); background: rgba(26,140,202,0.08); }
+
+/* ── Actions ── */
+.nav-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+.nav-signin-btn {
+  padding: 8px 18px;
+  background: linear-gradient(135deg, #1a8cca, #0d6090);
+  border: none; border-radius: 8px; color: #fff;
+  font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+  box-shadow: 0 2px 10px rgba(26,140,202,0.25);
+}
+.nav-signin-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(26,140,202,0.4); }
+
+.nav-icon-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 1px solid var(--border); background: var(--card);
+  color: var(--soft); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s;
+}
+.nav-icon-btn:hover { border-color: var(--blue); color: var(--blue2); }
+
+/* ── Hamburger ── */
+.nav-hamburger {
+  display: none; flex-direction: column; justify-content: center;
+  gap: 5px; width: 36px; height: 36px;
+  background: none; border: none; cursor: pointer; padding: 6px;
+}
+.ham-line {
+  display: block; width: 100%; height: 2px;
+  background: var(--text); border-radius: 2px; transition: all 0.3s;
+}
+.ham-line.open:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.ham-line.open:nth-child(2) { opacity: 0; }
+.ham-line.open:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* ── Mobile drawer ── */
+.nav-drawer {
+  display: none; position: fixed;
+  top: 64px; left: 0; right: 0; z-index: 99;
+  background: var(--card); border-bottom: 1px solid var(--border);
+  flex-direction: column; padding: 12px 24px 20px;
+  gap: 2px; box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  transition: background 0.3s;
+}
+.nav-drawer.open { display: flex; }
+.drawer-link {
+  padding: 12px 14px; font-size: 15px; font-weight: 500;
+  color: var(--text); text-decoration: none; border-radius: 8px;
+  transition: background 0.2s;
+}
+.drawer-link:hover { background: var(--card2); }
+.drawer-bottom {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 12px; padding-top: 14px; border-top: 1px solid var(--border);
+}
+.drawer-signin {
+  padding: 11px 24px;
+  background: linear-gradient(135deg, #1a8cca, #0d6090);
+  border: none; border-radius: 10px; color: #fff;
+  font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+  .nav-links { display: none; }
+  .nav-hamburger { display: flex; }
+  .nav-signin-btn { display: none; }
+  .nav-icon-btn { display: none; }
+}
+
+@media (max-width: 480px) {
+  .navbar { padding: 0 16px; }
+  .nav-logo-name { font-size: 12px; }
+  .nav-logo-sub { display: none; }
+}

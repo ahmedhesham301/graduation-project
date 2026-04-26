@@ -1,0 +1,18 @@
+.theme-toggle { background: none; border: none; padding: 0; cursor: pointer; display: flex; align-items: center; }
+.tt-track {
+  position: relative; width: 52px; height: 26px; border-radius: 100px;
+  display: flex; align-items: center; justify-content: space-between; padding: 0 6px;
+  transition: background 0.3s;
+}
+.is-dark  .tt-track { background: #1e3a4a; border: 1px solid #1a8cca44; }
+.is-light .tt-track { background: #e0f0fa; border: 1px solid #1a8cca55; }
+.tt-sun  { position: relative; z-index: 1; display: flex; color: #f5c842; }
+.tt-moon { position: relative; z-index: 1; display: flex; color: #90c8e8; }
+.tt-thumb {
+  position: absolute; top: 3px; width: 20px; height: 20px; border-radius: 50%;
+  background: linear-gradient(135deg,#1a8cca,#0d6090);
+  box-shadow: 0 2px 8px rgba(26,140,202,0.4);
+  transition: left 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.is-dark  .tt-thumb { left: 28px; }
+.is-light .tt-thumb { left: 3px;  }

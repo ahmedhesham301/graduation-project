@@ -3,16 +3,16 @@ import {
     createProperty
 } from "../services/propertyServices.js"
 import { search, deletePropertyById } from "../models/propertyModel.js";
-import { mapPropertiesLocationNames } from "../services/locationCache.js";
-
+import { preparePropertyMediaUploads, getMediaUrls } from "../services/propertyMediaService.js";
 export async function getPropertyByIdHandler(req, res) {
     try {
-        const property = await getPropertyById(req.params.id)
+        const property = await getPropertyById(req.params.propertyId)
         if (!property) {
             return res.status(404).json({ error: "Property not found" })
         }
 
-        res.status(200).json(property)
+        const urls = await getMediaUrls(req.params.propertyId)
+        res.status(200).json({ ...property, media: urls })
     } catch (error) {
         console.error(error)
         res.status(500).json({ error: "Internal server error" })
@@ -23,7 +23,17 @@ export async function getPropertyByIdHandler(req, res) {
 export async function create(req, res) {
     try {
         const property = await createProperty(req.session.userID, req.body)
-        res.status(201).json(property)
+        const preparedUploads = await preparePropertyMediaUploads(property.id, req.body.media)
+        const uploadUrlsByFileName = {}
+
+        for (const uploadDescriptor of preparedUploads) {
+            uploadUrlsByFileName[uploadDescriptor.fileName] = {
+                uploadUrl: uploadDescriptor.presignedUrl,
+                mediaId: uploadDescriptor.objectKey
+            }
+        }
+
+        res.status(201).json({ id: property.id, media: uploadUrlsByFileName })
     } catch (error) {
         console.error(error)
         if (error.code === '23503') {
@@ -38,10 +48,10 @@ export async function create(req, res) {
 
 export async function searchForProperty(req, res) {
     try {
-        const { page, orderBy, orderDirection, ...filters } = req.updatedParameters
+        const { page, orderBy, orderDirection, city = null, district = null, ...filters } = req.updatedParameters
 
-        let result = await search(page, orderBy, orderDirection, filters)
-        res.status(200).json(mapPropertiesLocationNames(result))
+        let result = await search(page, orderBy, orderDirection, city, district, filters)
+        res.status(200).json(result)
     } catch (error) {
         console.error(error)
         res.status(500).json({ error: "Internal server error" })
@@ -50,7 +60,7 @@ export async function searchForProperty(req, res) {
 
 export async function deleteProperty(req, res) {
     try {
-        const result = await deletePropertyById(req.params.id)
+        const result = await deletePropertyById(req.params.propertyId)
         if (result.rowCount === 0) {
             return res.status(404).json({ error: "Property not found" })
         }
