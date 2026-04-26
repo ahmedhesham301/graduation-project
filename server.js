@@ -9,6 +9,7 @@ import propertyRouter from "./routes/propertyRouter.js"
 import savedRouter from "./routes/savedRouter.js"
 import { s3Init } from "./s3/s3.js";
 import helmet from "helmet";
+import cors from "cors";
 
 await initDB()
 await initRedis()
@@ -21,6 +22,7 @@ if (process.env.ENV === "dev") {
     app.use(morgan('dev'))
 }
 app.use(express.json())
+app.use(cors())
 app.use(sessionMiddleware)
 
 app.use('/api', authRouter)
