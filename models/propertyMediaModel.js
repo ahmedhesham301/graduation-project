@@ -37,7 +37,7 @@ export async function isMediaFullyUploaded(propertyId) {
     }
     let result = await pool.query(query)
 
-    return !(result.rows[0].count != '0')
+    return (result.rows[0].count == '0')
 }
 
 
