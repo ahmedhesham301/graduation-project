@@ -4,9 +4,17 @@ import { pool } from "../database/postgresql.js";
 export async function findPropertyById(id, pendingMedia = null) {
     const query = {
         name: 'find-property-by-id',
-        text: `SELECT id, seller_id, type,  ST_Y(coordinates) AS lat, ST_X(coordinates) AS lon, area, floors, rooms, bathrooms, city_id, district_id, description, price, deleted_at
-            FROM properties
-            WHERE id = $1 AND ($2::boolean IS NULL OR pending_media = $2);`,
+        text: `SELECT 
+        p.id, p.seller_id, 
+        p.type,ST_Y(p.coordinates) AS lat,ST_X(p.coordinates) AS lon,
+        p.area, p.floors, p.rooms, p.bathrooms, c.name AS city, d.name AS district, p.description, p.price, p.deleted_at
+        FROM properties p
+        JOIN cities c 
+            ON c.id = p.city_id
+        JOIN districts d 
+            ON d.id = p.district_id
+            AND d.city_id = c.id
+        WHERE p.id = $1 AND ($2::boolean IS NULL OR p.pending_media = $2);`,
         values: [id, pendingMedia ?? null]
     }
     const { rows } = await pool.query(query)
