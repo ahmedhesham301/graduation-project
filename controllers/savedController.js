@@ -1,6 +1,7 @@
 import {
     addToFavorites,
-     getFavorites
+     getFavorites,
+     removeFromFavorites 
 } from "../services/savedServices.js"
 
 export async function getMyFavorites(req, res) {

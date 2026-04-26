@@ -1,7 +1,8 @@
 
 import {
     saveProperty,
-    getSavedProperties
+    getSavedProperties,
+    removeSavedProperty
 } from "../models/savedModel.js"
 
 
