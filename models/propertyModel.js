@@ -38,15 +38,13 @@ export async function createPropertyRecord(sellerId, type, lat, lon, area, floor
 
 const PAGE_SIZE = 20;
 const filterMap = {
-    city: (i) => `city_id = ${i}`,
-    district: (i) => `district_id = ${i}`,
     bathrooms: (i) => `bathrooms = $${i}`,
     rooms: (i) => `rooms = $${i}`,
     area: (i) => `area = $${i}`,
     floors: (i) => `floors = $${i}`,
 };
 
-export async function search(page, orderBy, orderDirection, filters) {
+export async function search(page, orderBy, orderDirection, city, district, filters) {
     let index = 1
     let clauses = []
     let values = []
@@ -56,15 +54,18 @@ export async function search(page, orderBy, orderDirection, filters) {
     }
 
     for (const [key, value] of Object.entries(filters)) {
-
-        if (key !== 'city' && key !== 'district') {
-            clauses.push(filterMap[key](index))
-            values.push(value)
-            index++
-        } else {
-            clauses.push(filterMap[key](value))
-        }
+        clauses.push(filterMap[key](index++))
+        values.push(value)
     }
+
+    if (district) {
+        clauses.push(`district_id = (SELECT id FROM districts WHERE city_id = $${index++} AND name = $${index++})`)
+        values.push(city, district)
+    } else if (city) {
+        clauses.push(`city_id = (SELECT id FROM cities WHERE name = $${index++})`)
+        values.push(city)
+    }
+
     clauses.push("deleted_at IS NULL", "pending_media=false")
 
     const offset = (page - 1) * PAGE_SIZE
@@ -89,7 +90,6 @@ export async function search(page, orderBy, orderDirection, filters) {
   `,
         values
     };
-
     const { rows } = await pool.query(query)
     return rows
 }

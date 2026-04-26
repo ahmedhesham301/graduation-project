@@ -49,9 +49,9 @@ export async function create(req, res) {
 
 export async function searchForProperty(req, res) {
     try {
-        const { page, orderBy, orderDirection, ...filters } = req.updatedParameters
+        const { page, orderBy, orderDirection, city=null, district=null, ...filters } = req.updatedParameters
 
-        let result = await search(page, orderBy, orderDirection, filters)
+        let result = await search(page, orderBy, orderDirection,city, district, filters)
         res.status(200).json(mapPropertiesLocationNames(result))
     } catch (error) {
         console.error(error)

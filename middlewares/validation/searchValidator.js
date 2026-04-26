@@ -3,8 +3,8 @@ import { handleValidationError } from "./handleValidationError.js";
 import qs from 'qs'
 
 const parametersSchema = z.object({
-    city: z.coerce.string().optional(),
-    district: z.coerce.string().optional(),
+    city: z.string().optional(),
+    district: z.string().optional(),
     bathrooms: z.coerce.number().int().optional(),
     rooms: z.coerce.number().int().optional(),
     area: z.coerce.number().int().optional(),

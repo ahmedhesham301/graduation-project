@@ -12,7 +12,7 @@ const router = Router()
 
 
 router.get("/properties/:propertyId", validatePropertyId, getPropertyByIdHandler)
-router.get('/search', validateSearchQuery, resolveLocationNamesToIds, searchForProperty)
+router.get('/search', validateSearchQuery, searchForProperty)
 
 router.post("/properties", isAuthenticated, isSellerVerified, validatePropertyBody, create)
 
