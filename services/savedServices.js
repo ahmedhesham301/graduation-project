@@ -16,3 +16,6 @@ export async function getFavorites(userId) {
    
     return mapPropertiesLocationNames(rows)
 }
+export async function removeFromFavorites(userId, propertyId) {
+    return await removeSavedProperty(userId, propertyId)
+}

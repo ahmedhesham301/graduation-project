@@ -5,10 +5,8 @@ import { handleValidationError } from "./handleValidationError.js";
 const idSchema = z.coerce.number().int().positive()
 const propertySchema = z.object({
     type: z.string().min(1).max(100),
-    coordinates: z.object({
-        lon:     z.coerce.number().min(-180).max(180),
-        lat:     z.coerce.number().min(-90).max(90  ),
-    }),
+    lon:         z.coerce.number().min(-180).max(180),   
+    lat:         z.coerce.number().min(-90).max(90), 
     area:        z.coerce.number().int().positive(),
     floors:      z.coerce.number().int().positive(),
     rooms:       z.coerce.number().int().positive(),
