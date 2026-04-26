@@ -3,7 +3,6 @@ import {
     createProperty
 } from "../services/propertyServices.js"
 import { search, deletePropertyById } from "../models/propertyModel.js";
-import { mapPropertiesLocationNames } from "../services/locationCache.js";
 import { preparePropertyMediaUploads, getMediaUrls } from "../services/propertyMediaService.js";
 export async function getPropertyByIdHandler(req, res) {
     try {

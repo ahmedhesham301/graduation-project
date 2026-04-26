@@ -7,13 +7,11 @@ import { sessionMiddleware } from "./middlewares/session.js";
 import authRouter from "./routes/authRouter.js"
 import propertyRouter from "./routes/propertyRouter.js"
 import savedRouter from "./routes/savedRouter.js"
-import { initializeLocationCache } from "./services/locationCache.js";
 import { s3Init } from "./s3/s3.js";
 import helmet from "helmet";
 
 await initDB()
 await initRedis()
-await initializeLocationCache()
 await s3Init()
 
 const app = express()

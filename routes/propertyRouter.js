@@ -6,7 +6,6 @@ import { validatePropertyBody, validatePropertyId, validateMediaId } from "../mi
 import { isAuthenticated } from "../middlewares/session.js"
 import { isSellerVerified, isPropertyOwner } from "../middlewares/propertyAuth.js"
 import { validateSearchQuery } from "../middlewares/validation/searchValidator.js";
-import { resolveLocationNamesToIds } from "../middlewares/searchLocationResolver.js";
 import { verifyUpload } from "../controllers/propertyMediaController.js";
 const router = Router()
 
