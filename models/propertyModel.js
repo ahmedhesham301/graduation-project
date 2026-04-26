@@ -59,23 +59,29 @@ export async function search(page, orderBy, orderDirection, city, district, filt
     }
 
     if (district) {
-        clauses.push(`district_id = (SELECT id FROM districts WHERE city_id = $${index++} AND name = $${index++})`)
+        clauses.push(`p.district_id = (SELECT id FROM districts WHERE city_id = $${index++} AND name = $${index++})`)
         values.push(city, district)
     } else if (city) {
-        clauses.push(`city_id = (SELECT id FROM cities WHERE name = $${index++})`)
+        clauses.push(`p.city_id = (SELECT id FROM cities WHERE name = $${index++})`)
         values.push(city)
     }
 
-    clauses.push("deleted_at IS NULL", "pending_media=false")
+    clauses.push("p.deleted_at IS NULL", "p.pending_media=false")
 
     const offset = (page - 1) * PAGE_SIZE
 
     const query = {
         text: `
     SELECT
-      p.id, p.type, p.area, p.floors, p.rooms, p.bathrooms, p.city_id, p.district_id, p.price,
+      p.id, p.type, p.area, p.floors, p.rooms, p.bathrooms, p.price,
+      c.name AS city, d.name AS district,
       pm.s3_key || '.' || pm.extension AS media
     FROM properties p
+    JOIN cities c
+      ON c.id = p.city_id
+    JOIN districts d
+      ON d.id = p.district_id
+     AND d.city_id = c.id
     LEFT JOIN LATERAL (
       SELECT s3_key, extension
       FROM property_media
@@ -90,6 +96,7 @@ export async function search(page, orderBy, orderDirection, city, district, filt
   `,
         values
     };
+
     const { rows } = await pool.query(query)
     return rows
 }

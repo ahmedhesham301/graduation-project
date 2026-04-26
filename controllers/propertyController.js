@@ -12,7 +12,7 @@ export async function getPropertyByIdHandler(req, res) {
             return res.status(404).json({ error: "Property not found" })
         }
 
-        const urls = await getMediaUrls(req.params.propertyId) 
+        const urls = await getMediaUrls(req.params.propertyId)
         res.status(200).json({ ...property, media: urls })
     } catch (error) {
         console.error(error)
@@ -49,10 +49,10 @@ export async function create(req, res) {
 
 export async function searchForProperty(req, res) {
     try {
-        const { page, orderBy, orderDirection, city=null, district=null, ...filters } = req.updatedParameters
+        const { page, orderBy, orderDirection, city = null, district = null, ...filters } = req.updatedParameters
 
-        let result = await search(page, orderBy, orderDirection,city, district, filters)
-        res.status(200).json(mapPropertiesLocationNames(result))
+        let result = await search(page, orderBy, orderDirection, city, district, filters)
+        res.status(200).json(result)
     } catch (error) {
         console.error(error)
         res.status(500).json({ error: "Internal server error" })
