@@ -7,17 +7,6 @@ const IconChevronLeft = () => (
     <polyline points="15 18 9 12 15 6" />
   </svg>
 );
-const IconBell = () => (
-  <svg width="20" height="20" fill="none" stroke="#888" strokeWidth="2" viewBox="0 0 24 24">
-    <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
-    <path d="M13.73 21a2 2 0 01-3.46 0" />
-  </svg>
-);
-const IconSearch = () => (
-  <svg width="15" height="15" fill="none" stroke="#aaa" strokeWidth="2" viewBox="0 0 24 24">
-    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-  </svg>
-);
 const IconEditPen = () => (
   <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
     <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
@@ -61,7 +50,7 @@ const IconMail = () => (
 );
 
 /* ── Main Component ── */
-export default function ProfileSettings({ onNavigate }) {
+export default function ProfileSettings({ onNavigate, onLogout }) {
   const [activeNav, setActiveNav] = useState("edit");
   const [editMode, setEditMode]   = useState(false);
   const [menuOpen, setMenuOpen]   = useState(false);
@@ -100,7 +89,7 @@ export default function ProfileSettings({ onNavigate }) {
               <Icon /> {label}
             </button>
           ))}
-          <button className="ps-nav-item logout" onClick={() => onNavigate("home")}>
+          <button className="ps-nav-item logout" onClick={onLogout}>
             <IconLogout /> Log out
           </button>
         </nav>
@@ -127,8 +116,7 @@ export default function ProfileSettings({ onNavigate }) {
             </div>
           </div>
           <div className="ps-topbar-right">
-            <div className="ps-search-box"><IconSearch /> Search</div>
-            <IconBell />
+
             <div className="ps-avatar-circle">{initials}</div>
           </div>
         </div>
