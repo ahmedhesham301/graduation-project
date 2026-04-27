@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Navbar from "../components/Navbar";
 import "./HomePage.css";
+// console.log("isLoggedIn:", isLoggedIn); // for test
 
 const PROPERTIES = [
   { id:1, price:"EGP 1,199,000",  title:"Villa in Palm Hills Compound",    location:"6th of October, Giza",     beds:4, baths:2, sqft:1500, type:"House" },
@@ -33,7 +34,7 @@ const POPULAR = {
   // ],
 };
 
-export default function HomePage({ onNavigate, theme, toggleTheme }) {
+export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn  }) {
   const [favs, setFavs]             = useState([]);
   const [popularTab, setPopularTab] = useState("sale");
   const [showRow2, setShowRow2]     = useState(false);
@@ -51,7 +52,7 @@ export default function HomePage({ onNavigate, theme, toggleTheme }) {
   return (
     <div className="home">
       {/* Navbar receives theme + toggleTheme */}
-      <Navbar onNavigate={onNavigate} theme={theme} toggleTheme={toggleTheme} />
+      <Navbar onNavigate={onNavigate} theme={theme} toggleTheme={toggleTheme} isLoggedIn={isLoggedIn}  />
 
       {/* ── HERO ── */}
       <section className="hero">
