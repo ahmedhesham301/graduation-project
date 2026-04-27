@@ -18,11 +18,6 @@ const IconSearch = () => (
     <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
   </svg>
 );
-const IconCheck = () => (
-  <svg width="13" height="13" fill="none" stroke="#fff" strokeWidth="2.5" viewBox="0 0 24 24">
-    <polyline points="20 6 9 17 4 12" />
-  </svg>
-);
 const IconEditPen = () => (
   <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
     <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
@@ -152,7 +147,6 @@ export default function ProfileSettings({ onNavigate }) {
             <div className="ps-profile-row">
               <div className="ps-profile-info">
                 <div className="ps-profile-name">{savedData.fullName}</div>
-                <div className="ps-profile-email">faroukmol23@gmail.com</div>
               </div>
               {!editMode ? (
                 <button className="ps-edit-btn" onClick={handleEdit}>Edit</button>
@@ -195,7 +189,6 @@ export default function ProfileSettings({ onNavigate }) {
           <div className="ps-contact-section">
             <div className="ps-section-title">My Contact Info</div>
             <div className="ps-contact-card">
-              <div className="ps-check-box"><IconCheck /></div>
               <div className="ps-contact-icon"><IconMail /></div>
               <div>
                 <div className="ps-contact-text">faroukmol23@gmail.com</div>

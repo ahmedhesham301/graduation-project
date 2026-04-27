@@ -1,9 +1,12 @@
 import { useState } from "react";
+import axios from "axios";
 import Logo from "../components/Logo";
 import InputField from "../components/InputField";
 import SocialButtons from "../components/SocialButtons";
 import BackButton from "../components/BackButton";
 import "./Auth.css";
+
+const API_BASE = "http://localhost:8080/api"; 
 
 export default function SignIn({ onNavigate }) {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -17,21 +20,39 @@ export default function SignIn({ onNavigate }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.email || !form.password) { setMsg({ type:"err", text:"Please fill in all fields." }); return; }
-    setLoading(true); setMsg({ type:"", text:"" });
+
+    if (!form.email || !form.password) {
+      setMsg({ type: "err", text: "Please fill in all fields." });
+      return;
+    }
+
+    setLoading(true);
+    setMsg({ type: "", text: "" });
+
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({
-          model:"claude-sonnet-4-20250514", max_tokens:150,
-          messages:[{ role:"user", content:`Validate login email "${form.email}". If valid (has @ and dot) respond ONLY with JSON: {"ok":true,"msg":"Welcome back! You are now signed in."} else {"ok":false,"msg":"Invalid credentials. Please try again."}. No markdown.` }],
-        }),
+      const response = await axios.post(`${API_BASE}/auth/login`, {
+        email: form.email,
+        password: form.password,
       });
-      const data = await res.json();
-      const result = JSON.parse(data.content?.[0]?.text || "{}");
-      setMsg({ type: result.ok?"ok":"err", text: result.msg });
-    } catch { setMsg({ type:"err", text:"Something went wrong. Please try again." }); }
-    finally { setLoading(false); }
+
+
+      setMsg({
+        type: "ok",
+        text: response.data?.message || "Welcome back! You are now signed in.",
+      });
+
+      // Optional: navigate after successful login
+       setTimeout(() => onNavigate("home"), 1500);
+
+    } catch (error) {
+      const serverMsg = error.response?.data?.message || error.response?.data?.error;
+      setMsg({
+        type: "err",
+        text: serverMsg || "Invalid credentials. Please try again.",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -41,16 +62,40 @@ export default function SignIn({ onNavigate }) {
         <Logo />
         <h1 className="heading">Welcome <em>back.</em></h1>
         <p className="tagline">Sign in to continue where you left off.</p>
+
         {msg.text && <div className={`msg ${msg.type}`}>{msg.text}</div>}
+
         <form onSubmit={handleSubmit} className="auth-form">
-          <InputField label="Email address" type="email" name="email" placeholder="you@example.com" value={form.email} onChange={handleChange} icon="email" />
-          <InputField label="Password" type="password" name="password" placeholder="••••••••" value={form.password} onChange={handleChange} icon="lock" />
+          <InputField
+            label="Email address"
+            type="email"
+            name="email"
+            placeholder="you@example.com"
+            value={form.email}
+            onChange={handleChange}
+            icon="email"
+          />
+          <InputField
+            label="Password"
+            type="password"
+            name="password"
+            placeholder="••••••••"
+            value={form.password}
+            onChange={handleChange}
+            icon="lock"
+          />
           <span className="forgot">Forgot password?</span>
-          <button type="submit" className="btn-primary" disabled={loading}>{loading?"Signing in…":"Sign in"}</button>
+          <button type="submit" className="btn-primary" disabled={loading}>
+            {loading ? "Signing in…" : "Sign in"}
+          </button>
         </form>
+
         <div className="divider"><span>or continue with</span></div>
         <SocialButtons />
-        <p className="switch-text">Don't have an account?{" "}<span className="link" onClick={()=>onNavigate("signup")}>Sign up</span></p>
+        <p className="switch-text">
+          Don't have an account?{" "}
+          <span className="link" onClick={() => onNavigate("signup")}>Sign up</span>
+        </p>
       </div>
     </div>
   );
