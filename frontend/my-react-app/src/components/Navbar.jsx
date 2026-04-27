@@ -2,10 +2,10 @@ import { useState } from "react";
 import ThemeToggle from "./ThemeToggle";
 import "./Navbar.css";
 
-export default function Navbar({ onNavigate, theme, toggleTheme }) {
+export default function Navbar({ onNavigate, theme, toggleTheme, isLoggedIn  }) {
+  // console.log("Navbar isLoggedIn:", isLoggedIn); //for test
   const [menuOpen, setMenuOpen] = useState(false);
   const links = ["Buy", "Sell", "Apartments", "Townhomes", "Favourite"];
-
   return (
     <nav className="navbar">
       {/* Logo */}
@@ -28,26 +28,37 @@ export default function Navbar({ onNavigate, theme, toggleTheme }) {
         {links.map(l => <li key={l}><a className="nav-link" href="#">{l}</a></li>)}
       </ul>
 
-      {/* Right actions */}
-      <div className="nav-actions">
-        <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
-        <button className="nav-signin-btn" onClick={() => onNavigate("signin")}>Sign In</button>
+     <div className="nav-actions">
+  <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
 
-        {/* Profile icon — navigates to profile page */}
-        <button className="nav-icon-btn" title="Profile" onClick={() => onNavigate("profile")}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="8" r="4"/>
-            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-          </svg>
-        </button>
+  {/* لو مش عامل login */}
+  {!isLoggedIn && (
+    <button className="nav-signin-btn" onClick={() => onNavigate("signin")}>
+      Sign In
+    </button>
+  )}
 
-        {/* Hamburger */}
-        <button className="nav-hamburger" onClick={() => setMenuOpen(v => !v)} aria-label="Menu">
-          <span className={`ham-line ${menuOpen ? "open" : ""}`} />
-          <span className={`ham-line ${menuOpen ? "open" : ""}`} />
-          <span className={`ham-line ${menuOpen ? "open" : ""}`} />
-        </button>
-      </div>
+  {/* لو عامل login */}
+  {isLoggedIn && (
+    <button
+      className="nav-icon-btn"
+      title="Profile"
+      onClick={() => onNavigate("profile")}
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="8" r="4"/>
+        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+      </svg>
+    </button>
+  )}
+
+  {/* Hamburger */}
+  <button className="nav-hamburger" onClick={() => setMenuOpen(v => !v)} aria-label="Menu">
+    <span className={`ham-line ${menuOpen ? "open" : ""}`} />
+    <span className={`ham-line ${menuOpen ? "open" : ""}`} />
+    <span className={`ham-line ${menuOpen ? "open" : ""}`} />
+  </button>
+</div>
 
       {/* Mobile drawer */}
       <div className={`nav-drawer ${menuOpen ? "open" : ""}`}>
@@ -60,7 +71,23 @@ export default function Navbar({ onNavigate, theme, toggleTheme }) {
         </button>
         <div className="drawer-bottom">
           <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
-          <button className="drawer-signin" onClick={() => { onNavigate("signin"); setMenuOpen(false); }}>Sign In</button>
+           {!isLoggedIn && (
+            <button
+              className="drawer-signin"
+              onClick={() => { onNavigate("signin"); setMenuOpen(false); }}
+            >
+              Sign In
+            </button>
+          )}
+
+          {isLoggedIn && (
+            <button
+              className="drawer-signin"
+              onClick={() => { onNavigate("profile"); setMenuOpen(false); }}
+            >
+              Profile
+            </button>
+          )}
         </div>
       </div>
     </nav>

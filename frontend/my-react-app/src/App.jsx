@@ -8,15 +8,59 @@ import "./App.css";
 export default function App() {
   const [page, setPage] = useState("home");
   const [theme, setTheme] = useState("light");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const toggleTheme = () => setTheme(t => t === "dark" ? "light" : "dark");
 
+  const handleLogin = () => {
+    // console.log("SET LOGIN TRUE"); // for test
+    setIsLoggedIn(true);
+    setPage("home");
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setPage("signin");
+  };
+
   return (
     <div className={`app theme-${theme}`}>
-      {page === "home"    && <HomePage         onNavigate={setPage} theme={theme} toggleTheme={toggleTheme} />}
-      {page === "signin"  && <SignIn            onNavigate={setPage} theme={theme} />}
-      {page === "signup"  && <SignUp            onNavigate={setPage} theme={theme} />}
-      {page === "profile" && <ProfileSettings   onNavigate={setPage} theme={theme} />}
+      
+
+      {page === "home" && (
+        <HomePage
+          onNavigate={setPage}
+          theme={theme}
+          toggleTheme={toggleTheme}
+          isLoggedIn={isLoggedIn}
+          onLogout={handleLogout}
+        />
+      )}
+
+      {page === "signin" && (
+        <SignIn
+          onNavigate={setPage}
+          theme={theme}
+          onLogin={handleLogin}   
+        />
+      )}
+
+      {page === "signup" && (
+        <SignUp
+          onNavigate={setPage}
+          theme={theme}
+        />
+      )}
+
+      {page === "profile" && (
+        <ProfileSettings
+          onNavigate={setPage}
+          theme={theme}
+          isLoggedIn={isLoggedIn}
+          onLogout={handleLogout}
+        />
+      )}
+
     </div>
   );
-}
+} 

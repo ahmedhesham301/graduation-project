@@ -8,7 +8,7 @@ import "./Auth.css";
 
 const API_BASE = "http://localhost:8080/api"; 
 
-export default function SignIn({ onNavigate }) {
+export default function SignIn({ onNavigate, onLogin }) {
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState({ type: "", text: "" });
@@ -35,15 +35,16 @@ export default function SignIn({ onNavigate }) {
         password: form.password,
       });
 
-
+      
       setMsg({
         type: "ok",
         text: response.data?.message || "Welcome back! You are now signed in.",
       });
-
+      // console.log("onLogin called"); // for test 
+      
       // Optional: navigate after successful login
-       setTimeout(() => onNavigate("home"), 1500);
-
+      setTimeout(() => {onLogin();}, 1250);
+      //onLogin(); // new update 
     } catch (error) {
       const serverMsg = error.response?.data?.message || error.response?.data?.error;
       setMsg({
