@@ -19,8 +19,9 @@ export default function App() {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem("user");
     setIsLoggedIn(false);
-    setPage("signin");
+    setPage("home");
   };
 
   return (
