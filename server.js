@@ -8,6 +8,7 @@ import authRouter from "./routes/authRouter.js"
 import propertyRouter from "./routes/propertyRouter.js"
 import savedRouter from "./routes/savedRouter.js"
 import locationRouter from "./routes/locationRouter.js"
+import chatBotRouter from "./routes/chatBotRouter.js"
 import { s3Init } from "./s3/s3.js";
 import helmet from "helmet";
 import cors from "cors";
@@ -30,6 +31,7 @@ app.use('/api', authRouter)
 app.use('/api', propertyRouter)
 app.use('/api/favorites', savedRouter)
 app.use('/api', locationRouter)
+app.use('/api', chatBotRouter)
 
 app.listen(8080, '0.0.0.0', () => {
     console.log('Server running on http://0.0.0.0:8080/api')

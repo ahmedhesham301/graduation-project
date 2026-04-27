@@ -39,7 +39,7 @@ export async function createPropertyRecord(sellerId, type, lat, lon, area, floor
 const PAGE_SIZE = 20;
 const filterMap = {
     bathrooms: (i) => `bathrooms = $${i}`,
-    rooms: (i) => `rooms = $${i}`,
+    bedrooms: (i) => `rooms = $${i}`,
     area: (i) => `area = $${i}`,
     floors: (i) => `floors = $${i}`,
 };
@@ -59,7 +59,7 @@ export async function search(page, orderBy, orderDirection, city, district, filt
     }
 
     if (district) {
-        clauses.push(`p.district_id = (SELECT id FROM districts WHERE city_id = $${index++} AND name = $${index++})`)
+        clauses.push(`p.district_id = (SELECT id FROM districts WHERE city_id = (SELECT id FROM cities WHERE name = $${index++}) AND name = $${index++})`)
         values.push(city, district)
     } else if (city) {
         clauses.push(`p.city_id = (SELECT id FROM cities WHERE name = $${index++})`)

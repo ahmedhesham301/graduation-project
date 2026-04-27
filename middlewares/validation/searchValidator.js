@@ -6,7 +6,7 @@ const parametersSchema = z.object({
     city: z.string().optional(),
     district: z.string().optional(),
     bathrooms: z.coerce.number().int().optional(),
-    rooms: z.coerce.number().int().optional(),
+    bedrooms: z.coerce.number().int().optional(),
     area: z.coerce.number().int().optional(),
     floors: z.coerce.number().int().optional(),
     page: z.coerce.number().int().min(1).max(999),
