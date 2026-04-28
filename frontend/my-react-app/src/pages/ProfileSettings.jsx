@@ -1,4 +1,5 @@
 import { useState } from "react";
+import AddProperty from "./AddProperty";
 import "./ProfileSettings.css";
 
 /* ── Icons ── */
@@ -78,14 +79,18 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
   return (
     <div className="ps-app">
 
-      {/* ── Sidebar ── */}
+      {/* ── Sidebar — fixed ── */}
       <aside className={`ps-sidebar ${menuOpen ? "ps-sidebar-open" : ""}`}>
         <div className="ps-sidebar-back" onClick={() => onNavigate("home")}>
           <IconChevronLeft /> Back to Home
         </div>
         <nav className="ps-sidebar-nav">
           {navItems.map(({ id, label, Icon }) => (
-            <button key={id} className={`ps-nav-item${activeNav === id ? " active" : ""}`} onClick={() => { setActiveNav(id); setMenuOpen(false); }}>
+            <button
+              key={id}
+              className={`ps-nav-item${activeNav === id ? " active" : ""}`}
+              onClick={() => { setActiveNav(id); setMenuOpen(false); }}
+            >
               <Icon /> {label}
             </button>
           ))}
@@ -104,7 +109,6 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
         {/* Topbar */}
         <div className="ps-topbar">
           <div className="ps-topbar-left">
-            {/* Mobile menu toggle */}
             <button className="ps-menu-btn" onClick={() => setMenuOpen(v => !v)}>
               <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
@@ -116,83 +120,105 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
             </div>
           </div>
           <div className="ps-topbar-right">
-
             <div className="ps-avatar-circle">{initials}</div>
           </div>
         </div>
+        
 
-        {/* Hero Banner */}
-        <div className="ps-hero" />
 
-        {/* Content */}
+        {/* ── Content area — switches by activeNav ── */}
         <div className="ps-content">
 
-          {/* Profile Header */}
-          <div className="ps-profile-header">
-            <div className="ps-profile-avatar-wrap">
-              <div className="ps-profile-avatar">{initials}</div>
-            </div>
-            <div className="ps-profile-row">
-              <div className="ps-profile-info">
-                <div className="ps-profile-name">{savedData.fullName}</div>
+          {/* ── ADD PROPERTY ── */}
+          {activeNav === "addproperty" && (
+            <AddProperty onBack={() => setActiveNav("edit")} />
+          )}
+
+          {/* ── EDIT PROFILE ── */}
+          {activeNav === "edit" && (
+            <>
+              <div className="ps-profile-header">
+                <div className="ps-profile-avatar-wrap">
+                  <div className="ps-profile-avatar">{initials}</div>
+                </div>
+                <div className="ps-profile-row">
+                  <div className="ps-profile-info">
+                    <div className="ps-profile-name">{savedData.fullName}</div>
+                  </div>
+                  {!editMode ? (
+                    <button className="ps-edit-btn" onClick={handleEdit}>Edit</button>
+                  ) : (
+                    <div className="ps-btn-group">
+                      <button className="ps-cancel-btn" onClick={handleCancel}>Cancel</button>
+                      <button className="ps-save-btn" onClick={handleSave}>Save</button>
+                    </div>
+                  )}
+                </div>
               </div>
-              {!editMode ? (
-                <button className="ps-edit-btn" onClick={handleEdit}>Edit</button>
-              ) : (
-                <div className="ps-btn-group">
-                  <button className="ps-cancel-btn" onClick={handleCancel}>Cancel</button>
-                  <button className="ps-save-btn" onClick={handleSave}>Save</button>
+
+              {editMode && (
+                <div className="ps-edit-banner">
+                  <IconInfo /> You are now editing your profile. Click Save when done.
                 </div>
               )}
-            </div>
-          </div>
 
-          {/* Edit Mode Banner */}
-          {editMode && (
-            <div className="ps-edit-banner">
-              <IconInfo /> You are now editing your profile. Click Save when done.
+              <div className="ps-form-stack">
+                <div className="ps-field-group">
+                  <label className="ps-field-label">Full Name</label>
+                  <input className="ps-field-input" type="text" placeholder="Your Full Name"
+                    value={formData.fullName} disabled={!editMode}
+                    onChange={e => setFormData(p => ({ ...p, fullName: e.target.value }))} />
+                </div>
+                <div className="ps-field-group">
+                  <label className="ps-field-label">Phone Number</label>
+                  <div className="ps-phone-row">
+                    <div className={`ps-phone-code${!editMode ? " disabled" : ""}`}>🇪🇬 +20</div>
+                    <input className="ps-field-input ps-phone-input" type="tel" placeholder="e.g. 1012345678"
+                      value={formData.phone} disabled={!editMode}
+                      onChange={e => setFormData(p => ({ ...p, phone: e.target.value.replace(/\D/g, "") }))} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="ps-contact-section">
+                <div className="ps-section-title">My Contact Info</div>
+                <div className="ps-contact-card">
+                  <div className="ps-contact-icon"><IconMail /></div>
+                  <div>
+                    <div className="ps-contact-text">faroukmol23@gmail.com</div>
+                    <div className="ps-contact-sub">Email · verified 1 month ago</div>
+                  </div>
+                </div>
+                <div className="ps-contact-card">
+                  <div className="ps-contact-icon"><IconPhone /></div>
+                  <div>
+                    <div className="ps-contact-text">
+                      {savedData.phone ? `+20 ${savedData.phone}` : "No phone number added"}
+                    </div>
+                    <div className="ps-contact-sub">Phone number</div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* ── FAVOURITE ── */}
+          {activeNav === "favourite" && (
+            <div className="ps-placeholder">
+              <IconHeart />
+              <h3>Saved Properties</h3>
+              <p>Properties you favourite will appear here.</p>
             </div>
           )}
 
-          {/* Form */}
-          <div className="ps-form-stack">
-            <div className="ps-field-group">
-              <label className="ps-field-label">Full Name</label>
-              <input className="ps-field-input" type="text" placeholder="Your Full Name"
-                value={formData.fullName} disabled={!editMode}
-                onChange={e => setFormData(p => ({ ...p, fullName: e.target.value }))} />
+          {/* ── HELP ── */}
+          {activeNav === "help" && (
+            <div className="ps-placeholder">
+              <IconHelp />
+              <h3>Help &amp; Support</h3>
+              <p>Contact us at support@3karati.com or call +20 100 000 0000</p>
             </div>
-            <div className="ps-field-group">
-              <label className="ps-field-label">Phone Number</label>
-              <div className="ps-phone-row">
-                <div className={`ps-phone-code${!editMode ? " disabled" : ""}`}>🇪🇬 +20</div>
-                <input className="ps-field-input ps-phone-input" type="tel" placeholder="e.g. 1012345678"
-                  value={formData.phone} disabled={!editMode}
-                  onChange={e => setFormData(p => ({ ...p, phone: e.target.value.replace(/\D/g, "") }))} />
-              </div>
-            </div>
-          </div>
-
-          {/* Contact Info */}
-          <div className="ps-contact-section">
-            <div className="ps-section-title">My Contact Info</div>
-            <div className="ps-contact-card">
-              <div className="ps-contact-icon"><IconMail /></div>
-              <div>
-                <div className="ps-contact-text">faroukmol23@gmail.com</div>
-                <div className="ps-contact-sub">Email · verified 1 month ago</div>
-              </div>
-            </div>
-            <div className="ps-contact-card">
-              <div className="ps-contact-icon"><IconPhone /></div>
-              <div>
-                <div className="ps-contact-text">
-                  {savedData.phone ? `+20 ${savedData.phone}` : "No phone number added"}
-                </div>
-                <div className="ps-contact-sub">Phone number</div>
-              </div>
-            </div>
-          </div>
+          )}
 
         </div>
       </main>

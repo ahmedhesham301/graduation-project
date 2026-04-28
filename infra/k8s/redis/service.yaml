@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-stack
+  labels:
+    app.kubernetes.io/name: cache
+    app.kubernetes.io/component: backend
+spec:
+  selector:
+    app.kubernetes.io/name: cache
+    app.kubernetes.io/component: backend
+  type: ClusterIP
+  ports:
+    - port: 6379
+      targetPort: 6379
