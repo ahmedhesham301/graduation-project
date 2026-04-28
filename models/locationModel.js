@@ -9,4 +9,15 @@ export async function findAllCities() {
     const { rows } = await pool.query(query)
     return rows.map(row => row.name)  
 }
+export async function findDistrictsByCityName(cityName) {
+    const query = {
+        name: 'find-districts-by-city-name',
+        text: `SELECT name FROM districts
+               WHERE city_id = (SELECT id FROM cities WHERE name = $1)
+               ORDER BY name ASC`,
+        values: [cityName]
+    }
+    const { rows } = await pool.query(query)
+    return rows.map(row => row.name)
+}
 
