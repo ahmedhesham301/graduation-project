@@ -38,7 +38,7 @@ export async function login(req, res) {
         req.session.email = userData.email
         req.session.role = userData.role
 
-        res.status(200).json({ message: "login successful", name: userData.name })
+        res.status(200).json({ message: "login successful", name: userData.name, role: userData.role })
     } catch (error) {
         if (error.code == "EMAIL_NOT_FOUND") {
             res.status(400).json({ error: 'Email not found' })

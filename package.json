@@ -21,8 +21,10 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1032.0",
     "@aws-sdk/s3-request-presigner": "^3.1032.0",
+    "@google/genai": "^1.50.1",
     "@redis/client": "^5.11.0",
     "@smithy/node-http-handler": "^4.5.3",
+    "axios": "^1.15.2",
     "bcrypt": "^6.0.0",
     "connect-redis": "^9.0.0",
     "cors": "^2.8.6",
@@ -37,6 +39,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@types/node": "^25.6.0",
     "morgan": "^1.10.1"
   }
 }
