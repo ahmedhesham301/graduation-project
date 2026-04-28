@@ -9,3 +9,4 @@ docker-compose.yaml
 .env
 .codex
 frontend
+infra
