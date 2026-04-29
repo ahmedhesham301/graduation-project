@@ -99,8 +99,22 @@
   box-shadow: 0 2px 10px rgba(26,140,202,0.3);
 }
 
+/* ── Hero banner ── */
+.ps-hero {
+  height: 90px;
+  background: linear-gradient(120deg, #0d3a52 0%, #1a5a82 50%, #1a8cca 100%);
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+.ps-hero::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 70% 50%, rgba(15,196,255,0.2) 0%, transparent 70%);
+}
+
 /* ── Content ── */
-.ps-content { padding: 32px 40px 40px; }
+.ps-content { padding: 0px 40px 40px; }
 
 /* ── Profile header ── */
 .ps-profile-header {
@@ -108,7 +122,13 @@
   border-bottom: 1px solid var(--border); margin-bottom: 32px;
   transition: border-color 0.3s;
 }
-.ps-profile-avatar-wrap { display: inline-block; margin-bottom: 12px; }
+.ps-profile-avatar-wrap {
+  display: inline-block;
+  margin-top: -36px;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 1;
+}
 .ps-profile-avatar {
   width: 72px; height: 72px; border-radius: 50%;
   background: linear-gradient(135deg, #1a8cca, #0d3a52);
@@ -225,7 +245,6 @@
 }
 
 @media (max-width: 640px) {
-  /* sidebar becomes slide-in drawer on mobile */
   .ps-sidebar {
     transform: translateX(-100%);
     transition: transform 0.3s ease;
@@ -235,7 +254,6 @@
   .ps-overlay  { display: block; }
   .ps-menu-btn { display: flex; }
 
-  /* main takes full width */
   .ps-main { margin-left: 0; }
 
   .ps-topbar  { padding: 12px 16px; }

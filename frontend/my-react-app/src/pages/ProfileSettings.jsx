@@ -123,8 +123,9 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
             <div className="ps-avatar-circle">{initials}</div>
           </div>
         </div>
-        
 
+        {/* ── Hero banner — only on edit profile ── */}
+        {activeNav === "edit" && <div className="ps-hero" />}
 
         {/* ── Content area — switches by activeNav ── */}
         <div className="ps-content">
