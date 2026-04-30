@@ -25,8 +25,8 @@ jobs:
     - name: Build and push
       uses: docker/build-push-action@v7.1.0
       with:
-        build-contexts: './backend'
-        file: './Dockerfile'
+        context: ./backend
+        file: ./backend/Dockerfile
         push: true
         tags: ahmedhesham301/3akarati:latest
     - name: Run Trivy vulnerability scanner
