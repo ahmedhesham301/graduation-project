@@ -23,9 +23,10 @@ jobs:
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     - name: Build and push
-      uses: docker/build-push-action@v6
+      uses: docker/build-push-action@v7.1.0
       with:
-        file: './backend/Dockerfile'
+        build-contexts: '/backend'
+        file: './Dockerfile'
         push: true
         tags: ahmedhesham301/3akarati:latest
     - name: Run Trivy vulnerability scanner
