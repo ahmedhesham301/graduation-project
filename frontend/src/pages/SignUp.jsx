@@ -5,7 +5,9 @@ import InputField from "../components/InputField";
 import SocialButtons from "../components/SocialButtons";
 import BackButton from "../components/BackButton";
 import "./Auth.css";
-import API_BASE from "../components/Api";
+
+// Base URL — change this to your actual backend URL
+const API_BASE = "http://localhost:8080/api";
 
 export default function SignUp({ onNavigate }) {
   const [form, setForm] = useState({ name: "", email: "", phone: "", password: "" });

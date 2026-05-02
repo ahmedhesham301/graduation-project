@@ -5,7 +5,8 @@ import InputField from "../components/InputField";
 import SocialButtons from "../components/SocialButtons";
 import BackButton from "../components/BackButton";
 import "./Auth.css";
-import API_BASE from "../components/Api";
+
+const API_BASE = "http://localhost:8080/api"; 
 
 export default function SignIn({ onNavigate, onLogin }) {
   const [form, setForm] = useState({ email: "", password: "" });
