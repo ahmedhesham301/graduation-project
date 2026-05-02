@@ -1,6 +1,19 @@
 import { Pool } from "pg"
-
-export const pool = new Pool()
+import fs from "fs";
+let poolConfig = {
+    user: process.env.PGUSER,
+    password: process.env.PGPASSWORD,
+    database: process.env.PGDATABASE,
+    host: process.env.PGHOST,
+    // ssl,
+}
+if (process.env.ENV === "prod") {
+    poolConfig = {
+        ...poolConfig,
+        ssl: { rejectUnauthorized: false, ca: fs.readFileSync('./database/global-bundle.pem').toString() }
+    }
+}
+export const pool = new Pool(poolConfig)
 
 export async function initDB() {
     try {
