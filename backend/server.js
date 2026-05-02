@@ -12,6 +12,7 @@ import chatBotRouter from "./routes/chatBotRouter.js"
 import { s3Init } from "./s3/s3.js";
 import helmet from "helmet";
 import cors from "cors";
+import { healthCheck } from "./controllers/healthCheck.js";
 
 await initDB()
 await initRedis()
@@ -27,6 +28,7 @@ app.use(express.json())
 app.use(cors())
 app.use(sessionMiddleware)
 
+app.use('/api/health', healthCheck)
 app.use('/api', authRouter)
 app.use('/api', propertyRouter)
 app.use('/api/favorites', savedRouter)

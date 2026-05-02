@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt"
-import { save, findByEmail, upgradeToSeller  } from "../models/userModel.js";
+import { save, findByEmail, upgradeToSeller , findUserById, updateUser  } from "../models/userModel.js";
 
 export async function registerUser(fullName, email, phone, password, role) {
     const passwordHash = await bcrypt.hash(password, 10);
@@ -26,4 +26,21 @@ export async function authenticateUser(email, password) {
 
 export async function becomeSeller(userId) {
     await upgradeToSeller(userId)
+}
+export async function getUserProfile(userId) {
+    return await findUserById(userId)
+}
+export async function updateUserProfile(userId, data) {
+    const fields = {}
+
+    if (data.fullName)  fields['full_name']     = data.fullName
+    if (data.phone)     fields['phone']          = data.phone
+    if (data.email)     fields['email']          = data.email
+
+    // Only hash and update password if a new one was provided
+    if (data.password)  fields['password_hash']  = await bcrypt.hash(data.password, 10)
+
+    if (Object.keys(fields).length === 0) return null
+
+    return await updateUser(userId, fields)
 }
