@@ -66,3 +66,36 @@ export async function upgradeToSeller(userId) {
         client.release()
     }
 }
+export async function findUserById(id) {
+    const query = {
+        name: 'find-user-profile-by-id',
+        text: `SELECT full_name, email, phone FROM users WHERE id = $1`,
+        values: [id]
+    }
+    const { rows } = await pool.query(query)
+    return rows[0] || null
+}
+
+export async function updateUser(id, fields) {
+    const allowed = ['full_name', 'email', 'phone', 'password_hash']
+    const sets = []
+    const values = []
+    let i = 1
+
+    for (const [key, val] of Object.entries(fields)) {
+        if (allowed.includes(key)) {
+            sets.push(`${key} = $${i++}`)
+            values.push(val)
+        }
+    }
+
+    if (sets.length === 0) return null
+
+    values.push(id)
+    const query = {
+        text: `UPDATE users SET ${sets.join(', ')} WHERE id = $${i} RETURNING full_name, email, phone`,
+        values
+    }
+    const { rows } = await pool.query(query)
+    return rows[0] || null
+}

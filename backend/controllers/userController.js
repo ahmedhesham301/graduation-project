@@ -1,4 +1,4 @@
-import { registerUser, authenticateUser, becomeSeller } from "../services/userServices.js";
+import { registerUser, authenticateUser, becomeSeller , getUserProfile, updateUserProfile} from "../services/userServices.js";
 
 export async function register(req, res) {
     try {
@@ -74,6 +74,44 @@ export async function upgradeTOSeller(req, res) {
         res.status(200).json({ message: "You are now registered as a seller. Your profile is pending verification." })
     } catch (error) {
         console.error(error)
+        res.status(500).json({ message: "internal server error" })
+    }
+}
+export async function getMe(req, res) {
+    try {
+        const user = await getUserProfile(req.session.userID)
+
+        if (!user) {
+            return res.status(404).json({ error: "User not found" })
+        }
+
+        res.status(200).json(user)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: "internal server error" })
+    }
+}
+export async function updateMe(req, res) {
+    try {
+        const updated = await updateUserProfile(req.session.userID, req.body)
+
+        // null means no valid fields were provided after filtering
+        if (!updated) {
+            return res.status(400).json({ error: "No valid fields to update" })
+        }
+
+        res.status(200).json(updated)
+    } catch (error) {
+        console.error(error)
+
+        // 23505 = unique violation — email or phone already taken by another user
+        if (error.code === '23505') {
+            if (error.constraint === 'users_phone_key') {
+                return res.status(400).json({ error: "Phone already exists" })
+            }
+            return res.status(400).json({ error: "Email already exists" })
+        }
+
         res.status(500).json({ message: "internal server error" })
     }
 }
