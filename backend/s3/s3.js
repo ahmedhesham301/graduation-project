@@ -9,20 +9,36 @@ import {
 } from "@aws-sdk/client-s3";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+let s3Config = {}
+if (process.env.ENV === "dev") {
+    s3Config = {
+        endpoint: "http://" + process.env.S3_ENDPOINT, // RustFS endpoint
+        region: "eu-central-1", // Any value is accepted
+        credentials: {
+            accessKeyId: process.env.S3_ACCESS_KEY,
+            secretAccessKey: process.env.S3_SECRET_KEY,
+        },
+        forcePathStyle: true, // Must be enabled for RustFS compatibility
+        requestHandler: new NodeHttpHandler({
+            connectionTimeout: 3000,
+            socketTimeout: 5000,
+        }),
+    }
+} else if (process.env.ENV === "prod") {
+    s3Config = {
+        region: "eu-central-1",
+        credentials: {
+            accessKeyId: process.env.S3_ACCESS_KEY,
+            secretAccessKey: process.env.S3_SECRET_KEY,
+        },
+        requestHandler: new NodeHttpHandler({
+            connectionTimeout: 3000,
+            socketTimeout: 5000,
+        }),
+    }
+}
 
-const s3 = new S3Client({
-    endpoint: "http://" + process.env.S3_ENDPOINT, // RustFS endpoint
-    region: "eu-central-1", // Any value is accepted
-    credentials: {
-        accessKeyId: process.env.S3_ACCESS_KEY,
-        secretAccessKey: process.env.S3_SECRET_KEY,
-    },
-    forcePathStyle: true, // Must be enabled for RustFS compatibility
-    requestHandler: new NodeHttpHandler({
-        connectionTimeout: 3000,
-        socketTimeout: 5000,
-    }),
-});
+const s3 = new S3Client(s3Config);
 
 export async function s3Init() {
     // Create a bucket if the env is dev
