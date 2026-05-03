@@ -1,5 +1,6 @@
 import { useState } from "react";
 import AddProperty from "./AddProperty";
+import FavouriteProperties from "./FavouriteProperties";
 import "./ProfileSettings.css";
 
 /* ── Icons ── */
@@ -205,11 +206,7 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
 
           {/* ── FAVOURITE ── */}
           {activeNav === "favourite" && (
-            <div className="ps-placeholder">
-              <IconHeart />
-              <h3>Saved Properties</h3>
-              <p>Properties you favourite will appear here.</p>
-            </div>
+          <FavouriteProperties onBack={() => setActiveNav("edit")} />
           )}
 
           {/* ── HELP ── */}

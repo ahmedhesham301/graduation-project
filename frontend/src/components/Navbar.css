@@ -92,10 +92,8 @@
 
 /* ── RESPONSIVE ── */
 @media (max-width: 1024px) {
-  .nav-links { display: none; }
-  .nav-hamburger { display: flex; }
-  .nav-signin-btn { display: none; }
-  .nav-icon-btn { display: none; }
+  .nav-signin-btn { display: block; }
+  .nav-icon-btn { display: flex; }
 }
 
 @media (max-width: 480px) {

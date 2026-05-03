@@ -61,6 +61,14 @@ export default function App() {
           onLogout={handleLogout}
         />
       )}
+      {page === "favourite" && (
+        <FavouriteProperties
+          onNavigate={setPage}
+          theme={theme}
+          isLoggedIn={isLoggedIn}
+          onLogout={handleLogout}
+        />
+      )}
 
     </div>
   );
