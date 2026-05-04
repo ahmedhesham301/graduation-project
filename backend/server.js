@@ -19,7 +19,7 @@ await initRedis()
 await s3Init()
 
 const app = express()
-app.use(helmet())
+// app.use(helmet())
 
 if (process.env.ENV === "dev") {
     app.use(morgan('dev'))
