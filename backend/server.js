@@ -19,13 +19,16 @@ await initRedis()
 await s3Init()
 
 const app = express()
-// app.use(helmet())
+app.use(helmet())
 
 if (process.env.ENV === "dev") {
     app.use(morgan('dev'))
 }
 app.use(express.json())
-app.use(cors())
+app.use(cors({
+    origin:["http://localhost:5173"],
+    credentials: true
+}))
 app.use(sessionMiddleware)
 
 app.use('/api/health', healthCheck)
