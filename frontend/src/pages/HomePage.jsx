@@ -34,7 +34,7 @@ const POPULAR = {
   // ],
 };
 
-export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn  }) {
+export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, onSearch }) {
   const [favs, setFavs]             = useState([]);
   const [popularTab, setPopularTab] = useState("sale");
   const [showRow2, setShowRow2]     = useState(false);
@@ -121,7 +121,7 @@ export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn  }
                 </select>
               </div>
             </div>
-            <button className="search-btn">Search Properties</button>
+            <button className="search-btn" onClick={() => onSearch({ city, district, propType, bedrooms, bathrooms, price })}>Search Properties</button>
           </div>
         </div>
       </section>

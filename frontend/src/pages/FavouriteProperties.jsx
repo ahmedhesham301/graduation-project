@@ -69,7 +69,7 @@ const RECOMMENDED = [
 
 const PAGES = [1, 2, 3, 4, 5];
 
-export default function FavouriteProperties({ onNavigate, theme, toggleTheme, user }) {
+export default function FavouriteProperties({ onNavigate, theme, toggleTheme, isLoggedIn }) {
   const [favs, setFavs] = useState([1, 2, 3, 4, 5]);
   const [currentPage, setCurrentPage] = useState(1);
 

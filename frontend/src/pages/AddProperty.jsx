@@ -148,15 +148,15 @@ export default function AddProperty({ onBack }) {
                 <option>office</option>
               </select>
             </div>
-            {/* <div className="ap-field">
-              <label className="ap-label">condition</label>
+            <div className="ap-field">
+              {/* <label className="ap-label">condition</label>
               <select className="ap-select" value={form.condition} onChange={e => set("condition", e.target.value)}>
                 <option>finished</option>
                 <option>semi-finished</option>
                 <option>core &amp; shell</option>
                 <option>new</option>
-              </select>
-            </div> */}
+              </select> */}
+            </div>
             <div className="ap-field">
               <label className="ap-label">lat</label>
               <input className="ap-input" min="0" type="number" placeholder="e.g. 30.0444"
@@ -225,15 +225,7 @@ export default function AddProperty({ onBack }) {
                 value={form.yearBuilt} onChange={e => set("yearBuilt", e.target.value)} />
             </div> */}
           </div>
-          
-
-{/* 
-            <div className="ap-field ap-field-area">
-            <label className="ap-label">Area</label>
-            <input className="ap-input ap-input-area" type="number" placeholder="e.g. 180"
-              value={form.area} onChange={e => set("area", e.target.value)} />
-          </div> */}
-
+        
 
           {/* ── Property desc ── */}
           <div className="ap-field">

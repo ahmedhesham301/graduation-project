@@ -2,7 +2,7 @@ import { useState } from "react";
 import ThemeToggle from "./ThemeToggle";
 import "./Navbar.css";
 
-export default function Navbar({ onNavigate, theme, toggleTheme, isLoggedIn  }) {
+export default function Navbar({ onNavigate, theme, toggleTheme, isLoggedIn, hideThemeToggle = false}) {
   // console.log("Navbar isLoggedIn:", isLoggedIn); //for test
   const [menuOpen, setMenuOpen] = useState(false);
   return (
@@ -23,7 +23,7 @@ export default function Navbar({ onNavigate, theme, toggleTheme, isLoggedIn  }) 
       </div>
 
      <div className="nav-actions">
-  <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
+  {!hideThemeToggle && (<ThemeToggle theme={theme} toggleTheme={toggleTheme} />)}
 
   {/* لو مش عامل login */}
   {!isLoggedIn && (
@@ -45,38 +45,7 @@ export default function Navbar({ onNavigate, theme, toggleTheme, isLoggedIn  }) 
       </svg>
     </button>
   )}
-
-  {/* Hamburger */}
-  {/* <button className="nav-hamburger" onClick={() => setMenuOpen(v => !v)} aria-label="Menu">
-    <span className={`ham-line ${menuOpen ? "open" : ""}`} />
-    <span className={`ham-line ${menuOpen ? "open" : ""}`} />
-    <span className={`ham-line ${menuOpen ? "open" : ""}`} />
-  </button> */}
-      </div>
-
-      {/* Mobile drawer */}
-      <div className="nav-drawer">
-        <div className="drawer-bottom">
-          <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
-           {!isLoggedIn && (
-            <button
-              className="drawer-signin"
-              onClick={() => { onNavigate("signin"); setMenuOpen(false); }}
-            >
-              Sign In
-            </button>
-          )}
-
-          {isLoggedIn && (
-            <button
-              className="drawer-signin"
-              onClick={() => { onNavigate("profile"); setMenuOpen(false); }}
-            >
-              Profile
-            </button>
-          )}
-        </div>
-      </div>
-    </nav>
+  </div>
+  </nav>
   );
 }
