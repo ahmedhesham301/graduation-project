@@ -1,0 +1,25 @@
+aws eks --region $(terraform output -raw region) update-kubeconfig \
+    --name $(terraform output -raw cluster_name)
+
+
+eksctl create iamserviceaccount \
+    --cluster=$(terraform output -raw cluster_name) \
+    --namespace=kube-system \
+    --name=aws-load-balancer-controller \
+    --attach-policy-arn=arn:aws:iam::825765423527:policy/AWSLoadBalancerControllerIAMPolicy \
+    --override-existing-serviceaccounts \
+    --region eu-central-1 \
+    --approve
+
+
+helm repo add eks https://aws.github.io/eks-charts
+helm repo update eks
+
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+  -n kube-system \
+  --set region=$(terraform output -raw region) \
+  --set vpcId=$(terraform output -raw vpc_id) \
+  --set clusterName=$(terraform output -raw cluster_name) \
+  --set serviceAccount.create=false \
+  --set serviceAccount.name=aws-load-balancer-controller \
+  --version 1.14.0
