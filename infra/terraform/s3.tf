@@ -5,7 +5,7 @@ module "s3_bucket" {
 
   block_public_policy = false
   block_public_acls = false
-
+  force_destroy = true
   policy = <<EOF
 {
   "Version": "2012-10-17",
