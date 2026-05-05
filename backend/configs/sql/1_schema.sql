@@ -118,6 +118,8 @@ CREATE INDEX ON "properties" ("deleted_at");
 
 CREATE INDEX ON "properties" ("pending_media");
 
+CREATE INDEX ON "properties" USING GIST ("coordinates");
+
 CREATE UNIQUE INDEX ON "districts" ("city_id", "name");
 
 CREATE INDEX ON "property_media" ("property_id");
