@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AddProperty from "./AddProperty";
 import FavouriteProperties from "./FavouriteProperties";
 import "./ProfileSettings.css";
+import { api } from "../components/Axios";
 
 /* ── Icons ── */
 const IconChevronLeft = () => (
@@ -50,37 +51,113 @@ const IconMail = () => (
     <polyline points="22,6 12,13 2,6" />
   </svg>
 );
+const IconStorefront = () => (
+  <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path d="M3 9l1-5h16l1 5" />
+    <path d="M3 9a2 2 0 004 0 2 2 0 004 0 2 2 0 004 0 2 2 0 004 0" />
+    <path d="M5 9v11h14V9" />
+    <line x1="9" y1="14" x2="15" y2="14" />
+  </svg>
+);
 
 /* ── Main Component ── */
 export default function ProfileSettings({ onNavigate, onLogout }) {
-  const [activeNav, setActiveNav] = useState("edit");
-  const [editMode, setEditMode]   = useState(false);
-  const [menuOpen, setMenuOpen]   = useState(false);
+  const [activeNav, setActiveNav]         = useState("edit");
+  const [editMode, setEditMode]           = useState(false);
+  const [menuOpen, setMenuOpen]           = useState(false);
+  const [loading, setLoading]             = useState(true);
+  const [saveError, setSaveError]         = useState(null);
+  const [isSeller, setIsSeller]           = useState(false);
+  const [sellerLoading, setSellerLoading] = useState(false);
+  const [sellerError, setSellerError]     = useState(null);
 
-  const defaultData = { fullName: "Farouk Mohamed", phone: "" };
+  const defaultData = { fullName: "", phone: "", email: "" };
   const [formData, setFormData]   = useState(defaultData);
   const [savedData, setSavedData] = useState(defaultData);
+
+  /* ── Fetch user on mount ── */
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const { data } = await api.get("/user/me");
+        const mapped = {
+          fullName: data.fullName ?? data.full_name ?? data.name ?? "",
+          phone:    data.phone    ?? data.phoneNumber ?? "",
+          email:    data.email    ?? "",
+        };
+        setFormData(mapped);
+        setSavedData(mapped);
+
+        // ✅ Read seller status from API, fallback to localStorage
+        const sellerFromApi = data.isSeller ?? data.is_seller ?? data.role === "seller";
+        const sellerFromStorage = localStorage.getItem("isSeller") === "true";
+        setIsSeller(sellerFromApi ?? sellerFromStorage);
+      } catch (err) {
+        console.error(err.response?.data?.message ?? err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const firstName = savedData.fullName.trim().split(" ")[0] || "User";
   const initials  = savedData.fullName.trim().split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 
   const navItems = [
-    { id:"edit",        label:"Edit profile",  Icon: IconEditPen },
-    { id:"favourite",   label:"Favourite",     Icon: IconHeart },
-    { id:"addproperty", label:"Add Property",  Icon: IconPlusCircle },
-    { id:"help",        label:"Help",          Icon: IconHelp },
+    { id: "edit",      label: "Edit profile", Icon: IconEditPen },
+    { id: "favourite", label: "Favourite",    Icon: IconHeart },
+    ...(isSeller ? [{ id: "addproperty", label: "Add Property", Icon: IconPlusCircle }] : []),
+    { id: "help",      label: "Help",         Icon: IconHelp },
   ];
 
   const handleEdit   = () => setEditMode(true);
-  const handleCancel = () => { setFormData(savedData); setEditMode(false); };
-  const handleSave   = () => { setSavedData(formData); setEditMode(false); };
+  const handleCancel = () => { setFormData(savedData); setEditMode(false); setSaveError(null); };
 
-  const today = new Date().toLocaleDateString("en-US", { weekday:"short", day:"numeric", month:"short", year:"numeric" });
+  /* ── Save profile ── */
+  const handleSave = async () => {
+    setSaveError(null);
+    try {
+      await api.put("/user/me", {
+        fullName: formData.fullName,
+        phone:    formData.phone,
+      });
+      setSavedData(formData);
+      setEditMode(false);
+    } catch (err) {
+      setSaveError(err.response?.data?.message ?? "Failed to save changes. Please try again.");
+    }
+  };
+
+  /* ── Become a seller ── */
+  const handleBecomeSeller = async () => {
+    setSellerLoading(true);
+    setSellerError(null);
+    try {
+      await api.post("/auth/become-seller");
+      setIsSeller(true);
+      localStorage.setItem("isSeller", "true"); // ✅ persist seller status
+    } catch (err) {
+      setSellerError(err.response?.data?.message ?? "Request failed. Please try again.");
+    } finally {
+      setSellerLoading(false);
+    }
+  };
+
+  const today = new Date().toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+
+  if (loading) {
+    return (
+      <div className="ps-app" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <p style={{ color: "#6b7280", fontSize: "0.95rem" }}>Loading profile…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="ps-app">
 
-      {/* ── Sidebar — fixed ── */}
+      {/* ── Sidebar ── */}
       <aside className={`ps-sidebar ${menuOpen ? "ps-sidebar-open" : ""}`}>
         <div className="ps-sidebar-back" onClick={() => onNavigate("home")}>
           <IconChevronLeft /> Back to Home
@@ -125,18 +202,16 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
           </div>
         </div>
 
-        {/* ── Hero banner — only on edit profile ── */}
+        {/* Hero banner */}
         {activeNav === "edit" && <div className="ps-hero" />}
 
-        {/* ── Content area — switches by activeNav ── */}
+        {/* ── Content ── */}
         <div className="ps-content">
 
-          {/* ── ADD PROPERTY ── */}
           {activeNav === "addproperty" && (
             <AddProperty onBack={() => setActiveNav("edit")} />
           )}
 
-          {/* ── EDIT PROFILE ── */}
           {activeNav === "edit" && (
             <>
               <div className="ps-profile-header">
@@ -164,6 +239,12 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
                 </div>
               )}
 
+              {saveError && (
+                <div className="ps-edit-banner" style={{ borderColor: "#dc2626", background: "#fef2f2", color: "#dc2626" }}>
+                  {saveError}
+                </div>
+              )}
+
               <div className="ps-form-stack">
                 <div className="ps-field-group">
                   <label className="ps-field-label">Full Name</label>
@@ -187,7 +268,7 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
                 <div className="ps-contact-card">
                   <div className="ps-contact-icon"><IconMail /></div>
                   <div>
-                    <div className="ps-contact-text">faroukmol23@gmail.com</div>
+                    <div className="ps-contact-text">{savedData.email || "—"}</div>
                     <div className="ps-contact-sub">Email · verified 1 month ago</div>
                   </div>
                 </div>
@@ -204,12 +285,11 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
             </>
           )}
 
-          {/* ── FAVOURITE ── */}
           {activeNav === "favourite" && (
           <FavouriteProperties onBack={() => setActiveNav("edit")} />
           )}
 
-          {/* ── HELP ── */}
+
           {activeNav === "help" && (
             <div className="ps-placeholder">
               <IconHelp />
@@ -220,6 +300,34 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
 
         </div>
       </main>
+
+      {/* ── Become a Seller FAB ── */}
+      {!isSeller && (
+        <div style={{ position: "fixed", bottom: "2rem", right: "2rem", zIndex: 50, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.5rem" }}>
+          {sellerError && (
+            <div style={{ background: "#fef2f2", color: "#dc2626", border: "1px solid #fca5a5", borderRadius: "8px", padding: "0.5rem 0.85rem", fontSize: "0.8rem", maxWidth: "220px", textAlign: "center" }}>
+              {sellerError}
+            </div>
+          )}
+          <button
+            onClick={handleBecomeSeller}
+            disabled={sellerLoading}
+            style={{
+              display: "flex", alignItems: "center", gap: "0.5rem",
+              background: sellerLoading ? "#93c5fd" : "#2563eb",
+              color: "#fff", border: "none", borderRadius: "999px",
+              padding: "0.75rem 1.35rem", fontSize: "0.9rem", fontWeight: 600,
+              cursor: sellerLoading ? "not-allowed" : "pointer",
+              boxShadow: "0 4px 14px rgba(37,99,235,0.4)",
+              transition: "background 0.2s",
+            }}
+          >
+            <IconStorefront />
+            {sellerLoading ? "Processing…" : "Become a Seller"}
+          </button>
+        </div>
+      )}
+
     </div>
   );
 }

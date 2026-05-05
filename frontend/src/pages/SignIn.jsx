@@ -1,11 +1,10 @@
 import { useState } from "react";
-import axios from "axios";
 import Logo from "../components/Logo";
 import InputField from "../components/InputField";
 import SocialButtons from "../components/SocialButtons";
 import BackButton from "../components/BackButton";
 import "./Auth.css";
-import API_BASE from "../components/Api";
+import { api } from "../components/Axios";
 
 export default function SignIn({ onNavigate, onLogin }) {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -29,21 +28,21 @@ export default function SignIn({ onNavigate, onLogin }) {
     setMsg({ type: "", text: "" });
 
     try {
-      const response = await axios.post(`${API_BASE}/auth/login`, {
+      const response = await api.post("/auth/login", {
         email: form.email,
         password: form.password,
       });
 
-      
+      const { token, isSeller, is_seller, role } = response.data;
+      if (token) localStorage.setItem("token", token);
+      localStorage.setItem("isSeller", String(isSeller ?? is_seller ?? role === "seller" ?? false));
+
       setMsg({
         type: "ok",
         text: response.data?.message || "Welcome back! You are now signed in.",
       });
-      // console.log("onLogin called"); // for test 
-      
-      // Optional: navigate after successful login
-      setTimeout(() => {onLogin();}, 1250);
-      //onLogin(); // new update 
+
+      setTimeout(() => { onLogin(); }, 1250);
     } catch (error) {
       const serverMsg = error.response?.data?.message || error.response?.data?.error;
       setMsg({
