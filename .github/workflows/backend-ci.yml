@@ -5,7 +5,7 @@ on:
   push:
     paths:
       - 'backend/**'
-      - '!bakcend/configs/sql*.sql'
+      - '!bakcend/configs/*.sql'
       - '!backend/.gitignore'
 jobs:
 
