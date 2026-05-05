@@ -22,9 +22,10 @@ export default function App() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
+    localStorage.removeItem("token");
     setIsLoggedIn(false);
     localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("isSeller");
     setPage("home");
   };
 
@@ -33,6 +34,14 @@ export default function App() {
     setPage("search");
   };
 
+  const handleNavigate = (target) => {
+    const protectedPages = ["profile", "favourite"];
+    if (protectedPages.includes(target) && !isLoggedIn) {
+      setPage("signin");
+    } else {
+      setPage(target);
+    }
+  };
 
   return (
     <div className={`app theme-${theme}`}>
