@@ -76,14 +76,17 @@ export async function s3Init() {
             console.error(error)
             process.exit(1)
         }
+        console.log(1)
+
     }
 
     // Check if BUcket exists and has access to it
     try {
         await s3.send(new HeadBucketCommand({ Bucket: process.env.BUCKET_NAME }));
+        console.log(1)
     } catch (error) {
         console.error(error)
-        process.exit(1)
+        process.exit(2)
     }
 }
 
