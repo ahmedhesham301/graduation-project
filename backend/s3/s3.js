@@ -24,7 +24,6 @@ if (process.env.ENV === "dev") {
             socketTimeout: 5000,
         }),
     }
-    console.log(s3Config)
 } else if (process.env.ENV === "prod") {
     s3Config = {
         region: "eu-central-1",
@@ -49,7 +48,6 @@ export async function s3Init() {
                 Bucket: process.env.BUCKET_NAME,
                 CreateBucketConfiguration: { LocationConstraint: "eu-central-1" }
             }));
-            console.log(1)
             await s3.send(new PutPublicAccessBlockCommand({
                 Bucket: process.env.BUCKET_NAME,
                 PublicAccessBlockConfiguration: {
@@ -59,7 +57,6 @@ export async function s3Init() {
                     RestrictPublicBuckets: false,
                 },
             }));
-            console.log(2)
             await s3.send(new PutBucketPolicyCommand({
                 Bucket: process.env.BUCKET_NAME,
                 Policy: JSON.stringify({
@@ -77,13 +74,12 @@ export async function s3Init() {
             }));
         } catch (error) {
             console.error(error)
-            process.exit(3)
+            process.exit(1)
         }
     }
 
     // Check if BUcket exists and has access to it
     try {
-        console.log(4)
         await s3.send(new HeadBucketCommand({ Bucket: process.env.BUCKET_NAME }));
     } catch (error) {
         console.error(error)
