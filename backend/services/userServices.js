@@ -35,7 +35,6 @@ export async function updateUserProfile(userId, data) {
 
     if (data.fullName)  fields['full_name']     = data.fullName
     if (data.phone)     fields['phone']          = data.phone
-    if (data.email)     fields['email']          = data.email
 
     // Only hash and update password if a new one was provided
     if (data.password)  fields['password_hash']  = await bcrypt.hash(data.password, 10)

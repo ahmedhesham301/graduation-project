@@ -77,7 +77,7 @@ export async function findUserById(id) {
 }
 
 export async function updateUser(id, fields) {
-    const allowed = ['full_name', 'email', 'phone', 'password_hash']
+    const allowed = ['full_name', 'phone', 'password_hash']
     const sets = []
     const values = []
     let i = 1
