@@ -1,17 +1,19 @@
 
 
 import { Router } from "express"
-import { getPropertyByIdHandler, create, deleteProperty, searchForProperty } from "../controllers/propertyController.js"
+import { getPropertyByIdHandler, create, deleteProperty, searchForProperty,getNearby  } from "../controllers/propertyController.js"
 import { validatePropertyBody, validatePropertyId, validateMediaId } from "../middlewares/validation/propertyValidator.js"
 import { isAuthenticated } from "../middlewares/session.js"
 import { isSellerVerified, isPropertyOwner } from "../middlewares/propertyAuth.js"
 import { validateSearchQuery } from "../middlewares/validation/searchValidator.js";
 import { verifyUpload } from "../controllers/propertyMediaController.js";
+import { validateNearbyQuery } from "../middlewares/validation/nearbyValidator.js"
 const router = Router()
 
-
+router.get('/properties/nearby', validateNearbyQuery, getNearby)
 router.get("/properties/:propertyId", validatePropertyId, getPropertyByIdHandler)
 router.get('/search', validateSearchQuery, searchForProperty)
+
 
 router.post("/properties", isAuthenticated, isSellerVerified, validatePropertyBody, create)
 

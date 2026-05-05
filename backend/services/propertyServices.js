@@ -1,4 +1,4 @@
-import { findPropertyById, createPropertyRecord } from "../models/propertyModel.js"
+import { findPropertyById, createPropertyRecord ,findPropertiesNearby} from "../models/propertyModel.js"
 
 export async function getPropertyById(propertyId) {
     const propertyRecord = await findPropertyById(propertyId, false)
@@ -30,4 +30,9 @@ export async function createProperty(sellerId, propertyData) {
         sellerId, type, lat, lon, area, floors,
         rooms, bathrooms, cityID, districtID, description || null, price
     )
+}
+
+export async function getNearbyProperties(lat, lon, radiusKm, page) {
+    const radiusMeters = radiusKm * 1000
+    return await findPropertiesNearby(lat, lon, radiusMeters, page)
 }
