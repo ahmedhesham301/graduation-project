@@ -10,7 +10,7 @@ COPY . .
 ENV VITE_API_BASE="/api"
 RUN npm run build
 
-FROM nginx:1.29
+FROM nginx:stable-alpine
 
 COPY --from=build /app/dist /usr/share/nginx/html
 
