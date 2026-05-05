@@ -3,6 +3,10 @@ name: ci
 on:
   workflow_dispatch:
   push:
+    paths:
+      - 'backend/**'
+      - '!bakcend/configs/sql*.sql'
+      - '!backend/.gitignore'
 jobs:
 
   ci:
