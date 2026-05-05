@@ -3,16 +3,16 @@ kind: ConfigMap
 metadata:
   name: api-cm
 data:
-  PGHOST: a
-  PGPASSWORD: "12345678"
+  PGHOST: 192.168.1.40
+  PGPASSWORD: "1234"
   PGUSER: postgres
   REDIS_HOST: redis-stack.default.svc.cluster.local
   REDIS_PORT: "6379"
   REDIS_PASSWORD: "1234"
   SESSION_SECRET: "1234"
-  ENV: prod
-  S3_ENDPOINT: ""
+  ENV: dev
+  S3_ENDPOINT: 192.168.1.40:9000
   BUCKET_NAME: ahmedhesham301-3akrati
-  S3_ACCESS_KEY: a
-  S3_SECRET_KEY: a
-  GEMINI_API_KEY: a  # free key
+  S3_ACCESS_KEY: rustfsadmin
+  S3_SECRET_KEY: rustfsadamin
+  # GEMINI_API_KEY: a  # free key

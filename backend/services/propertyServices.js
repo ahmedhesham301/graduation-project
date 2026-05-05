@@ -23,12 +23,12 @@ export async function createProperty(sellerId, propertyData) {
         area,
         floors,
         rooms,
-        bathrooms, cityID, districtID, description, price
+        bathrooms, city, district, description, price
     } = propertyData
 
     return await createPropertyRecord(
         sellerId, type, lat, lon, area, floors,
-        rooms, bathrooms, cityID, districtID, description || null, price
+        rooms, bathrooms, city, district, description || null, price
     )
 }
 

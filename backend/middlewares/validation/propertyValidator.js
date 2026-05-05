@@ -21,14 +21,14 @@ const mediaSchema = z.object({
 
 const propertySchema = z.object({
     type: z.string().min(1).max(100),
-    lon: z.coerce.number().min(-180).max(180),
-    lat: z.coerce.number().min(-90).max(90),
+    lon: z.coerce.number().min(25).max(36),
+    lat: z.coerce.number().min(22).max(31.7),
     area: z.coerce.number().int().positive(),
     floors: z.coerce.number().int().positive(),
     rooms: z.coerce.number().int().positive(),
     bathrooms: z.coerce.number().int().positive(),
-    cityID: z.coerce.number().int().positive(),
-    districtID: z.coerce.number().int().positive(),
+    city: z.string(),
+    district: z.string(),
     description: z.string().max(1000).optional(),
     price: z.coerce.number().int().positive(),
     media: mediaSchema.array().min(1).max(30)

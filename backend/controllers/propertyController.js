@@ -42,7 +42,11 @@ export async function create(req, res) {
             return res.status(422).json({ error: "seller_id does not exist" })
         }
         if (error.code === '23514') {
-            return res.status(422).json({ error: "Invalid values — check area, price, rooms are positive" })
+            return res.status(422).json({ error: "Invalid values check area, price, rooms are positive" })
+        }
+        if (error.code === '23502') {
+            return res.status(422).json({ error: "Invalid values check city and district" })
+
         }
         res.status(500).json({ error: "Failed to create property" })
     }

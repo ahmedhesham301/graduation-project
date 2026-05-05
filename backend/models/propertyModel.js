@@ -22,15 +22,17 @@ export async function findPropertyById(id, pendingMedia = null) {
 }
 
 //
-export async function createPropertyRecord(sellerId, type, lat, lon, area, floors, rooms, bathrooms, cityID, districtID, description, price) {
+export async function createPropertyRecord(sellerId, type, lat, lon, area, floors, rooms, bathrooms, city, district, description, price) {
     const query = {
         name: 'create-property',
         text: `INSERT INTO properties 
                 (seller_id, type, coordinates, area, floors, rooms, bathrooms, city_id, district_id, description, price)
                VALUES 
-                ($1, $2, POINT($3, $4)::geometry, $5, $6, $7, $8, $9, $10, $11, $12)
+                ($1, $2, POINT($3, $4)::geometry, $5, $6, $7, $8,
+                (SELECT id FROM cities WHERE name = $9), 
+                (SELECT id FROM districts WHERE name = $10 AND city_id = (SELECT id FROM cities WHERE name = $9)), $11, $12)
                RETURNING *`,
-        values: [sellerId, type, lon, lat, area, floors, rooms, bathrooms, cityID, districtID, description, price]
+        values: [sellerId, type, lon, lat, area, floors, rooms, bathrooms, city, district, description, price]
     }
     const { rows } = await pool.query(query)
     return rows[0]
