@@ -77,7 +77,7 @@ export async function upgradeTOSeller(req, res) {
         res.status(500).json({ message: "internal server error" })
     }
 }
-export async function getMe(req, res) {
+export async function getCurrentUser(req, res) {
     try {
         const user = await getUserProfile(req.session.userID)
 
@@ -91,7 +91,7 @@ export async function getMe(req, res) {
         res.status(500).json({ message: "internal server error" })
     }
 }
-export async function updateMe(req, res) {
+export async function updateCurrentUser(req, res) {
     try {
         const updated = await updateUserProfile(req.session.userID, req.body)
 
