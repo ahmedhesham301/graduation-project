@@ -2,8 +2,10 @@ import {
     getPropertyById,
     createProperty
 } from "../services/propertyServices.js"
-import { search, deletePropertyById } from "../models/propertyModel.js";
+import { search, deletePropertyById  } from "../models/propertyModel.js";
 import { preparePropertyMediaUploads, getMediaUrls } from "../services/propertyMediaService.js";
+
+
 export async function getPropertyByIdHandler(req, res) {
     try {
         const property = await getPropertyById(req.params.propertyId)
@@ -72,3 +74,16 @@ export async function deleteProperty(req, res) {
         res.status(500).json({ error: "Internal server error" })
     }
 }
+
+import { getNearbyProperties } from "../services/propertyServices.js"
+export async function getNearby(req, res) {
+    try {
+        const { lat, lon, radius, page } = req.updatedParameters
+        const properties = await getNearbyProperties(lat, lon, radius, page)
+        res.status(200).json(properties)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ error: "Internal server error" })
+    }
+}
+

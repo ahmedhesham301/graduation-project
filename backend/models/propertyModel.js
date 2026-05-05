@@ -121,3 +121,56 @@ export async function publishProperty(propertyId) {
 
     await pool.query(query)
 }
+export async function findPropertiesNearby(lat, lon, radiusMeters, page) {
+    const offset = (page - 1) * PAGE_SIZE
+
+    const query = {
+        text: `
+            SELECT
+                p.id,
+                p.type,
+                p.area,
+                p.floors,
+                p.rooms,
+                p.bathrooms,
+                p.price,
+                ST_Y(p.coordinates) AS lat,
+                ST_X(p.coordinates) AS lon,
+                c.name AS city,
+                d.name AS district,
+                -- Distance in kilometers rounded to 2 decimal places
+                ROUND((ST_Distance(
+                    p.coordinates::geography,
+                    ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography
+                ) / 1000)::numeric, 2) AS distance_km,
+                pm.s3_key || '.' || pm.extension AS media
+            FROM properties p
+            JOIN cities c
+                ON c.id = p.city_id
+            JOIN districts d
+                ON d.id = p.district_id
+                AND d.city_id = c.id
+            LEFT JOIN LATERAL (
+                SELECT s3_key, extension
+                FROM property_media
+                WHERE property_id = p.id AND uploaded_at IS NOT NULL
+                ORDER BY uploaded_at ASC
+                LIMIT 1
+            ) pm ON true
+            WHERE
+                p.deleted_at IS NULL
+                AND p.pending_media = false
+                AND ST_DWithin(
+                    p.coordinates::geography,
+                    ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography,
+                    $3
+                )
+            ORDER BY distance_km ASC
+            OFFSET ${offset}
+            LIMIT ${PAGE_SIZE}`,
+        values: [lat, lon, radiusMeters]
+    }
+
+    const { rows } = await pool.query(query)
+    return rows
+}
