@@ -19,6 +19,7 @@ api.interceptors.response.use(
       localStorage.removeItem("token");
       localStorage.removeItem("isLoggedIn");
       localStorage.removeItem("isSeller");
+      window.dispatchEvent(new Event("auth:logout"));
     }
     return Promise.reject(error);
   }

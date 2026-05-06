@@ -149,13 +149,13 @@ export default function AddProperty({ onBack }) {
               </select>
             </div>
             <div className="ap-field">
-              {/* <label className="ap-label">condition</label>
+              <label className="ap-label">condition</label>
               <select className="ap-select" value={form.condition} onChange={e => set("condition", e.target.value)}>
                 <option>finished</option>
                 <option>semi-finished</option>
                 <option>core &amp; shell</option>
                 <option>new</option>
-              </select> */}
+              </select>
             </div>
             <div className="ap-field">
               <label className="ap-label">lat</label>
@@ -195,8 +195,8 @@ export default function AddProperty({ onBack }) {
               </select>
             </div>
             <div className="ap-field">
-              <label className="ap-label">CityID</label>
-              <input className="ap-input" min="0" type="number" placeholder="e.g. 1"
+              <label className="ap-label">City</label>
+              <input className="ap-input" type="text" placeholder="e.g. cairo"
                 value={form.CityID} onChange={e => set("CityID", e.target.value)} />
             </div>
           </div>
@@ -205,7 +205,7 @@ export default function AddProperty({ onBack }) {
           <div className="ap-row">
             <div className="ap-field">
               <label className="ap-label">districtID</label>
-              <input className="ap-input" min="0" type="number" placeholder="e.g. 21"
+              <input className="ap-input" type="text" placeholder="e.g. 15 May"
                 value={form.districtID} onChange={e => set("districtID", e.target.value)} />
             </div>
             <div className="ap-field">
