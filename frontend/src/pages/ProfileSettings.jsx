@@ -118,7 +118,7 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
   const handleSave = async () => {
     setSaveError(null);
     try {
-      await api.put("/user/me", {
+      await api.patch("/user/me", {
         fullName: formData.fullName,
         phone:    formData.phone,
       });
@@ -134,7 +134,7 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
     setSellerLoading(true);
     setSellerError(null);
     try {
-      await api.post("/auth/become-seller");
+      await api.post("/user/become-seller");
       setIsSeller(true);
       localStorage.setItem("isSeller", "true"); // ✅ persist seller status
     } catch (err) {
@@ -281,7 +281,33 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
                     <div className="ps-contact-sub">Phone number</div>
                   </div>
                 </div>
-              </div>
+              </div> 
+              {/* ── Become a Seller FAB ── */}
+              {!isSeller && (
+                <div style={{ position: "fixed", bottom: "2rem", right: "2rem", zIndex: 50, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.5rem" }}>
+                  {sellerError && (
+                    <div style={{ background: "#fef2f2", color: "#dc2626", border: "1px solid #fca5a5", borderRadius: "8px", padding: "0.5rem 0.85rem", fontSize: "0.8rem", maxWidth: "220px", textAlign: "center" }}>
+                      {sellerError}
+                    </div>
+                  )}
+                  <button
+                    onClick={handleBecomeSeller}
+                    disabled={sellerLoading}
+                    style={{
+                      display: "flex", alignItems: "center", gap: "0.5rem",
+                      background: sellerLoading ? "#93c5fd" : "#2563eb",
+                      color: "#fff", border: "none", borderRadius: "999px",
+                      padding: "0.75rem 1.35rem", fontSize: "0.9rem", fontWeight: 600,
+                      cursor: sellerLoading ? "not-allowed" : "pointer",
+                      boxShadow: "0 4px 14px rgba(37,99,235,0.4)",
+                      transition: "background 0.2s",
+                    }}
+                  >
+                    <IconStorefront />
+                    {sellerLoading ? "Processing…" : "Become a Seller"}
+                  </button>
+                </div>
+              )}
             </>
           )}
 
@@ -301,32 +327,6 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
         </div>
       </main>
 
-      {/* ── Become a Seller FAB ── */}
-      {!isSeller && (
-        <div style={{ position: "fixed", bottom: "2rem", right: "2rem", zIndex: 50, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.5rem" }}>
-          {sellerError && (
-            <div style={{ background: "#fef2f2", color: "#dc2626", border: "1px solid #fca5a5", borderRadius: "8px", padding: "0.5rem 0.85rem", fontSize: "0.8rem", maxWidth: "220px", textAlign: "center" }}>
-              {sellerError}
-            </div>
-          )}
-          <button
-            onClick={handleBecomeSeller}
-            disabled={sellerLoading}
-            style={{
-              display: "flex", alignItems: "center", gap: "0.5rem",
-              background: sellerLoading ? "#93c5fd" : "#2563eb",
-              color: "#fff", border: "none", borderRadius: "999px",
-              padding: "0.75rem 1.35rem", fontSize: "0.9rem", fontWeight: 600,
-              cursor: sellerLoading ? "not-allowed" : "pointer",
-              boxShadow: "0 4px 14px rgba(37,99,235,0.4)",
-              transition: "background 0.2s",
-            }}
-          >
-            <IconStorefront />
-            {sellerLoading ? "Processing…" : "Become a Seller"}
-          </button>
-        </div>
-      )}
 
     </div>
   );

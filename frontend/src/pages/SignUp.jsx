@@ -44,8 +44,7 @@ export default function SignUp({ onNavigate }) {
       // Adjust based on what your backend actually returns on success
       setMsg({ type: "ok", text: response.data?.message || `Welcome to 3Karati, ${form.name}!` });
 
-      // Optional: navigate to sign-in after a short delay
-      // setTimeout(() => onNavigate("signin"), 1500);
+      setTimeout(() => onNavigate("signin"), 1000);
 
     } catch (error) {
       // axios puts the response body in error.response.data
