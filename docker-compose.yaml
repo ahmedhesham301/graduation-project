@@ -51,7 +51,7 @@ services:
       BUCKET_NAME: testpublic
       S3_ACCESS_KEY: rustfsadmin
       S3_SECRET_KEY: rustfsadmin
-      GEMINI_API_KEY: AIzaSyAnf-usNJSwpNY3WBKzIlE3gg-lQdC7mc4
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
     depends_on:
         db:
           condition: service_healthy
