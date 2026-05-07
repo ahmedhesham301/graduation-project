@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import axios from "axios";
 import "./AddProperty.css";
-import API_BASE from "../components/Api";
+import API_BASE from "../components/vars";
 
 export default function AddProperty({ onBack }) {
   const [form, setForm] = useState({
