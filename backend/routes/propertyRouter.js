@@ -5,6 +5,7 @@ import { getPropertyByIdHandler, create, deleteProperty, searchForProperty,getNe
 import { validatePropertyBody, validatePropertyId, validateMediaId } from "../middlewares/validation/propertyValidator.js"
 import { isAuthenticated } from "../middlewares/session.js"
 import { isSellerVerified, isPropertyOwner } from "../middlewares/propertyAuth.js"
+import { propertyLimiter } from "../middlewares/rateLimiter.js"  
 import { validateSearchQuery } from "../middlewares/validation/searchValidator.js";
 import { verifyUpload } from "../controllers/propertyMediaController.js";
 import { validateNearbyQuery } from "../middlewares/validation/nearbyValidator.js"
@@ -15,7 +16,7 @@ router.get("/properties/:propertyId", validatePropertyId, getPropertyByIdHandler
 router.get('/search', validateSearchQuery, searchForProperty)
 
 
-router.post("/properties", isAuthenticated, isSellerVerified, validatePropertyBody, create)
+router.post("/properties", propertyLimiter, isAuthenticated, isSellerVerified, validatePropertyBody, create)
 
 router.put("/properties/:propertyId/media/:mediaId", isAuthenticated, validateMediaId, isSellerVerified, isPropertyOwner, verifyUpload)
 
