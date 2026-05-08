@@ -5,6 +5,7 @@ import SignUp from "./pages/SignUp";
 import ProfileSettings from "./pages/ProfileSettings";
 import FavouriteProperties from "./pages/FavouriteProperties";
 import SearchResults from "./pages/SearchResults";
+import ChatBot from "./components/ChatBot";
 import { api } from "./components/Axios";
 import "./App.css";
 
@@ -103,8 +104,10 @@ export default function App() {
           isLoggedIn={isLoggedIn}
           onLogout={handleLogout}
           initialFilters={searchFilters}
+
         />
       )}
+    <ChatBot />
       
     </div>
   );

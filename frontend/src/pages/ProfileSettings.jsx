@@ -67,7 +67,7 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
   const [menuOpen, setMenuOpen]           = useState(false);
   const [loading, setLoading]             = useState(true);
   const [saveError, setSaveError]         = useState(null);
-  const [isSeller, setIsSeller]           = useState(false);
+  const [isSeller, setIsSeller]           = useState(localStorage.getItem("isSeller") === "true");
   const [sellerLoading, setSellerLoading] = useState(false);
   const [sellerError, setSellerError]     = useState(null);
 
@@ -89,9 +89,14 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
         setSavedData(mapped);
 
         // ✅ Read seller status from API, fallback to localStorage
+        // const sellerFromApi = data.isSeller ?? data.is_seller ?? data.role === "seller";
+        // const sellerFromStorage = localStorage.getItem("isSeller") === "true";
+        // setIsSeller(sellerFromApi ?? sellerFromStorage);
+
         const sellerFromApi = data.isSeller ?? data.is_seller ?? data.role === "seller";
-        const sellerFromStorage = localStorage.getItem("isSeller") === "true";
-        setIsSeller(sellerFromApi ?? sellerFromStorage);
+        if (sellerFromApi) {
+        setIsSeller(true);
+        localStorage.setItem("isSeller", "true");}
       } catch (err) {
         console.error(err.response?.data?.message ?? err.message);
       } finally {
@@ -153,7 +158,7 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
       </div>
     );
   }
-
+ const countryCode = formData.phone.startsWith("+20") ? "+20" : "+20";
   return (
     <div className="ps-app">
 
@@ -255,10 +260,11 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
                 <div className="ps-field-group">
                   <label className="ps-field-label">Phone Number</label>
                   <div className="ps-phone-row">
-                    <div className={`ps-phone-code${!editMode ? " disabled" : ""}`}>🇪🇬 +20</div>
-                    <input className="ps-field-input ps-phone-input" type="tel" placeholder="e.g. 1012345678"
-                      value={formData.phone} disabled={!editMode}
-                      onChange={e => setFormData(p => ({ ...p, phone: e.target.value.replace(/\D/g, "") }))} />
+                    <div className={`ps-phone-code${!editMode ? " disabled" : ""}`}> 🇪🇬 {countryCode}</div>
+                    <input className="ps-field-input ps-phone-input" type="tel" placeholder="e.g. 1234567890"
+                        value={formData.phone.startsWith("+20") ? formData.phone.slice(3) : formData.phone}
+                        onChange={(e) => {const numbersOnly = e.target.value.replace(/\D/g, "");
+                        setFormData(p => ({...p, phone: "+20" + numbersOnly}));}} />
                   </div>
                 </div>
               </div>
@@ -276,7 +282,7 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
                   <div className="ps-contact-icon"><IconPhone /></div>
                   <div>
                     <div className="ps-contact-text">
-                      {savedData.phone ? `+20 ${savedData.phone}` : "No phone number added"}
+                      {savedData.phone ? `${savedData.phone.slice(0, 3)} ${savedData.phone.slice(3)}` : "No phone number added"}
                     </div>
                     <div className="ps-contact-sub">Phone number</div>
                   </div>
