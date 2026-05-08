@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
-import axios from "axios";
+import { useEffect } from "react";
+import { api } from "../components/Axios";
 import "./AddProperty.css";
-import API_BASE from "../components/vars";
 
 export default function AddProperty({ onBack }) {
   const [form, setForm] = useState({
@@ -14,14 +14,16 @@ export default function AddProperty({ onBack }) {
     rooms: "",
     bathrooms: "",
     floor: "",
-    CityID: "",
-    districtID: "",
+    City: "",
+    district: "",
     area: "",
     description: "",
     //location: "",
   });
 
   const [photos, setPhotos] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [districts, setDistricts] = useState([]);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -36,81 +38,98 @@ export default function AddProperty({ onBack }) {
   };
 
   const handleFiles = (e) => {
-    const urls = Array.from(e.target.files).map((f) =>
-      URL.createObjectURL(f)
-    );
-    setPhotos((p) => [...p, ...urls]);
+    const files = Array.from(e.target.files);
+    setPhotos((p) => [...p, ...files]);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
-    const urls = Array.from(e.dataTransfer.files).map((f) =>
-      URL.createObjectURL(f)
-    );
-    setPhotos((p) => [...p, ...urls]);
+    const files = Array.from(e.dataTransfer.files);
+    setPhotos((p) => [...p, ...files]);
   };
+
+  useEffect(() => {
+  const fetchCities = async () => {
+    try {
+      const res = await api.get("/cities");
+      setCities(res.data);
+    } 
+    catch (err) {
+      console.log(err);
+    }
+  };
+  fetchCities();
+  }, []);
+
+  const handleCityChange = async (value) => {
+  set("City", value);          // تخزين المدينة
+  set("district", "");         // تصفير district
+
+  try {
+    const res = await api.get(`/cities/${value}/districts`);
+    setDistricts(res.data);
+  }
+  catch (err) {
+    console.log(err);
+  }
+};
 
   // ✅ API Submit
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!form.price || !form.CityID || !form.districtID) {
-      setMsg({
-        type: "err",
-        text: "Please fill all required fields.",
-      });
-      return;
-    }
+  if (!form.price || !form.City || !form.district) {
+    setMsg({ type: "err", text: "Please fill all required fields." });
+    return;
+  }
 
-    setLoading(true);
-    setMsg({ type: "", text: "" });
+  setLoading(true);
+  setMsg({ type: "", text: "" });
 
-    try {
-      const response = await axios.post(
-        `${API_BASE}/properties`,
-        {
-          propertyType: form.propertyType,
-          //condition: form.condition,
-          lat: form.lat,
-          lon: form.lon,
-          price: form.price,
-          yearBuilt: form.yearBuilt,
-          rooms: form.rooms,
-          bathrooms: form.bathrooms,
-          floor: form.floor,
-          CityID: form.CityID,
-          districtID: form.districtID,
-          area: form.area,
-          description: form.description,
-          //location: form.location,
-        }
-      );
+  try {
+    // Convert floor label → number
+    const floorMap = { Ground: 0, "Top floor": 99 };
+    const floorsValue = floorMap[form.floor] ?? Number(form.floor);
 
-      setMsg({
-        type: "ok",
-        text:
-          response.data?.message ||
-          "Property added successfully!",
-      });
+    const media = photos.map((file) => ({
+      fileName: file.name,
+      size: file.size,
+    }));
 
-      setTimeout(() => {
-        setSubmitted(true);
-      }, 1200);
-    } catch (error) {
-      const serverMsg =
-        error.response?.data?.message ||
-        error.response?.data?.error;
+    const payload = {
+      type: form.propertyType,
+      lat: Number(form.lat),
+      lon: Number(form.lon),
+      price: Number(form.price),
+      rooms: Number(form.rooms),
+      bathrooms: Number(form.bathrooms),
+      floors: floorsValue,
+      city: form.City,
+      district: form.district,
+      area: Number(form.area),
+      description: form.description,
+      media,
+    };
 
-      setMsg({
-        type: "err",
-        text:
-          serverMsg ||
-          "Failed to add property. Please try again.",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    const response = await api.post("/properties", payload); // ✅ plain object → axios sends JSON automatically
+
+    setMsg({
+      type: "ok",
+      text: response.data?.message || "Property added successfully!",
+    });
+
+    setTimeout(() => setSubmitted(true), 1200);
+  } catch (error) {
+    const serverMsg =
+      error.response?.data?.message || error.response?.data?.error;
+    setMsg({
+      type: "err",
+      text: serverMsg || "Failed to add property. Please try again.",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
   if (submitted) {
     return (
       <div className="ap-success">
@@ -148,15 +167,9 @@ export default function AddProperty({ onBack }) {
                 <option>office</option>
               </select>
             </div>
-            <div className="ap-field">
-              <label className="ap-label">condition</label>
-              <select className="ap-select" value={form.condition} onChange={e => set("condition", e.target.value)}>
-                <option>finished</option>
-                <option>semi-finished</option>
-                <option>core &amp; shell</option>
-                <option>new</option>
-              </select>
-            </div>
+
+
+
             <div className="ap-field">
               <label className="ap-label">lat</label>
               <input className="ap-input" min="0" type="number" placeholder="e.g. 30.0444"
@@ -167,10 +180,6 @@ export default function AddProperty({ onBack }) {
               <input className="ap-input" min="0" type="number" placeholder="e.g. 31.2357"
                 value={form.lon} onChange={e => set("lon", e.target.value)} />
             </div>
-          </div>
-
-          {/* ── Row 2 ── */}
-          <div className="ap-row">
             <div className="ap-field">
               <label className="ap-label">rooms</label>
               <select className="ap-select" value={form.rooms} onChange={e => set("rooms", e.target.value)}>
@@ -179,6 +188,10 @@ export default function AddProperty({ onBack }) {
                 <option>4</option><option>5</option><option>6+</option>
               </select>
             </div>
+          </div>
+
+          {/* ── Row 2 ── */}
+          <div className="ap-row">
             <div className="ap-field">
               <label className="ap-label">bathrooms</label>
               <select className="ap-select" value={form.bathrooms} onChange={e => set("bathrooms", e.target.value)}>
@@ -196,18 +209,26 @@ export default function AddProperty({ onBack }) {
             </div>
             <div className="ap-field">
               <label className="ap-label">City</label>
-              <input className="ap-input" type="text" placeholder="e.g. cairo"
-                value={form.CityID} onChange={e => set("CityID", e.target.value)} />
+                <select className="ap-select" value={form.City} onChange={(e) => handleCityChange(e.target.value)}>
+                  <option value="">Select City</option>
+                  {cities.map((city, i) => (
+                  <option key={i} value={city}>{city}</option>
+                  ))}
+                </select>
+            </div>
+            <div className="ap-field">
+              <label className="ap-label">district</label>
+                <select className="ap-select" value={form.district} onChange={(e) => set("district", e.target.value)} disabled={!districts.length}>
+                  <option value="">Select District</option>
+                  {districts.map((d, i) => (
+                  <option key={i} value={d}>{d}</option>
+                  ))}
+                </select>
             </div>
           </div>
 
             {/* ── Row 3 ── */}
           <div className="ap-row">
-            <div className="ap-field">
-              <label className="ap-label">districtID</label>
-              <input className="ap-input" type="text" placeholder="e.g. 15 May"
-                value={form.districtID} onChange={e => set("districtID", e.target.value)} />
-            </div>
             <div className="ap-field">
               <label className="ap-label">price</label>
               <input className="ap-input" min="0" type="number" placeholder="e.g. 1000000"
@@ -219,6 +240,16 @@ export default function AddProperty({ onBack }) {
               <input className="ap-input" min="0" type="number" placeholder="e.g. 140"
                 value={form.area} onChange={e => set("area", e.target.value)} />
             </div>
+            {/* <div className="ap-field">
+            <label className="ap-label">condition</label>
+              <select className="ap-select" value={form.condition} onChange={e => set("condition", e.target.value)}>
+                <option>finished</option>
+                <option>semi-finished</option>
+                <option>core &amp; shell</option>
+                <option>new</option>
+                </div>
+              </select> */}
+
               {/* <div className="ap-field">
               <label className="ap-label">year built</label>
               <input className="ap-input" type="number" placeholder="e.g. 2001"
@@ -262,13 +293,14 @@ export default function AddProperty({ onBack }) {
                 </div>
               ) : (
                 <div className="ap-photo-grid">
-                  {photos.map((url, i) => (
-                    <div key={i} className="ap-thumb">
-                      <img src={url} alt="" />
-                      <button type="button" className="ap-thumb-del"
-                        onClick={e => { e.stopPropagation(); setPhotos(p => p.filter((_, j) => j !== i)); }}>×</button>
-                    </div>
-                  ))}
+                  {photos.map((file, i) => (
+                   <div key={i} className="ap-thumb">
+                    <img src={URL.createObjectURL(file)} alt="" />
+                    <button type="button" className="ap-thumb-del"
+                     onClick={(e) => { e.stopPropagation(); setPhotos((p) => p.filter((_, j) => j !== i));}}>×</button>
+                  </div>
+              ))}
+
                   <div className="ap-thumb-add">
                     <svg width="22" height="22" fill="none" stroke="#aaa" strokeWidth="2" viewBox="0 0 24 24">
                       <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
