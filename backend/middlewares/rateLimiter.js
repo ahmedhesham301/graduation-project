@@ -2,44 +2,47 @@ import { rateLimit } from "express-rate-limit"
 import { RedisStore } from "rate-limit-redis"
 import { redisClient } from "../database/redis.js"
 
-function makeRedisStore(prefix) {
+let authLimiterImpl = (req, res, next) => next()
+let propertyLimiterImpl = (req, res, next) => next()
+let generalLimiterImpl = (req, res, next) => next()
+
+function makeStore(prefix) {
     return new RedisStore({
         sendCommand: (...args) => redisClient.sendCommand(args),
         prefix
     })
 }
 
-function makeLimiter(windowMs, max, prefix, message, skipSuccessful = false) {
-    let limiter = null
+export const authLimiter = (req, res, next) => authLimiterImpl(req, res, next)
+export const propertyLimiter = (req, res, next) => propertyLimiterImpl(req, res, next)
+export const generalLimiter = (req, res, next) => generalLimiterImpl(req, res, next)
 
-    // Return middleware function that lazily initializes the limiter
-    return (req, res, next) => {
-        if (!limiter) {
-            limiter = rateLimit({
-                windowMs,
-                max,
-                standardHeaders: "draft-8",
-                legacyHeaders: false,
-                store: makeRedisStore(prefix),
-                skipSuccessfulRequests: skipSuccessful,
-                message: { error: message }
-            })
-        }
-        limiter(req, res, next)
-    }
+export async function initRateLimiters() {
+    authLimiterImpl = rateLimit({
+        windowMs: 15 * 60 * 1000,
+        max: 5,
+        standardHeaders: "draft-8",
+        legacyHeaders: false,
+        store: makeStore("rl:auth:"),
+        skipSuccessfulRequests: true,
+        message: { error: "Too many login attempts. Please try again in 15 minutes." }
+    })
+
+    propertyLimiterImpl = rateLimit({
+        windowMs: 60 * 60 * 1000,
+        max: 20,
+        standardHeaders: "draft-8",
+        legacyHeaders: false,
+        store: makeStore("rl:property:"),
+        message: { error: "Too many property listings created. Please try again in an hour." }
+    })
+
+    generalLimiterImpl = rateLimit({
+        windowMs: 60 * 1000,
+        max: 100,
+        standardHeaders: "draft-8",
+        legacyHeaders: false,
+        store: makeStore("rl:general:"),
+        message: { error: "Too many requests. Please slow down." }
+    })
 }
-
-export const authLimiter = makeLimiter(
-    15 * 60 * 1000,
-    5,
-    "rl:auth:",
-    "Too many login attempts. Please try again in 15 minutes.",
-    true
-)
-
-export const propertyLimiter = makeLimiter(
-    60 * 60 * 1000,
-    20,
-    "rl:property:",
-    "Too many property listings created. Please try again in an hour."
-)

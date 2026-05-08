@@ -3,6 +3,7 @@ import express from 'express'
 import morgan from 'morgan'
 import { initDB } from "./database/postgresql.js"
 import { initRedis } from "./database/redis.js"
+import { initRateLimiters } from "./middlewares/rateLimiter.js"
 import { sessionMiddleware } from "./middlewares/session.js";
 import authRouter from "./routes/authRouter.js"
 import propertyRouter from "./routes/propertyRouter.js"
@@ -17,6 +18,7 @@ import { healthCheck } from "./controllers/healthCheck.js";
 
 await initDB()
 await initRedis()
+await initRateLimiters()
 await s3Init()
 
 const app = express()
