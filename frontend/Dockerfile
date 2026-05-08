@@ -9,6 +9,7 @@ COPY . .
 
 ENV VITE_API_BASE="/api"
 ENV VITE_BUCKET_URL="http://localhost:9000/testpublic/"
+
 RUN npm run build
 
 FROM nginx:stable-alpine

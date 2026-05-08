@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { api } from "../components/Axios";
 import { BUCKET_url } from "./vars";
-import "./Chatbot.css";
+import "./ChatBot.css";
 
 /* ── Icons ── */
 const IconClose = () => (

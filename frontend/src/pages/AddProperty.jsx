@@ -124,17 +124,18 @@ export default function AddProperty({ onBack }) {
         const file = photos.find((f) => f.name === fileName);
 
         // Replace rustfs hostname with 127.0.0.1 in dev
-        const resolvedUrl =
-          import.meta.env.VITE_ENV === "dev"
-            ? uploadUrl.replace("rustfs", "localhost")
-            : uploadUrl;
+        // const resolvedUrl =
+        //   import.meta.env.VITE_ENV === "dev"
+        //     ? uploadUrl.replace("http://0.0.0.0:9000", "http://127.0.0.1:9000")
+        //     : uploadUrl;
 
-        await fetch(resolvedUrl, {
+        let resp = await fetch(uploadUrl, {
           method: "PUT",
           body: file,
           headers: { "Content-Type": file.type },
         });
-
+        const text = await resp.text();
+        console.log(text)
         // // 1️⃣ PUT the raw file to S3 (no auth headers — it's a pre-signed URL)
         // await fetch(uploadUrl, {
         //   method: "PUT",
