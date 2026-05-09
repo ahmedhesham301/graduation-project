@@ -121,6 +121,11 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
 
   /* ── Save profile ── */
   const handleSave = async () => {
+      const phone = formData.phone.replace("+20", "");
+      if (phone.length !== 10 || phone.startsWith("0")) {
+        setSaveError("Phone number must be 10 digits and cannot start with 0");
+        return;
+      }
     setSaveError(null);
     try {
       await api.patch("/user/me", {
@@ -262,8 +267,9 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
                   <div className="ps-phone-row">
                     <div className={`ps-phone-code${!editMode ? " disabled" : ""}`}> 🇪🇬 {countryCode}</div>
                     <input className="ps-field-input ps-phone-input" type="tel" placeholder="e.g. 1234567890"
-                        value={formData.phone.startsWith("+20") ? formData.phone.slice(3) : formData.phone}
+                        value={formData.phone.startsWith("+20") ? formData.phone.slice(3) : formData.phone} disabled={!editMode}
                         onChange={(e) => {const numbersOnly = e.target.value.replace(/\D/g, "");
+                        if (numbersOnly.length > 10) { numbersOnly = numbersOnly.slice(0, 10); }
                         setFormData(p => ({...p, phone: "+20" + numbersOnly}));}} />
                   </div>
                 </div>
