@@ -46,7 +46,7 @@ const filterMap = {
     floors: (i) => `floors = $${i}`,
 };
 
-export async function search(page, orderBy, orderDirection, city, district, filters) {
+export async function search(page, orderBy, orderDirection, city, district, minPrice, maxPrice, filters) {
     let index = 1
     let clauses = []
     let values = []
@@ -67,6 +67,18 @@ export async function search(page, orderBy, orderDirection, city, district, filt
         clauses.push(`p.city_id = (SELECT id FROM cities WHERE name = $${index++})`)
         values.push(city)
     }
+
+    if (minPrice && maxPrice) {
+        clauses.push(`p.price BETWEEN $${index++} AND $${index++}`)
+        values.push(minPrice, maxPrice)
+    } else if (minPrice) {
+        clauses.push(`p.price >= $${index++}`)
+        values.push(minPrice)
+    } else if (maxPrice) {
+        clauses.push(`p.price <= $${index++}`)
+        values.push(maxPrice)
+    }
+
 
     clauses.push("p.deleted_at IS NULL", "p.pending_media=false")
 
@@ -98,7 +110,8 @@ export async function search(page, orderBy, orderDirection, city, district, filt
   `,
         values
     };
-
+    console.log(query);
+    
     const { rows } = await pool.query(query)
     return rows
 }

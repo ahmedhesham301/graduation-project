@@ -5,7 +5,18 @@ module "s3_bucket" {
 
   block_public_policy = false
   block_public_acls = false
+  ignore_public_acls = false
+  restrict_public_buckets = false
   force_destroy = true
+  cors_rule = [
+    {
+        allowed_headers: ["*"],
+        allowed_methods: ["GET", "PUT", "POST", "HEAD"],
+        allowed_origins: ["*"],
+        expose_headers: ["ETag"]
+    }
+]
+  attach_policy = true
   policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -21,3 +32,4 @@ module "s3_bucket" {
 }
 EOF
 }
+

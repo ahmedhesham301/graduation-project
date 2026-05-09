@@ -132,7 +132,6 @@ export default function AddProperty({ onBack }) {
         let resp = await fetch(uploadUrl, {
           method: "PUT",
           body: file,
-          headers: { "Content-Type": file.type },
         });
         const text = await resp.text();
         console.log(text)

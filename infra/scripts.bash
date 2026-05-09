@@ -2,6 +2,16 @@ aws eks --region $(terraform output -raw region) update-kubeconfig \
     --name $(terraform output -raw cluster_name)
 
 
+
+
+eksctl delete iamserviceaccount \
+  --cluster=$(terraform output -raw cluster_name) \
+  --namespace=kube-system \
+  --name=aws-load-balancer-controller \
+  --region eu-central-1
+
+
+# wait for sometime before running this
 eksctl create iamserviceaccount \
     --cluster=$(terraform output -raw cluster_name) \
     --namespace=kube-system \
