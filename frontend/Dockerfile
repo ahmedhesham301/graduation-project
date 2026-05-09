@@ -8,7 +8,7 @@ RUN npm install
 COPY . .
 
 ENV VITE_API_BASE="/api"
-ENV VITE_BUCKET_URL="http://localhost:9000/testpublic/"
+ENV VITE_BUCKET_URL="https://ahmedhesham301-3akrati.s3.eu-central-1.amazonaws.com/"
 
 RUN npm run build
 
