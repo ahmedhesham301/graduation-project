@@ -30,7 +30,7 @@ export async function initRateLimiters() {
 
     propertyLimiterImpl = rateLimit({
         windowMs: 60 * 60 * 1000,
-        max: 20,
+        max: 200000000,
         standardHeaders: "draft-8",
         legacyHeaders: false,
         store: makeStore("rl:property:"),
@@ -39,7 +39,7 @@ export async function initRateLimiters() {
 
     generalLimiterImpl = rateLimit({
         windowMs: 60 * 1000,
-        max: 100,
+        max: 100000000,
         standardHeaders: "draft-8",
         legacyHeaders: false,
         store: makeStore("rl:general:"),
