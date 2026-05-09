@@ -9,6 +9,8 @@ const parametersSchema = z.object({
     bedrooms: z.coerce.number().int().optional(),
     area: z.coerce.number().int().optional(),
     floors: z.coerce.number().int().optional(),
+    minPrice: z.coerce.number().int().min(1).optional(),
+    maxPrice: z.coerce.number().int().min(1).optional(),
     page: z.coerce.number().int().min(1).max(999),
     orderBy: z.enum(["price", "bathrooms", "rooms", "area"]).optional(),
     orderDirection: z.enum(["asc", "desc"]).optional()
