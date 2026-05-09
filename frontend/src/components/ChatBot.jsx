@@ -52,7 +52,7 @@ const QUICK_PROMPTS = [
 /* ── Property Card ── */
 function PropertyCard({ property }) {
   const { id, type, area, rooms, bathrooms, price, city, district, media } = property;
-  const imgSrc = media ? `/${BUCKET_url}media/${id}/${media}` : null;
+  const imgSrc = media ? `${BUCKET_url}/media/${id}/${media}` : null;
 
   return (
     <div className="cb-prop-card">
