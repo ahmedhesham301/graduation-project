@@ -35,6 +35,12 @@ const config = {
             floors: {
                 type: Type.INTEGER,
             },
+            minPrice: {
+                type: Type.INTEGER,
+            },
+            maxPrice: {
+                type: Type.INTEGER,
+            },
             orderBy: {
                 type: Type.STRING,
                 enum: ["price", "bathrooms", "rooms", "area"],
