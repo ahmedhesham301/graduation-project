@@ -3,14 +3,14 @@ kind: ConfigMap
 metadata:
   name: api-cm
 data:
-  PGHOST: 192.168.1.40
-  PGPASSWORD: "1234"
+  PGHOST: demodb.cl24aiy8qp59.eu-central-1.rds.amazonaws.com
+  PGPASSWORD: "12345678"
   PGUSER: postgres
   REDIS_HOST: redis-stack.default.svc.cluster.local
   REDIS_PORT: "6379"
   REDIS_PASSWORD: "1234"
   SESSION_SECRET: "1234"
-  ENV: dev
+  ENV: prod
   S3_ENDPOINT: 192.168.1.40:9000
   BUCKET_NAME: ahmedhesham301-3akrati
   S3_ACCESS_KEY: rustfsadmin

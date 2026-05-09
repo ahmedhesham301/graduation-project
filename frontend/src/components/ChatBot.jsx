@@ -52,7 +52,7 @@ const QUICK_PROMPTS = [
 /* ── Property Card ── */
 function PropertyCard({ property }) {
   const { id, type, area, rooms, bathrooms, price, city, district, media } = property;
-  const imgSrc = media ? `${BUCKET_url}media/${id}/${media}` : null; // there supposed to be a / after before media but i removed it should add it and add a / in add property bucket url
+  const imgSrc = media ? `/${BUCKET_url}media/${id}/${media}` : null;
 
   return (
     <div className="cb-prop-card">
