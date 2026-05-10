@@ -5,10 +5,13 @@ export async function findPropertyById(id, pendingMedia = null) {
     const query = {
         name: 'find-property-by-id',
         text: `SELECT 
-        p.id, p.seller_id, 
+        p.id, p.seller_id,
+        u.full_name AS seller_name, u.email AS seller_email, u.phone AS seller_phone,
         p.type,ST_Y(p.coordinates) AS lat,ST_X(p.coordinates) AS lon,
         p.area, p.floors, p.rooms, p.bathrooms, c.name AS city, d.name AS district, p.description, p.price, p.deleted_at
         FROM properties p
+        JOIN users u
+            ON u.id = p.seller_id
         JOIN cities c 
             ON c.id = p.city_id
         JOIN districts d 
