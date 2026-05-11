@@ -56,7 +56,7 @@ export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, o
     try {
       const res = await api.get("/favorites");
 
-      const favIds = res.data.map(item => item.id);
+      const favIds = res.data.map(item => item.property_id);
 
       setFavs(favIds);
     } catch (err) {
