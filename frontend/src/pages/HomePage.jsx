@@ -27,9 +27,13 @@ export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, o
   const [propType,  setPropType]  = useState("");
   const [bedrooms,  setBedrooms]  = useState("");
   const [bathrooms, setBathrooms] = useState("");
-  const [price,     setPrice]     = useState("");
+  const [floor,     setFloor]     = useState("");
 
-  // API state
+  // Search loading state
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState(null);
+
+  // API state (featured properties)
   const [properties, setProperties] = useState([]);
   const [loading,    setLoading]    = useState(true);
   const [error,      setError]      = useState(null);
@@ -39,7 +43,7 @@ export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, o
       try {
         setLoading(true);
         setError(null);
-        const res = await api.get("/search", { params: { page: 1 ,city: "cairo" } });
+        const res = await api.get("/search", { params: { page: 1, city: "cairo" } });
         setProperties(res.data);
       } catch (err) {
         setError("Failed to load properties. Please try again.");
@@ -47,52 +51,76 @@ export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, o
         setLoading(false);
       }
     };
-
-  fetchProperties();
+    fetchProperties();
   }, []);
 
   useEffect(() => {
-  const fetchFavorites = async () => {
+    const fetchFavorites = async () => {
+      try {
+        const res = await api.get("/favorites");
+        const favIds = res.data.map(item => item.property_id);
+        setFavs(favIds);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    if (isLoggedIn) {
+      fetchFavorites();
+    }
+  }, [isLoggedIn]);
+
+  const toggleFav = async (id) => {
+    if (!isLoggedIn) {
+      onNavigate("signin");
+      return;
+    }
+    const isFav = favs.includes(id);
+    setFavs(f => isFav ? f.filter(x => x !== id) : [...f, id]);
     try {
-      const res = await api.get("/favorites");
-
-      const favIds = res.data.map(item => item.property_id);
-
-      setFavs(favIds);
+      if (!isFav) {
+        await api.post(`/favorites/${id}`);
+      } else {
+        await api.delete(`/favorites/${id}`);
+      }
     } catch (err) {
       console.error(err);
+      setFavs(f => isFav ? [...f, id] : f.filter(x => x !== id));
     }
   };
 
-  if (isLoggedIn) {
-    fetchFavorites();
-  }
-}, [isLoggedIn]);
+  /* ── SEARCH HANDLER ─────────────────────────────────────────────────── */
+  const handleSearch = async () => {
+    setSearching(true);
+    setSearchError(null);
 
+    // Build params — only include fields the user actually filled in
+    const params = { page: 1 };
+    if (city)      params.city      = city;
+    if (district)  params.district  = district;
+    if (propType)  params.type      = propType;
+    if (bedrooms)  params.bedrooms  = bedrooms === "5+" ? 5 : Number(bedrooms);
+    if (bathrooms) params.bathrooms = Number(bathrooms);
+    if (floor && floor !== "Garden") params.floors = Number(floor);
 
-  const toggleFav = async (id) => {
-  if (!isLoggedIn) {
-    onNavigate("signin");
-    return;
-  }
-  const isFav = favs.includes(id);
+    try {
+      const res = await api.get("/search", { params });
 
-  // 🔥 UI سريع
-  setFavs(f => isFav ? f.filter(x => x !== id) : [...f, id]);
+      // Pass results + active filters to parent so SearchResults page can use them
+      onSearch({
+        city, district, propType, bedrooms, bathrooms, floor,
+        results: res.data,
+        params,          // raw params so SearchResults can re-query on sidebar changes
+      });
 
-  try {
-    if (!isFav) {
-      await api.post(`/favorites/${id}`);
-    } else {
-      await api.delete(`/favorites/${id}`);
+      onNavigate("search");
+    } catch (err) {
+      console.error(err);
+      setSearchError("Search failed. Please try again.");
+    } finally {
+      setSearching(false);
     }
-  } catch (err) {
-    console.error(err);
-
-    // rollback لو حصل error
-    setFavs(f => isFav ? [...f, id] : f.filter(x => x !== id));
-  }
-};
+  };
+  /* ─────────────────────────────────────────────────────────────────────── */
 
   const cats = POPULAR[popularTab];
 
@@ -159,7 +187,7 @@ export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, o
               </div>
               <div className="dropdown-wrap">
                 <label className="dropdown-label">Floor</label>
-                <select className="filter-select" value={price} onChange={e => setPrice(e.target.value)}>
+                <select className="filter-select" value={floor} onChange={e => setFloor(e.target.value)}>
                   <option value="">Any floor</option>
                   <option>Garden</option><option>1</option>
                   <option>2</option><option>3</option>
@@ -167,7 +195,21 @@ export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, o
                 </select>
               </div>
             </div>
-            <button className="search-btn" onClick={() => onSearch({ city, district, propType, bedrooms, bathrooms, price })}>Search Properties</button>
+
+            {searchError && (
+              <p style={{ color: "#ff4d6d", fontSize: "0.85rem", marginTop: "8px", textAlign: "center" }}>
+                {searchError}
+              </p>
+            )}
+
+            <button
+              className="search-btn"
+              onClick={handleSearch}
+              disabled={searching}
+              style={{ opacity: searching ? 0.7 : 1, cursor: searching ? "not-allowed" : "pointer" }}
+            >
+              {searching ? "Searching…" : "Search Properties"}
+            </button>
           </div>
         </div>
       </section>
@@ -199,23 +241,15 @@ export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, o
         <h2 className="section-title">Featured Properties</h2>
         <p className="section-sub">Hand-picked listings across Egypt's finest locations</p>
 
-        {loading && (
-          <p className="listings-status">Loading properties...</p>
-        )}
-
-        {error && (
-          <p className="listings-status listings-error">{error}</p>
-        )}
-
-        {!loading && !error && properties.length === 0 && (
-          <p className="listings-status">No properties found.</p>
-        )}
+        {loading && <p className="listings-status">Loading properties...</p>}
+        {error   && <p className="listings-status listings-error">{error}</p>}
+        {!loading && !error && properties.length === 0 && <p className="listings-status">No properties found.</p>}
 
         {!loading && !error && properties.length > 0 && (
           <div className="listings-grid">
             {properties.slice(0, 8).map((p, i) => (
               <div className="prop-card" key={p.id}>
-                <div className="prop-img" style={{backgroundImage: `url(${BUCKET_url}/media/${p.id}/${p.media})`,backgroundSize: "cover", backgroundPosition: "center"}}>
+                <div className="prop-img" style={{backgroundImage: `url(${BUCKET_url}/media/${p.id}/${p.media})`, backgroundSize: "cover", backgroundPosition: "center"}}>
                   <div className="prop-img-overlay" />
                   <span className="prop-type-badge">{p.type}</span>
                   <button className={`fav-btn ${favs.includes(p.id) ? "active" : ""}`} onClick={() => toggleFav(p.id)}>
@@ -226,7 +260,7 @@ export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, o
                 </div>
                 <div className="prop-info">
                   <div className="prop-price">EGP {Number(p.price).toLocaleString()}</div>
-                    <div className="prop-title">{p.type} in {p.district}</div>
+                  <div className="prop-title">{p.type} in {p.district}</div>
                   <div className="prop-location">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1a8cca" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
