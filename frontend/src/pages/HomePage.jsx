@@ -1,18 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
+import { api } from "../components/Axios";
+import { BUCKET_url } from "../components/vars";
 import "./HomePage.css";
-// console.log("isLoggedIn:", isLoggedIn); // for test
 
-const PROPERTIES = [
-  { id:1, price:"EGP 1,199,000",  title:"Villa in Palm Hills Compound",    location:"6th of October, Giza",     beds:4, baths:2, sqft:1500, type:"House" },
-  { id:2, price:"EGP 1,099,000",  title:"Finished Villa in New Cairo",      location:"New Cairo, Cairo",         beds:4, baths:3, sqft:2944, type:"House" },
-  { id:3, price:"EGP 39,000,000", title:"Row Golf Villa at Launch Price",   location:"New Capital, Cairo",       beds:6, baths:3, sqft:3094, type:"Villa" },
-  { id:4, price:"EGP 4,000,000",  title:"Villa For Sale With Installments", location:"Sheikh Zayed, Giza",      beds:4, baths:2, sqft:3033, type:"Villa" },
-  { id:5, price:"EGP 2,500,000",  title:"Luxury Apartment Sea View",        location:"North Coast, Alexandria", beds:3, baths:2, sqft:1800, type:"Apartment" },
-  { id:6, price:"EGP 850,000",    title:"Modern Studio in Downtown",        location:"Downtown, Cairo",         beds:1, baths:1, sqft:620,  type:"Apartment" },
-  { id:7, price:"EGP 6,200,000",  title:"Penthouse with Private Pool",      location:"Zamalek, Cairo",          beds:5, baths:4, sqft:4200, type:"Apartment" },
-  { id:8, price:"EGP 3,100,000",  title:"Twin House with Garden",           location:"Madinaty, Cairo",         beds:4, baths:3, sqft:2600, type:"House" },
-];
 const COLORS = ["#1a3a4a","#1a2a1a","#2a1a1a","#1a1a3a","#2a2a1a","#1a2a2a","#2a1a2a","#1a3a3a"];
 
 const POPULAR = {
@@ -24,14 +15,6 @@ const POPULAR = {
     { title:"Townhouses",  links:["Townhouses for sale in Egypt","Townhouses for sale in Cairo","Townhouses for sale in Giza","Townhouses for sale in Matruh","Townhouses for sale in Red Sea"] },
     { title:"Shops",       links:["Shops for sale in Egypt","Shops for sale in Alexandria","Shops for sale in Nasr City","Shops for sale in Sheikh Zayed","Shops for sale in New Capital City"] },
   ],
-  // rent: [
-  //   { title:"Apartments",           links:["Apartments for rent in Cairo","Apartments for rent in Alexandria","Apartments for rent in Heliopolis","Apartments for rent in Sheikh Zayed","Apartments for rent in Madinaty"] },
-  //   { title:"Villas",               links:["Villas for rent in Cairo","Villas for rent in Sheikh Zayed","Villas for rent in Giza","Villas for rent in Madinaty","Villas for rent in New Cairo"] },
-  //   { title:"Shops",                links:["Shops for rent in Egypt","Shops for rent in Alexandria","Shops for rent in Nasr City","Shops for rent in Heliopolis","Shops for rent in 5th Settlement"] },
-  //   { title:"Studio Apartments",    links:["Studio Apartments for Rent in Egypt","Studio Apartments for Rent in Cairo","Studio Apartments for Rent in Madinaty","Studio Apartments for Rent in 5th Settlement","Studio Apartments for Rent in Sheikh Zayed"] },
-  //   { title:"Furnished Apartments", links:["Furnished Apartments for Rent in Egypt","Furnished Apartments for Rent in Nasr City","Furnished Apartments for Rent in Cairo","Furnished Apartments for Rent in Mohandiseen","Furnished Apartments for Rent in Alexandria"] },
-  //   { title:"Offices",              links:["Offices for rent in Sheikh Zayed","Offices for rent in New Cairo","Offices for rent in 5th Settlement","Offices for rent in Heliopolis","Offices for rent in Nasr City"] },
-  // ],
 };
 
 export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, onSearch }) {
@@ -46,13 +29,76 @@ export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, o
   const [bathrooms, setBathrooms] = useState("");
   const [price,     setPrice]     = useState("");
 
-  const toggleFav = id => setFavs(f => f.includes(id) ? f.filter(x => x !== id) : [...f, id]);
+  // API state
+  const [properties, setProperties] = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState(null);
+
+  useEffect(() => {
+    const fetchProperties = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await api.get("/search", { params: { page: 1 ,city: "cairo" } });
+        setProperties(res.data);
+      } catch (err) {
+        setError("Failed to load properties. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+  fetchProperties();
+  }, []);
+
+  useEffect(() => {
+  const fetchFavorites = async () => {
+    try {
+      const res = await api.get("/favorites");
+
+      const favIds = res.data.map(item => item.id);
+
+      setFavs(favIds);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  if (isLoggedIn) {
+    fetchFavorites();
+  }
+}, [isLoggedIn]);
+
+
+  const toggleFav = async (id) => {
+  if (!isLoggedIn) {
+    onNavigate("signin");
+    return;
+  }
+  const isFav = favs.includes(id);
+
+  // 🔥 UI سريع
+  setFavs(f => isFav ? f.filter(x => x !== id) : [...f, id]);
+
+  try {
+    if (!isFav) {
+      await api.post(`/favorites/${id}`);
+    } else {
+      await api.delete(`/favorites/${id}`);
+    }
+  } catch (err) {
+    console.error(err);
+
+    // rollback لو حصل error
+    setFavs(f => isFav ? [...f, id] : f.filter(x => x !== id));
+  }
+};
+
   const cats = POPULAR[popularTab];
 
   return (
     <div className="home">
-      {/* Navbar receives theme + toggleTheme */}
-      <Navbar onNavigate={onNavigate} theme={theme} toggleTheme={toggleTheme} isLoggedIn={isLoggedIn}  />
+      <Navbar onNavigate={onNavigate} theme={theme} toggleTheme={toggleTheme} isLoggedIn={isLoggedIn} />
 
       {/* ── HERO ── */}
       <section className="hero">
@@ -152,34 +198,49 @@ export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, o
       <section className="listings-section">
         <h2 className="section-title">Featured Properties</h2>
         <p className="section-sub">Hand-picked listings across Egypt's finest locations</p>
-        <div className="listings-grid">
-          {PROPERTIES.map((p, i) => (
-            <div className="prop-card" key={p.id}>
-              <div className="prop-img" style={{ background: COLORS[i % COLORS.length] }}>
-                <div className="prop-img-overlay" />
-                <span className="prop-type-badge">{p.type}</span>
-                <button className={`fav-btn ${favs.includes(p.id) ? "active" : ""}`} onClick={() => toggleFav(p.id)}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill={favs.includes(p.id) ? "#ff4d6d" : "none"} stroke={favs.includes(p.id) ? "#ff4d6d" : "#fff"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                  </svg>
-                </button>
-              </div>
-              <div className="prop-info">
-                <div className="prop-price">{p.price}</div>
-                <div className="prop-title">{p.title}</div>
-                <div className="prop-location">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1a8cca" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
-                  </svg>
-                  {p.location}
+
+        {loading && (
+          <p className="listings-status">Loading properties...</p>
+        )}
+
+        {error && (
+          <p className="listings-status listings-error">{error}</p>
+        )}
+
+        {!loading && !error && properties.length === 0 && (
+          <p className="listings-status">No properties found.</p>
+        )}
+
+        {!loading && !error && properties.length > 0 && (
+          <div className="listings-grid">
+            {properties.slice(0, 8).map((p, i) => (
+              <div className="prop-card" key={p.id}>
+                <div className="prop-img" style={{backgroundImage: `url(${BUCKET_url}/media/${p.id}/${p.media})`,backgroundSize: "cover", backgroundPosition: "center"}}>
+                  <div className="prop-img-overlay" />
+                  <span className="prop-type-badge">{p.type}</span>
+                  <button className={`fav-btn ${favs.includes(p.id) ? "active" : ""}`} onClick={() => toggleFav(p.id)}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill={favs.includes(p.id) ? "#ff4d6d" : "none"} stroke={favs.includes(p.id) ? "#ff4d6d" : "#fff"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                    </svg>
+                  </button>
                 </div>
-                <div className="prop-meta">
-                  <span>{p.beds} bed</span><span>{p.baths} bath</span><span>{p.sqft.toLocaleString()} sqft</span>
+                <div className="prop-info">
+                  <div className="prop-price">EGP {Number(p.price).toLocaleString()}</div>
+                    <div className="prop-title">{p.type} in {p.district}</div>
+                  <div className="prop-location">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1a8cca" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    {p.city}, {p.district}
+                  </div>
+                  <div className="prop-meta">
+                    <span>{p.rooms} bed</span><span>{p.bathrooms} bath</span><span>{p.area} m²</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* ── POPULAR SEARCHES ── */}
