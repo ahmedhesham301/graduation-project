@@ -18,8 +18,7 @@ export async function getSavedProperties(userId) {
     const query = {
         name: 'get-saved-properties',
         text: `SELECT
-                s.id AS saved_id,
-                p.id,
+                p.id AS property_id,
                 p.type,
                 ST_Y(p.coordinates) AS lat,
                 ST_X(p.coordinates) AS lon,
@@ -27,14 +26,24 @@ export async function getSavedProperties(userId) {
                 p.floors,
                 p.rooms,
                 p.bathrooms,
-                p.city_id,
-                p.district_id,
+                c.name AS city,
+                d.name AS district,
                 p.description,
                 p.price,
-                p.deleted_at,
-                p.created_at
+                pm.s3_key || '.' || pm.extension AS media
                FROM saved s
                JOIN properties p ON p.id = s.property_id
+               JOIN cities c
+                    ON c.id = p.city_id
+                JOIN districts d
+                    ON d.id = p.district_id
+                LEFT JOIN LATERAL (
+                    SELECT s3_key, extension
+                    FROM property_media
+                    WHERE property_id = p.id AND uploaded_at IS NOT NULL
+                    ORDER BY uploaded_at ASC
+                    LIMIT 1
+                    ) pm ON true
                WHERE s.user_id = $1
                AND p.deleted_at IS NULL
                ORDER BY s.id DESC`,

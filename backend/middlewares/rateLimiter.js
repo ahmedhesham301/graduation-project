@@ -1,4 +1,4 @@
-import { rateLimit } from "express-rate-limit"
+import { rateLimit, ipKeyGenerator } from "express-rate-limit"
 import { RedisStore } from "rate-limit-redis"
 import { redisClient } from "../database/redis.js"
 
@@ -30,16 +30,20 @@ export async function initRateLimiters() {
 
     propertyLimiterImpl = rateLimit({
         windowMs: 60 * 60 * 1000,
-        max: 20,
+        max: 200000000,
         standardHeaders: "draft-8",
         legacyHeaders: false,
         store: makeStore("rl:property:"),
+        keyGenerator: (req) => {
+            if (req.session?.userID) return `user:${req.session.userID}`
+            return `ip:${ipKeyGenerator(req.ip)}`
+        },
         message: { error: "Too many property listings created. Please try again in an hour." }
     })
 
     generalLimiterImpl = rateLimit({
         windowMs: 60 * 1000,
-        max: 100,
+        max: 100000000,
         standardHeaders: "draft-8",
         legacyHeaders: false,
         store: makeStore("rl:general:"),

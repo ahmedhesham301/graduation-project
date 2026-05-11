@@ -268,7 +268,7 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
                     <div className={`ps-phone-code${!editMode ? " disabled" : ""}`}> 🇪🇬 {countryCode}</div>
                     <input className="ps-field-input ps-phone-input" type="tel" placeholder="e.g. 1234567890"
                         value={formData.phone.startsWith("+20") ? formData.phone.slice(3) : formData.phone} disabled={!editMode}
-                        onChange={(e) => {const numbersOnly = e.target.value.replace(/\D/g, "");
+                        onChange={(e) => {let numbersOnly = e.target.value.replace(/\D/g, "");
                         if (numbersOnly.length > 10) { numbersOnly = numbersOnly.slice(0, 10); }
                         setFormData(p => ({...p, phone: "+20" + numbersOnly}));}} />
                   </div>

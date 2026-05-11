@@ -2,7 +2,7 @@ import {
     getPropertyById,
     createProperty
 } from "../services/propertyServices.js"
-import { search, deletePropertyById  } from "../models/propertyModel.js";
+import { search, deletePropertyById } from "../models/propertyModel.js";
 import { preparePropertyMediaUploads, getMediaUrls } from "../services/propertyMediaService.js";
 
 
@@ -54,9 +54,9 @@ export async function create(req, res) {
 
 export async function searchForProperty(req, res) {
     try {
-        const { page, orderBy, orderDirection, city = null, district = null, ...filters } = req.updatedParameters
+        const { page, orderBy, orderDirection, city = null, district = null, minPrice = null, maxPrice = null, ...filters } = req.updatedParameters
 
-        let result = await search(page, orderBy, orderDirection, city, district, filters)
+        let result = await search(page, orderBy, orderDirection, city, district,minPrice, maxPrice, filters)
         res.status(200).json(result)
     } catch (error) {
         console.error(error)
