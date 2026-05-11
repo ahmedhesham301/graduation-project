@@ -2,7 +2,7 @@ import {
     getPropertyById,
     createProperty
 } from "../services/propertyServices.js"
-import { search, deletePropertyById } from "../models/propertyModel.js";
+import { search, deletePropertyById, getTypes } from "../models/propertyModel.js";
 import { preparePropertyMediaUploads, getMediaUrls } from "../services/propertyMediaService.js";
 
 
@@ -42,7 +42,11 @@ export async function create(req, res) {
             return res.status(422).json({ error: "seller_id does not exist" })
         }
         if (error.code === '23514') {
-            return res.status(422).json({ error: "Invalid values check area, price, rooms are positive" })
+            if (error.column === 'type_id') {
+                return res.status(422).json({ error: "Invalid property type" })
+            } else {
+                return res.status(422).json({ error: "Invalid values check area, price, rooms are positive" })
+            }
         }
         if (error.code === '23502') {
             return res.status(422).json({ error: "Invalid values check city and district" })
@@ -56,7 +60,7 @@ export async function searchForProperty(req, res) {
     try {
         const { page, orderBy, orderDirection, city = null, district = null, minPrice = null, maxPrice = null, ...filters } = req.updatedParameters
 
-        let result = await search(page, orderBy, orderDirection, city, district,minPrice, maxPrice, filters)
+        let result = await search(page, orderBy, orderDirection, city, district, minPrice, maxPrice, filters)
         res.status(200).json(result)
     } catch (error) {
         console.error(error)
@@ -91,3 +95,13 @@ export async function getNearby(req, res) {
     }
 }
 
+
+export async function getPropertyTypes(req, res) {
+    try {
+        const types = await getTypes()
+        res.status(200).json(types)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ error: "Internal server error" })
+    }
+}

@@ -21,6 +21,7 @@ const mediaSchema = z.object({
 
 const propertySchema = z.object({
     type: z.string().min(1).max(100),
+    condition: z.string().min(1).max(100),
     lon: z.coerce.number().min(25).max(36),
     lat: z.coerce.number().min(22).max(31.7),
     area: z.coerce.number().int().positive(),

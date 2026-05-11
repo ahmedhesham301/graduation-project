@@ -20,7 +20,7 @@ export const generalLimiter = (req, res, next) => generalLimiterImpl(req, res, n
 export async function initRateLimiters() {
     authLimiterImpl = rateLimit({
         windowMs: 15 * 60 * 1000,
-        max: 5,
+        max: 5000000,
         standardHeaders: "draft-8",
         legacyHeaders: false,
         store: makeStore("rl:auth:"),
@@ -30,7 +30,7 @@ export async function initRateLimiters() {
 
     propertyLimiterImpl = rateLimit({
         windowMs: 60 * 60 * 1000,
-        max: 200000000,
+        max: 100000000,
         standardHeaders: "draft-8",
         legacyHeaders: false,
         store: makeStore("rl:property:"),

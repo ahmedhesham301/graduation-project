@@ -6,8 +6,8 @@ export async function findPropertyById(id, pendingMedia = null) {
         name: 'find-property-by-id',
         text: `SELECT 
         p.id, p.seller_id,
-        u.full_name AS seller_name, u.email AS seller_email, u.phone AS seller_phone,
-        p.type,ST_Y(p.coordinates) AS lat,ST_X(p.coordinates) AS lon,
+        u.full_name AS seller_name, u.email AS seller_email, u.phone AS seller_phone, p.condition,
+        pt.name AS type,ST_Y(p.coordinates) AS lat,ST_X(p.coordinates) AS lon,
         p.area, p.floors, p.rooms, p.bathrooms, c.name AS city, d.name AS district, p.description, p.price, p.deleted_at
         FROM properties p
         JOIN users u
@@ -17,6 +17,8 @@ export async function findPropertyById(id, pendingMedia = null) {
         JOIN districts d 
             ON d.id = p.district_id
             AND d.city_id = c.id
+        JOIN property_types pt
+            ON pt.id = p.type_id
         WHERE p.id = $1 AND ($2::boolean IS NULL OR p.pending_media = $2);`,
         values: [id, pendingMedia ?? null]
     }
@@ -25,17 +27,17 @@ export async function findPropertyById(id, pendingMedia = null) {
 }
 
 //
-export async function createPropertyRecord(sellerId, type, lat, lon, area, floors, rooms, bathrooms, city, district, description, price) {
+export async function createPropertyRecord(sellerId, type, lat, lon, area, floors, rooms, bathrooms, city, district, description, price, condition) {
     const query = {
         name: 'create-property',
         text: `INSERT INTO properties 
-                (seller_id, type, coordinates, area, floors, rooms, bathrooms, city_id, district_id, description, price)
+                (seller_id, type_id, coordinates, area, floors, rooms, bathrooms, city_id, district_id, description, price, condition)
                VALUES 
-                ($1, $2, POINT($3, $4)::geometry, $5, $6, $7, $8,
+                ($1, (SELECT id FROM property_types WHERE name=$2), POINT($3, $4)::geometry, $5, $6, $7, $8,
                 (SELECT id FROM cities WHERE name = $9), 
-                (SELECT id FROM districts WHERE name = $10 AND city_id = (SELECT id FROM cities WHERE name = $9)), $11, $12)
+                (SELECT id FROM districts WHERE name = $10 AND city_id = (SELECT id FROM cities WHERE name = $9)), $11, $12, $13)
                RETURNING *`,
-        values: [sellerId, type, lon, lat, area, floors, rooms, bathrooms, city, district, description, price]
+        values: [sellerId, type, lon, lat, area, floors, rooms, bathrooms, city, district, description, price, condition]
     }
     const { rows } = await pool.query(query)
     return rows[0]
@@ -90,7 +92,7 @@ export async function search(page, orderBy, orderDirection, city, district, minP
     const query = {
         text: `
     SELECT
-      p.id, p.type, p.area, p.floors, p.rooms, p.bathrooms, p.price,
+      p.id, pt.name AS type, p.area, p.floors, p.rooms, p.bathrooms, p.price, p.condition,
       c.name AS city, d.name AS district,
       pm.s3_key || '.' || pm.extension AS media
     FROM properties p
@@ -98,7 +100,9 @@ export async function search(page, orderBy, orderDirection, city, district, minP
       ON c.id = p.city_id
     JOIN districts d
       ON d.id = p.district_id
-     AND d.city_id = c.id
+      AND d.city_id = c.id
+    JOIN property_types pt
+      ON pt.id = p.type_id
     LEFT JOIN LATERAL (
       SELECT s3_key, extension
       FROM property_media
@@ -146,7 +150,7 @@ export async function findPropertiesNearby(lat, lon, radiusMeters, page) {
         text: `
             SELECT
                 p.id,
-                p.type,
+                pt.name AS type,
                 p.area,
                 p.floors,
                 p.rooms,
@@ -168,6 +172,8 @@ export async function findPropertiesNearby(lat, lon, radiusMeters, page) {
             JOIN districts d
                 ON d.id = p.district_id
                 AND d.city_id = c.id
+            JOIN property_types pt
+                ON pt.id = p.type_id
             LEFT JOIN LATERAL (
                 SELECT s3_key, extension
                 FROM property_media
@@ -191,4 +197,16 @@ export async function findPropertiesNearby(lat, lon, radiusMeters, page) {
 
     const { rows } = await pool.query(query)
     return rows
+}
+
+
+export async function getTypes() {
+    const query = {
+        name: 'get-types',
+        text: `SELECT name FROM property_types ORDER BY id`,
+    }
+
+    const { rows } = await pool.query(query)
+    
+    return rows.map(row => row.name)
 }

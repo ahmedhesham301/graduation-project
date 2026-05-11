@@ -19,7 +19,7 @@ export async function getSavedProperties(userId) {
         name: 'get-saved-properties',
         text: `SELECT
                 p.id AS property_id,
-                p.type,
+                pt.name AS type,
                 ST_Y(p.coordinates) AS lat,
                 ST_X(p.coordinates) AS lon,
                 p.area,
@@ -37,6 +37,8 @@ export async function getSavedProperties(userId) {
                     ON c.id = p.city_id
                 JOIN districts d
                     ON d.id = p.district_id
+                JOIN property_types pt
+                    ON pt.id = p.type_id
                 LEFT JOIN LATERAL (
                     SELECT s3_key, extension
                     FROM property_media

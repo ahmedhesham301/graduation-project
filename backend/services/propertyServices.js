@@ -1,9 +1,9 @@
-import { findPropertyById, createPropertyRecord ,findPropertiesNearby} from "../models/propertyModel.js"
+import { findPropertyById, createPropertyRecord, findPropertiesNearby } from "../models/propertyModel.js"
 
 export async function getPropertyById(propertyId) {
     const propertyRecord = await findPropertyById(propertyId, false)
     if (!propertyRecord) return null;
-    
+
     const { deleted_at: deletedAt, ...propertyRecordWithoutDeleted_at } = propertyRecord
 
     const isAvailable = !deletedAt
@@ -23,12 +23,12 @@ export async function createProperty(sellerId, propertyData) {
         area,
         floors,
         rooms,
-        bathrooms, city, district, description, price
+        bathrooms, city, district, description, price, condition
     } = propertyData
 
     return await createPropertyRecord(
         sellerId, type, lat, lon, area, floors,
-        rooms, bathrooms, city, district, description || null, price
+        rooms, bathrooms, city, district, description || null, price, condition
     )
 }
 

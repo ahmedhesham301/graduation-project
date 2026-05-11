@@ -22,6 +22,13 @@ CREATE TYPE "media_types" AS ENUM (
   'webp'
 );
 
+CREATE TYPE "property_conditions" AS ENUM (
+  'not finished',
+  'semi finished',
+  'fully finished',
+  'luxury finished'
+);
+
 CREATE TABLE "users" (
   "id" SERIAL PRIMARY KEY,
   "full_name" VARCHAR NOT NULL,
@@ -48,7 +55,7 @@ CREATE TABLE "saved" (
 CREATE TABLE "properties" (
   "id" SERIAL PRIMARY KEY,
   "seller_id" INTEGER NOT NULL,
-  "type" VARCHAR NOT NULL,
+  "type_id" INTEGER NOT NULL,
   "coordinates" geometry(Point,4326) NOT NULL,
   "area" INTEGER NOT NULL CHECK (area > 0),
   "floors" SMALLINT NOT NULL CHECK (floors > 0),
@@ -59,6 +66,7 @@ CREATE TABLE "properties" (
   "description" VARCHAR,
   "price" BIGINT NOT NULL CHECK (price > 0),
   "pending_media" bool NOT NULL DEFAULT true,
+  "condition" property_conditions NOT NULL,
   "deleted_at" timestamptz,
   "created_at" timestamptz NOT NULL DEFAULT (now())
 );
@@ -81,6 +89,11 @@ CREATE TABLE "property_media" (
   "extension" media_types NOT NULL,
   "created_at" timestamptz NOT NULL DEFAULT (now()),
   "uploaded_at" timestamptz
+);
+
+CREATE TABLE "property_types" (
+  "id" SERIAL PRIMARY KEY,
+  "name" citext UNIQUE NOT NULL
 );
 
 CREATE TABLE "features" (
@@ -135,6 +148,8 @@ ALTER TABLE "saved" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id") DEFERR
 ALTER TABLE "saved" ADD FOREIGN KEY ("property_id") REFERENCES "properties" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
 ALTER TABLE "properties" ADD FOREIGN KEY ("seller_id") REFERENCES "users" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "properties" ADD FOREIGN KEY ("type_id") REFERENCES "property_types" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
 ALTER TABLE "properties" ADD FOREIGN KEY ("city_id") REFERENCES "cities" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
