@@ -29,6 +29,13 @@ export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, o
   const [bathrooms, setBathrooms] = useState("");
   const [floor,     setFloor]     = useState("");
 
+  // Cities, districts & property types from API
+  const [cities,    setCities]    = useState([]);
+  const [districts, setDistricts] = useState([]);
+  const [propTypes, setPropTypes] = useState([]);
+  const [citiesLoading,    setCitiesLoading]    = useState(false);
+  const [districtsLoading, setDistrictsLoading] = useState(false);
+
   // Search loading state
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState(null);
@@ -53,6 +60,48 @@ export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, o
     };
     fetchProperties();
   }, []);
+
+  // Fetch all cities on mount
+  useEffect(() => {
+    const fetchCities = async () => {
+      try {
+        setCitiesLoading(true);
+        const res = await api.get("/cities");
+        setCities(res.data);
+      } catch (err) {
+        console.error("Failed to load cities:", err);
+      } finally {
+        setCitiesLoading(false);
+      }
+    };
+    fetchCities();
+  }, []);
+
+  // Fetch property types on mount
+  useEffect(() => {
+    api.get("/properties/types")
+      .then(res => setPropTypes(res.data))
+      .catch(err => console.error("Failed to load property types:", err));
+  }, []);
+
+  // Fetch districts whenever city changes
+  useEffect(() => {
+    setDistrict("");        // reset district when city changes
+    setDistricts([]);
+    if (!city) return;
+    const fetchDistricts = async () => {
+      try {
+        setDistrictsLoading(true);
+        const res = await api.get(`/cities/${city}/districts`);
+        setDistricts(res.data);
+      } catch (err) {
+        console.error("Failed to load districts:", err);
+      } finally {
+        setDistrictsLoading(false);
+      }
+    };
+    fetchDistricts();
+  }, [city]);
 
   useEffect(() => {
     const fetchFavorites = async () => {
@@ -103,16 +152,15 @@ export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, o
     if (floor && floor !== "Garden") params.floors = Number(floor);
 
     try {
+      console.log("Searching with params:", params);
       const res = await api.get("/search", { params });
 
       // Pass results + active filters to parent so SearchResults page can use them
       onSearch({
-        city, district, propType, bedrooms, bathrooms, floor,
+        city, district, bedrooms, bathrooms, floor,
         results: res.data,
-        params,          // raw params so SearchResults can re-query on sidebar changes
+        params,
       });
-
-      onNavigate("search");
     } catch (err) {
       console.error(err);
       setSearchError("Search failed. Please try again.");
@@ -143,30 +191,31 @@ export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, o
             <div className="search-row">
               <div className="dropdown-wrap">
                 <label className="dropdown-label">City</label>
-                <select className="filter-select" value={city} onChange={e => setCity(e.target.value)}>
-                  <option value="">All Cities</option>
-                  <option>Cairo</option><option>Giza</option><option>Alexandria</option>
-                  <option>New Cairo</option><option>Sheikh Zayed</option>
-                  <option>6th of October</option><option>New Capital</option>
-                  <option>North Coast</option><option>Red Sea</option>
+                <select className="filter-select" value={city} onChange={e => setCity(e.target.value)} disabled={citiesLoading}>
+                  <option value="">{citiesLoading ? "Loading…" : "All Cities"}</option>
+                  {cities.map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
                 </select>
               </div>
               <div className="dropdown-wrap">
                 <label className="dropdown-label">District</label>
-                <select className="filter-select" value={district} onChange={e => setDistrict(e.target.value)}>
-                  <option value="">All Districts</option>
-                  <option>Maadi</option><option>Zamalek</option><option>Heliopolis</option>
-                  <option>Nasr City</option><option>Mohandiseen</option>
-                  <option>Madinaty</option><option>5th Settlement</option><option>Downtown</option>
+                <select className="filter-select" value={district} onChange={e => setDistrict(e.target.value)} disabled={!city || districtsLoading}>
+                  <option value="">
+                    {!city ? "Select a city first" : districtsLoading ? "Loading…" : "All Districts"}
+                  </option>
+                  {districts.map(d => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
                 </select>
               </div>
               <div className="dropdown-wrap">
                 <label className="dropdown-label">Property Type</label>
                 <select className="filter-select" value={propType} onChange={e => setPropType(e.target.value)}>
-                  <option value="">All Types</option>
-                  <option>Apartment</option><option>Villa</option><option>Chalet</option>
-                  <option>Duplex</option><option>Townhouse</option>
-                  <option>Studio</option><option>Shop</option><option>Office</option>
+                  <option value="">{propTypes.length === 0 ? "Loading…" : "All Types"}</option>
+                  {propTypes.map(t => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
                 </select>
               </div>
             </div>

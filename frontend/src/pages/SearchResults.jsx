@@ -4,99 +4,189 @@ import { api } from "../components/Axios";
 import { BUCKET_url } from "../components/vars";
 import "./SearchResults.css";
 
-const SORT_OPTIONS  = ["New", "Price ascending", "Price descending"];
-const PROP_TYPES    = ["Apartment", "Villa", "Duplex", "Townhouse", "Studio", "Chalet", "Office", "Shop"];
-const CONDITIONS    = ["finished", "unfinished", "off-plan"];
-const BED_OPTIONS   = [1, 2, 3, 4, 5];
+const SORT_OPTIONS = ["New", "Price ascending", "Price descending"];
+const DEBOUNCE_MS  = 500; // wait 500ms after last price keystroke before firing
 
 function formatPrice(n) {
-  if (n >= 1000000) return `EGP ${(n / 1000000).toFixed(n % 1000000 === 0 ? 0 : 2)}M`;
+  if (n >= 1_000_000) return `EGP ${(n / 1_000_000).toFixed(n % 1_000_000 === 0 ? 0 : 2)}M`;
   return `EGP ${Number(n).toLocaleString()}`;
 }
 
 export default function SearchResults({
   onNavigate, theme, toggleTheme, isLoggedIn,
-  initialFilters = {},  // { city, district, propType, bedrooms, bathrooms, floor, results, params }
+  initialFilters = {},
 }) {
-  /* ── Track whether we've already consumed the initial seeded results ── */
-  const didSkipInitialFetch = useRef(false);
+  /* ── skip-initial-fetch guard ── */
+  const didSeedRef = useRef(false);
+  /* ── skip-initial-district-reset guard ── */
+  const didMountCityRef = useRef(false);
 
-  /* ── Filter state (seeded from HomePage search) ── */
-  const [city,       setCity]       = useState(initialFilters.city      || "");
-  const [district,   setDistrict]   = useState(initialFilters.district  || "");
-  const [selTypes,   setSelTypes]   = useState(
-    initialFilters.propType ? [initialFilters.propType] : []
+  /* ── Property types from API ── */
+  const [propTypes, setPropTypes] = useState([]);
+
+  /* ── Cities & districts from API ── */
+  const [cities,           setCities]           = useState([]);
+  const [districts,        setDistricts]        = useState([]);
+  const [citiesLoading,    setCitiesLoading]    = useState(false);
+  const [districtsLoading, setDistrictsLoading] = useState(false);
+
+  /* ── Filter state ── */
+  const [city,     setCity]     = useState(initialFilters.city     || "");
+  const [district, setDistrict] = useState(initialFilters.district || "");
+  const [selType,  setSelType]  = useState(initialFilters.propType || ""); // single string
+  /* beds: raw input string debounced */
+  const [bedsInput, setBedsInput] = useState(
+    initialFilters.bedrooms ? String(initialFilters.bedrooms) : ""
   );
-  const [conditions, setConditions] = useState([...CONDITIONS]);
-  const [selBeds,    setSelBeds]    = useState(
-    initialFilters.bedrooms ? [Number(initialFilters.bedrooms)] : []
+  const [beds, setBeds] = useState(
+    initialFilters.bedrooms ? String(initialFilters.bedrooms) : ""
   );
-  const [selBaths,   setSelBaths]   = useState(
+  const [selBaths, setSelBaths] = useState(
     initialFilters.bathrooms ? [Number(initialFilters.bathrooms)] : []
   );
-  const [maxPrice,   setMaxPrice]   = useState(50_000_000);
-  const [sortBy,     setSortBy]     = useState("New");
+  const [sortBy, setSortBy] = useState("New");
 
-  /* ── UI state ── */
-  const [typeOpen,      setTypeOpen]      = useState(true);
-  const [showMoreBeds,  setShowMoreBeds]  = useState(false);
-  const [filterOpen,    setFilterOpen]    = useState(false);
-  const [favs,          setFavs]          = useState([]);
+  /* ── Price: raw input strings → debounced committed values ── */
+  const [minPriceInput, setMinPriceInput] = useState("");
+  const [maxPriceInput, setMaxPriceInput] = useState("");
+  const [minPrice,      setMinPrice]      = useState(""); // committed → triggers fetch
+  const [maxPrice,      setMaxPrice]      = useState(""); // committed → triggers fetch
+
+  /* ── UI ── */
+  const [typeOpen,     setTypeOpen]     = useState(true);
+  const [filterOpen,   setFilterOpen]   = useState(false);
+  const [favs,         setFavs]         = useState([]);
 
   /* ── API state ── */
-  const [results,  setResults]  = useState(initialFilters.results || []);
-  const [loading,  setLoading]  = useState(!initialFilters.results);
-  const [error,    setError]    = useState(null);
-  const [page,     setPage]     = useState(1);
-  const [hasMore,  setHasMore]  = useState(true);
+  const [results, setResults] = useState(initialFilters.results || []);
+  const [loading, setLoading] = useState(!initialFilters.results);
+  const [error,   setError]   = useState(null);
+  const [page,    setPage]    = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
-  /* ── Build query params from current sidebar state ── */
+  /* ── Build params — all filters go to the API ── */
   const buildParams = useCallback((pageNum = 1) => {
     const p = { page: pageNum };
-    if (city)            p.city      = city;
-    if (district)        p.district  = district;
-    if (selTypes.length  === 1) p.type = selTypes[0];    // API takes a single type string
-    if (selBeds.length   === 1) p.bedrooms  = selBeds[0];
-    if (selBaths.length  === 1) p.bathrooms = selBaths[0];
-
-    // Map sort to API params
+    if (city)     p.city     = city;
+    if (district) p.district = district;
+    if (selType)  p.type     = selType;
+    if (beds)                   p.bedrooms  = Number(beds);
+    if (selBaths.length === 1) p.bathrooms = selBaths[0];
+    if (minPrice) p.minPrice = Number(minPrice);
+    if (maxPrice) p.maxPrice = Number(maxPrice);
     if (sortBy === "Price ascending")  { p.orderBy = "price"; p.orderDirection = "asc";  }
     if (sortBy === "Price descending") { p.orderBy = "price"; p.orderDirection = "desc"; }
-
     return p;
-  }, [city, district, selTypes, selBeds, selBaths, sortBy]);
+  }, [city, district, selType, beds, selBaths, minPrice, maxPrice, sortBy]);
 
-  /* ── Fetch whenever filters change ── */
+  /* ── Fetch property types on mount ── */
   useEffect(() => {
-    // Skip only the very first fetch if the HomePage already sent results
-    if (initialFilters.results && !didSkipInitialFetch.current) {
-      didSkipInitialFetch.current = true;
-      setResults(initialFilters.results);
-      setLoading(false);
+    api.get("/properties/types")
+      .then(res => setPropTypes(res.data))
+      .catch(err => console.error("Failed to load property types:", err));
+  }, []);
+
+  /* ── Fetch cities on mount ── */
+  useEffect(() => {
+    setCitiesLoading(true);
+    api.get("/cities")
+      .then(res => setCities(res.data))
+      .catch(err => console.error("Failed to load cities:", err))
+      .finally(() => setCitiesLoading(false));
+  }, []);
+
+  /* ── Fetch districts when city changes ── */
+  useEffect(() => {
+    // On the very first mount, don't wipe the district that came from initialFilters.
+    // Just load the district list so the sidebar select is populated.
+    if (!didMountCityRef.current) {
+      didMountCityRef.current = true;
+      if (!city) return;
+      setDistrictsLoading(true);
+      api.get(`/cities/${city}/districts`)
+        .then(res => setDistricts(res.data))
+        .catch(err => console.error("Failed to load districts:", err))
+        .finally(() => setDistrictsLoading(false));
       return;
     }
+    // Subsequent city changes: reset district and reload list
+    setDistrict("");
+    setDistricts([]);
+    if (!city) return;
+    setDistrictsLoading(true);
+    api.get(`/cities/${city}/districts`)
+      .then(res => setDistricts(res.data))
+      .catch(err => console.error("Failed to load districts:", err))
+      .finally(() => setDistrictsLoading(false));
+  }, [city]);
 
-    const fetchResults = async () => {
+  /* ── Debounce price text inputs ── */
+  useEffect(() => {
+    const t = setTimeout(() => setMinPrice(minPriceInput), DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [minPriceInput]);
+
+  useEffect(() => {
+    const t = setTimeout(() => setMaxPrice(maxPriceInput), DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [maxPriceInput]);
+
+  /* debounce beds input */
+  useEffect(() => {
+    const t = setTimeout(() => setBeds(bedsInput), DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [bedsInput]);
+
+  /* ── Re-fetch on every filter change ── */
+  useEffect(() => {
+    // First mount: consume seeded results from HomePage without re-fetching
+    if (!didSeedRef.current) {
+      didSeedRef.current = true;
+      if (initialFilters.results) {
+        setResults(initialFilters.results);
+        setLoading(false);
+        return;
+      }
+    }
+
+    let cancelled = false;
+
+    const doFetch = async () => {
       try {
         setLoading(true);
         setError(null);
-        const res = await api.get("/search", { params: buildParams(1) });
-        setResults(res.data);
-        setPage(1);
-        setHasMore(res.data.length > 0);
+        const params = buildParams(1);
+        const res = await api.get("/search", { params });
+        if (!cancelled) {
+          setResults(res.data);
+          setPage(1);
+          setHasMore(res.data.length > 0);
+        }
       } catch (err) {
-        console.error(err);
-        setError("Failed to load properties. Please try again.");
+        if (!cancelled) {
+          console.error(err);
+          // If no filters are active and the API errors (e.g. requires at least one param),
+          // show an empty result set rather than an error banner.
+          const params = buildParams(1);
+          const hasFilters = Object.keys(params).some(k => k !== "page");
+          if (!hasFilters) {
+            setResults([]);
+            setHasMore(false);
+          } else {
+            setError("Failed to load properties. Please try again.");
+          }
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
-    fetchResults();
+    doFetch();
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [city, district, selTypes, selBeds, selBaths, sortBy]);
+  }, [city, district, selType, beds, selBaths, minPrice, maxPrice, sortBy]);
 
-  /* ── Load more (pagination) ── */
+  /* ── Load more ── */
   const loadMore = async () => {
     const nextPage = page + 1;
     try {
@@ -120,7 +210,7 @@ export default function SearchResults({
   useEffect(() => {
     if (!isLoggedIn) return;
     api.get("/favorites")
-      .then(res => setFavs(res.data.map(item => item.property_id)))
+      .then(res => setFavs(res.data.map(i => i.property_id)))
       .catch(console.error);
   }, [isLoggedIn]);
 
@@ -137,32 +227,24 @@ export default function SearchResults({
     }
   };
 
-  /* ── Toggle helpers ── */
-  const toggleType = (t) => setSelTypes(p => p.includes(t) ? p.filter(x => x !== t) : [...p, t]);
-  const toggleCond = (c) => setConditions(p => p.includes(c) ? p.filter(x => x !== c) : [...p, c]);
-  const toggleBed  = (b) => setSelBeds(p  => p.includes(b)  ? p.filter(x => x !== b)  : [...p, b]);
-
-  /* ── Active keyword tags ── */
+  /* ── Active tags ── */
   const activeTags = [
-    ...(city     ? [city]     : []),
-    ...(district ? [district] : []),
-    ...selTypes,
+    ...(city     ? [{ label: city,     clear: () => setCity("")     }] : []),
+    ...(district ? [{ label: district, clear: () => setDistrict("") }] : []),
+    ...(selType  ? [{ label: selType,  clear: () => setSelType("")  }] : []),
+    ...(beds ? [{ label: `${beds} bed${Number(beds) !== 1 ? 's' : ''}`, clear: () => { setBeds(""); setBedsInput(""); } }] : []),
+    ...selBaths.map(b => ({ label: `${b} bath`, clear: () => setSelBaths(p => p.filter(x => x !== b)) })),
+    ...(minPrice ? [{ label: `Min ${formatPrice(minPrice)}`, clear: () => { setMinPrice(""); setMinPriceInput(""); } }] : []),
+    ...(maxPrice ? [{ label: `Max ${formatPrice(maxPrice)}`, clear: () => { setMaxPrice(""); setMaxPriceInput(""); } }] : []),
   ];
-  const removeTag = (tag) => {
-    if (tag === city)     setCity("");
-    if (tag === district) setDistrict("");
-    setSelTypes(p => p.filter(t => t !== tag));
-  };
-
-  /* ── Client-side price filter (slider) applied on top of API results ── */
-  const displayed = results.filter(p => Number(p.price) <= maxPrice);
-
-  const visibleBeds = showMoreBeds ? BED_OPTIONS : BED_OPTIONS.slice(0, 3);
 
   const resetFilters = () => {
-    setCity(""); setDistrict(""); setSelTypes([]);
-    setConditions([...CONDITIONS]); setSelBeds([]); setSelBaths([]);
-    setMaxPrice(50_000_000); setSortBy("New");
+    didSeedRef.current = true; // ensure we don't skip the next fetch
+    setCity(""); setDistrict(""); setSelType("");
+    setBedsInput(""); setBeds(""); setSelBaths([]);
+    setMinPriceInput(""); setMaxPriceInput("");
+    setMinPrice(""); setMaxPrice("");
+    setSortBy("New");
   };
 
   return (
@@ -176,12 +258,10 @@ export default function SearchResults({
             <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>
           </svg>
           {filterOpen ? "Hide Filters" : "Show Filters"}
-          {(selTypes.length + selBeds.length + (city ? 1 : 0)) > 0 && (
-            <span className="sr-filter-badge">{selTypes.length + selBeds.length + (city ? 1 : 0)}</span>
+          {activeTags.length > 0 && (
+            <span className="sr-filter-badge">{activeTags.length}</span>
           )}
         </button>
-
-        {/* Sort (mobile) */}
         <select className="sr-select" value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ marginLeft: "auto" }}>
           {SORT_OPTIONS.map(o => <option key={o}>{o}</option>)}
         </select>
@@ -191,28 +271,31 @@ export default function SearchResults({
 
       <div className="sr-body">
 
-        {/* ══════ LEFT SIDEBAR ══════ */}
+        {/* ══════ SIDEBAR ══════ */}
         <aside className={`sr-sidebar ${filterOpen ? "sr-sidebar-open" : ""}`}>
 
-          {/* Keywords / active tags */}
+          {/* Active filter tags */}
           <div className="sr-section">
-            <div className="sr-section-title">Keywords</div>
+            <div className="sr-section-title">Active Filters</div>
             <div className="sr-tags">
               {activeTags.map(tag => (
-                <span key={tag} className="sr-tag">
-                  {tag}
-                  <button className="sr-tag-x" onClick={() => removeTag(tag)}>×</button>
+                <span key={tag.label} className="sr-tag">
+                  {tag.label}
+                  <button className="sr-tag-x" onClick={tag.clear}>×</button>
                 </span>
               ))}
               {activeTags.length === 0 && <span className="sr-no-tags">No filters applied</span>}
             </div>
+            {activeTags.length > 0 && (
+              <button className="sr-reset-link" onClick={resetFilters}>Clear all</button>
+            )}
           </div>
 
-          {/* Property type */}
+          {/* ── Property Type — radio single select ── */}
           <div className="sr-section">
-            <div className="sr-section-label">Residential</div>
+            <div className="sr-section-label">Property Type</div>
             <button className="sr-dropdown-btn" onClick={() => setTypeOpen(v => !v)}>
-              <span>type</span>
+              <span>{selType || (propTypes.length === 0 ? "Loading…" : "All types")}</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
                 strokeLinecap="round" strokeLinejoin="round"
                 style={{ transform: typeOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
@@ -221,14 +304,17 @@ export default function SearchResults({
             </button>
             {typeOpen && (
               <div className="sr-dropdown-list">
-                {PROP_TYPES.map(t => (
-                  <label key={t} className="sr-check-item">
-                    <span className={`sr-cb ${selTypes.includes(t) ? "on" : ""}`} onClick={() => toggleType(t)}>
-                      {selTypes.includes(t) && (
-                        <svg width="9" height="9" fill="none" stroke="#fff" strokeWidth="3" viewBox="0 0 24 24">
-                          <polyline points="20 6 9 17 4 12"/>
-                        </svg>
-                      )}
+                {/* "Any" clears the type */}
+                <label className="sr-check-item" onClick={() => setSelType("")}>
+                  <span className={`sr-radio ${selType === "" ? "on" : ""}`}>
+                    {selType === "" && <span className="sr-radio-dot" />}
+                  </span>
+                  <span className="sr-check-label">Any</span>
+                </label>
+                {propTypes.map(t => (
+                  <label key={t} className="sr-check-item" onClick={() => setSelType(prev => prev === t ? "" : t)}>
+                    <span className={`sr-radio ${selType === t ? "on" : ""}`}>
+                      {selType === t && <span className="sr-radio-dot" />}
                     </span>
                     <span className="sr-check-label">{t}</span>
                   </label>
@@ -237,95 +323,102 @@ export default function SearchResults({
             )}
           </div>
 
-          {/* Price slider (client-side) */}
+          {/* ── Price — min / max number inputs ── */}
           <div className="sr-section">
-            <div className="sr-price-row">
-              <span className="sr-section-label">Max Price</span>
-              <span className="sr-price-val">EGP {(maxPrice / 1_000_000).toFixed(0)}M</span>
+            <div className="sr-section-label">Price (EGP)</div>
+            <div className="sr-price-inputs">
+              <div className="sr-price-input-wrap">
+                <label className="sr-price-input-label">Min</label>
+                <input
+                  type="number"
+                  className="sr-price-input"
+                  placeholder="0"
+                  min={0}
+                  value={minPriceInput}
+                  onChange={e => setMinPriceInput(e.target.value)}
+                />
+              </div>
+              <span className="sr-price-dash">—</span>
+              <div className="sr-price-input-wrap">
+                <label className="sr-price-input-label">Max</label>
+                <input
+                  type="number"
+                  className="sr-price-input"
+                  placeholder="Any"
+                  min={0}
+                  value={maxPriceInput}
+                  onChange={e => setMaxPriceInput(e.target.value)}
+                />
+              </div>
             </div>
+            {(minPrice || maxPrice) && (
+              <p className="sr-price-preview">
+                {minPrice ? formatPrice(minPrice) : "EGP 0"} → {maxPrice ? formatPrice(maxPrice) : "no limit"}
+              </p>
+            )}
+          </div>
+
+          {/* ── Beds ── */}
+          <div className="sr-section">
+            <div className="sr-section-label">Bedrooms</div>
             <input
-              type="range" className="sr-slider"
-              min={500_000} max={50_000_000} step={500_000}
-              value={maxPrice}
-              onChange={e => setMaxPrice(Number(e.target.value))}
+              type="number"
+              className="sr-price-input"
+              placeholder="Any"
+              min={1}
+              max={20}
+              value={bedsInput}
+              onChange={e => setBedsInput(e.target.value)}
             />
-            <div className="sr-price-minmax"><span>EGP 0</span><span>EGP 50M</span></div>
           </div>
 
-          {/* Condition (client-side filter) */}
-          <div className="sr-section">
-            <div className="sr-section-label">Condition</div>
-            {CONDITIONS.map(c => (
-              <label key={c} className="sr-check-item">
-                <span className={`sr-cb ${conditions.includes(c) ? "on" : ""}`} onClick={() => toggleCond(c)}>
-                  {conditions.includes(c) && (
-                    <svg width="9" height="9" fill="none" stroke="#fff" strokeWidth="3" viewBox="0 0 24 24">
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                  )}
-                </span>
-                <span className="sr-check-label">{c}</span>
-              </label>
-            ))}
-          </div>
-
-          {/* Beds */}
-          <div className="sr-section">
-            <div className="sr-section-title sr-beds-title">Beds</div>
-            {visibleBeds.map(b => (
-              <label key={b} className="sr-check-item">
-                <span className={`sr-cb ${selBeds.includes(b) ? "on" : ""}`} onClick={() => toggleBed(b)}>
-                  {selBeds.includes(b) && (
-                    <svg width="9" height="9" fill="none" stroke="#fff" strokeWidth="3" viewBox="0 0 24 24">
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                  )}
-                </span>
-                <span className="sr-check-label">{b}</span>
-              </label>
-            ))}
-            <button className="sr-see-more" onClick={() => setShowMoreBeds(v => !v)}>
-              {showMoreBeds ? "▲ see less" : "▼ see more"}
-            </button>
-          </div>
-
-          {/* City */}
+          {/* ── City ── */}
           <div className="sr-section">
             <div className="sr-section-label">City</div>
-            <select className="sr-select" value={city} onChange={e => setCity(e.target.value)}>
-              <option value="">All Cities</option>
-              <option>Cairo</option><option>Giza</option><option>Alexandria</option>
-              <option>New Cairo</option><option>Sheikh Zayed</option>
-              <option>6th of October</option><option>New Capital</option>
-              <option>North Coast</option><option>Red Sea</option>
+            <select className="sr-select" value={city} onChange={e => setCity(e.target.value)} disabled={citiesLoading}>
+              <option value="">{citiesLoading ? "Loading…" : "All Cities"}</option>
+              {cities.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
             </select>
           </div>
 
-          {/* District */}
+          {/* ── District ── */}
           <div className="sr-section">
             <div className="sr-section-label">District</div>
-            <select className="sr-select" value={district} onChange={e => setDistrict(e.target.value)}>
-              <option value="">All Districts</option>
-              <option>Maadi</option><option>Zamalek</option><option>Heliopolis</option>
-              <option>Nasr City</option><option>Mohandiseen</option>
-              <option>Madinaty</option><option>5th Settlement</option><option>Downtown</option>
+            <select className="sr-select" value={district} onChange={e => setDistrict(e.target.value)} disabled={!city || districtsLoading}>
+              <option value="">
+                {!city ? "Select a city first" : districtsLoading ? "Loading…" : "All Districts"}
+              </option>
+              {districts.map(d => (
+                <option key={d} value={d}>{d}</option>
+              ))}
             </select>
           </div>
 
         </aside>
 
-        {/* ══════ RIGHT CONTENT ══════ */}
+        {/* ══════ CONTENT ══════ */}
         <div className="sr-content">
 
-          {/* Sort bar (desktop) */}
+          {/* Sort + count bar */}
           <div className="sr-sort-bar">
             <span className="sr-result-count">
-              {loading ? "Loading…" : `${displayed.length} propert${displayed.length === 1 ? "y" : "ies"} found`}
+              {loading
+                ? <span className="sr-loading-pulse">Searching…</span>
+                : `${results.length} propert${results.length === 1 ? "y" : "ies"} found`}
             </span>
             <select className="sr-select" value={sortBy} onChange={e => setSortBy(e.target.value)}>
               {SORT_OPTIONS.map(o => <option key={o}>{o}</option>)}
             </select>
           </div>
+
+          {/* Subtle re-fetch bar when results already exist */}
+          {loading && results.length > 0 && (
+            <div className="sr-refetch-bar">
+              <span className="sr-spinner" /> Updating results…
+            </div>
+          )}
 
           {/* Error */}
           {error && (
@@ -335,7 +428,7 @@ export default function SearchResults({
             </div>
           )}
 
-          {/* Loading skeleton */}
+          {/* Loading skeleton — first load only */}
           {loading && results.length === 0 && (
             <div className="sr-grid">
               {Array.from({ length: 6 }).map((_, i) => (
@@ -352,7 +445,7 @@ export default function SearchResults({
           )}
 
           {/* Empty state */}
-          {!loading && !error && displayed.length === 0 && (
+          {!loading && !error && results.length === 0 && (
             <div className="sr-empty">
               <svg width="48" height="48" fill="none" stroke="var(--muted)" strokeWidth="1.5" viewBox="0 0 24 24">
                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -363,10 +456,10 @@ export default function SearchResults({
           )}
 
           {/* Results grid */}
-          {displayed.length > 0 && (
+          {results.length > 0 && (
             <>
-              <div className="sr-grid">
-                {displayed.map(p => (
+              <div className={`sr-grid ${loading ? "sr-grid-dim" : ""}`}>
+                {results.map(p => (
                   <div className="sr-card" key={p.id}>
                     <div className="sr-card-img-wrap">
                       <div
@@ -375,8 +468,7 @@ export default function SearchResults({
                           backgroundImage: `url(${BUCKET_url}/media/${p.id}/${p.media})`,
                           backgroundSize: "cover",
                           backgroundPosition: "center",
-                          width: "100%",
-                          height: "100%",
+                          width: "100%", height: "100%",
                         }}
                       />
                       <span className="sr-type-badge">{p.type}</span>
@@ -411,7 +503,6 @@ export default function SearchResults({
                 ))}
               </div>
 
-              {/* Load more */}
               {hasMore && (
                 <div style={{ textAlign: "center", marginTop: "32px" }}>
                   <button

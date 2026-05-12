@@ -131,6 +131,129 @@
 .sr-sort-check { margin-right: 2px; }
 .sr-count { font-size: 13px; color: var(--soft); margin-bottom: 16px; }
 
+/* Radio button (single-select type) */
+.sr-radio {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--border, #444);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.sr-radio.on {
+  border-color: #1a8cca;
+}
+.sr-radio-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #1a8cca;
+}
+ 
+/* Price min/max inputs */
+.sr-price-inputs {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+.sr-price-input-wrap {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 4px;
+}
+.sr-price-input-label {
+  font-size: 0.7rem;
+  color: var(--muted, #888);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.sr-price-input {
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border, #333);
+  background: var(--input-bg, #1a1a2a);
+  color: var(--text, #eee);
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.15s;
+  /* hide number spinners */
+  -moz-appearance: textfield;
+}
+.sr-price-input::-webkit-outer-spin-button,
+.sr-price-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.sr-price-input:focus {
+  border-color: #1a8cca;
+}
+.sr-price-dash {
+  color: var(--muted, #888);
+  padding-bottom: 8px;
+  font-size: 0.9rem;
+}
+.sr-price-preview {
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: #1a8cca;
+}
+ 
+/* Subtle top bar shown while re-fetching with existing results */
+.sr-refetch-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--muted, #888);
+  padding: 6px 0 10px;
+}
+.sr-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #1a8cca44;
+  border-top-color: #1a8cca;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+ 
+/* Dim the grid while re-fetching */
+.sr-grid-dim {
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+ 
+/* Loading pulse for result count */
+.sr-loading-pulse {
+  animation: pulse 1.2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+ 
+/* "Clear all" link under active tags */
+.sr-reset-link {
+  background: none;
+  border: none;
+  color: #1a8cca;
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 4px 0 0;
+  text-decoration: underline;
+}
+.sr-reset-link:hover { color: #0fc4ff; }
+ 
+
 /* Grid */
 .sr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
 
@@ -288,3 +411,4 @@
   .sr-card-img-wrap { height: 160px; }
   .sr-sort-btn { padding: 6px 8px; font-size: 11px; }
 }
+
