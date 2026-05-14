@@ -6,7 +6,7 @@ import "./AddProperty.css";
 export default function AddProperty({ onBack }) {
   const [form, setForm] = useState({
     propertyType: "apartment",
-    //condition: "finished",
+    condition: "finished",
     lat: "",
     lon: "",
     price: "",
@@ -18,7 +18,6 @@ export default function AddProperty({ onBack }) {
     district: "",
     area: "",
     description: "",
-    //location: "",
   });
 
   const [photos, setPhotos] = useState([]);
@@ -106,6 +105,7 @@ export default function AddProperty({ onBack }) {
         district: form.district,
         area: Number(form.area),
         description: form.description,
+        condition: form.condition,
         media,
       };
 
@@ -337,6 +337,15 @@ export default function AddProperty({ onBack }) {
           {/* ── Row 3 ── */}
           <div className="ap-row">
             <div className="ap-field">
+              <label className="ap-label">condition</label>
+              <select className="ap-select" value={form.condition} onChange={e => set("condition", e.target.value)}>
+                <option>finished</option>
+                <option>semi-finished</option>
+                <option>core &amp; shell</option>
+                <option>new</option>
+              </select>
+            </div>
+            <div className="ap-field">
               <label className="ap-label">price</label>
               <input
                 className="ap-input"
@@ -359,21 +368,6 @@ export default function AddProperty({ onBack }) {
                 onChange={(e) => set("area", e.target.value)}
               />
             </div>
-            {/* <div className="ap-field">
-            <label className="ap-label">condition</label>
-              <select className="ap-select" value={form.condition} onChange={e => set("condition", e.target.value)}>
-                <option>finished</option>
-                <option>semi-finished</option>
-                <option>core &amp; shell</option>
-                <option>new</option>
-                </div>
-              </select> */}
-
-            {/* <div className="ap-field">
-              <label className="ap-label">year built</label>
-              <input className="ap-input" type="number" placeholder="e.g. 2001"
-                value={form.yearBuilt} onChange={e => set("yearBuilt", e.target.value)} />
-            </div> */}
           </div>
 
           {/* ── Property desc ── */}

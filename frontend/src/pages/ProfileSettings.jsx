@@ -324,7 +324,9 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
           )}
 
           {activeNav === "favourite" && (
-          <FavouriteProperties onBack={() => setActiveNav("edit")} />
+          <FavouriteProperties
+          onBack={() => setActiveNav("edit")}
+          onNavigate={onNavigate}/>
           )}
 
 

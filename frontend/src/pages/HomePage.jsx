@@ -297,7 +297,7 @@ export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, o
         {!loading && !error && properties.length > 0 && (
           <div className="listings-grid">
             {properties.slice(0, 8).map((p, i) => (
-              <div className="prop-card" key={p.id}>
+              <div className="prop-card" key={p.id}   onClick={() => onNavigate("propertyDetails", { id: p.id , from: "home" })} style={{ cursor: "pointer" }}>
                 <div className="prop-img" style={{backgroundImage: `url(${BUCKET_url}/media/${p.id}/${p.media})`, backgroundSize: "cover", backgroundPosition: "center"}}>
                   <div className="prop-img-overlay" />
                   <span className="prop-type-badge">{p.type}</span>
