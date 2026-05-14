@@ -16,11 +16,6 @@ export default function SearchResults({
   onNavigate, theme, toggleTheme, isLoggedIn,
   initialFilters = {},
 }) {
-  /* ── skip-initial-fetch guard ── */
-  const didSeedRef = useRef(false);
-  /* ── skip-initial-district-reset guard ── */
-  const didMountCityRef = useRef(false);
-
   /* ── Property types from API ── */
   const [propTypes, setPropTypes] = useState([]);
 
@@ -58,8 +53,8 @@ export default function SearchResults({
   const [favs,         setFavs]         = useState([]);
 
   /* ── API state ── */
-  const [results, setResults] = useState(initialFilters.results || []);
-  const [loading, setLoading] = useState(!initialFilters.results);
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState(null);
   const [page,    setPage]    = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -96,21 +91,14 @@ export default function SearchResults({
   }, []);
 
   /* ── Fetch districts when city changes ── */
+  // Track the city value at mount time so we never wipe a seeded district
+  const initialCityRef = useRef(initialFilters.city || "");
   useEffect(() => {
-    // On the very first mount, don't wipe the district that came from initialFilters.
-    // Just load the district list so the sidebar select is populated.
-    if (!didMountCityRef.current) {
-      didMountCityRef.current = true;
-      if (!city) return;
-      setDistrictsLoading(true);
-      api.get(`/cities/${city}/districts`)
-        .then(res => setDistricts(res.data))
-        .catch(err => console.error("Failed to load districts:", err))
-        .finally(() => setDistrictsLoading(false));
-      return;
+    // Only reset district when city changes AFTER mount (user-driven change)
+    if (city !== initialCityRef.current) {
+      setDistrict("");
+      initialCityRef.current = city; // update so next change also resets
     }
-    // Subsequent city changes: reset district and reload list
-    setDistrict("");
     setDistricts([]);
     if (!city) return;
     setDistrictsLoading(true);
@@ -139,24 +127,13 @@ export default function SearchResults({
 
   /* ── Re-fetch on every filter change ── */
   useEffect(() => {
-    // First mount: consume seeded results from HomePage without re-fetching
-    if (!didSeedRef.current) {
-      didSeedRef.current = true;
-      if (initialFilters.results) {
-        setResults(initialFilters.results);
-        setLoading(false);
-        return;
-      }
-    }
-
     let cancelled = false;
 
     const doFetch = async () => {
       try {
         setLoading(true);
         setError(null);
-        const params = buildParams(1);
-        const res = await api.get("/search", { params });
+        const res = await api.get("/search", { params: buildParams(1) });
         if (!cancelled) {
           setResults(res.data);
           setPage(1);
@@ -165,15 +142,12 @@ export default function SearchResults({
       } catch (err) {
         if (!cancelled) {
           console.error(err);
-          // If no filters are active and the API errors (e.g. requires at least one param),
-          // show an empty result set rather than an error banner.
-          const params = buildParams(1);
-          const hasFilters = Object.keys(params).some(k => k !== "page");
-          if (!hasFilters) {
+          // Only show error for actual server/network errors, not empty results
+          if (err.response?.status !== 404) {
+            setError("Failed to load properties. Please try again.");
+          } else {
             setResults([]);
             setHasMore(false);
-          } else {
-            setError("Failed to load properties. Please try again.");
           }
         }
       } finally {
@@ -239,12 +213,14 @@ export default function SearchResults({
   ];
 
   const resetFilters = () => {
-    didSeedRef.current = true; // ensure we don't skip the next fetch
+    setError(null);
     setCity(""); setDistrict(""); setSelType("");
     setBedsInput(""); setBeds(""); setSelBaths([]);
     setMinPriceInput(""); setMaxPriceInput("");
     setMinPrice(""); setMaxPrice("");
     setSortBy("New");
+    // Also reset the initialCityRef so district reset logic stays correct
+    initialCityRef.current = "";
   };
 
   return (
