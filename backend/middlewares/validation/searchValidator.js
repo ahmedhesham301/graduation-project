@@ -5,6 +5,8 @@ import qs from 'qs'
 const parametersSchema = z.object({
     city: z.string().optional(),
     district: z.string().optional(),
+    type: z.string().optional(),
+    condition: z.string().optional(),
     bathrooms: z.coerce.number().int().optional(),
     bedrooms: z.coerce.number().int().optional(),
     area: z.coerce.number().int().optional(),
