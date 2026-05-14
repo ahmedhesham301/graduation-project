@@ -37,22 +37,18 @@ export async function create(req, res) {
 
         res.status(201).json({ id: property.id, media: uploadUrlsByFileName })
     } catch (error) {
-        console.error(error)
         if (error.code === '23503') {
             return res.status(422).json({ error: "seller_id does not exist" })
         }
-        if (error.code === '23514') {
-            if (error.column === 'type_id') {
-                return res.status(422).json({ error: "Invalid property type" })
-            } else {
-                return res.status(422).json({ error: "Invalid values check area, price, rooms are positive" })
-            }
+        else if (error.code === '23502' && error.column === 'type_id') {
+            return res.status(422).json({ error: "Invalid property type2" })
         }
-        if (error.code === '23502') {
-            return res.status(422).json({ error: "Invalid values check city and district" })
+        else if (error.code === '22P02' && error.routine === 'enum_in') {
+            return res.status(422).json({ error: "Invalid condition" })
+        }
 
-        }
-        res.status(500).json({ error: "Failed to create property" })
+        console.log(error);
+        res.status(500).json({ error: "Internal server error" })
     }
 }
 
@@ -63,7 +59,10 @@ export async function searchForProperty(req, res) {
         let result = await search(page, orderBy, orderDirection, city, district, minPrice, maxPrice, filters)
         res.status(200).json(result)
     } catch (error) {
-        console.error(error)
+        if (error.code === '22P02' && error.routine === 'enum_in'){
+            return res.status(200).json([])
+        }
+        console.log(error);
         res.status(500).json({ error: "Internal server error" })
     }
 }

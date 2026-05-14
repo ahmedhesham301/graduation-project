@@ -49,6 +49,8 @@ const filterMap = {
     bedrooms: (i) => `rooms = $${i}`,
     area: (i) => `area = $${i}`,
     floors: (i) => `floors = $${i}`,
+    type: (i) => `type_id = (SELECT id FROM property_types WHERE name = $${i})`,
+    condition: (i) => `condition = $${i}`,
 };
 
 export async function search(page, orderBy, orderDirection, city, district, minPrice, maxPrice, filters) {
@@ -117,7 +119,6 @@ export async function search(page, orderBy, orderDirection, city, district, minP
   `,
         values
     };
-    console.log(query);
     
     const { rows } = await pool.query(query)
     return rows

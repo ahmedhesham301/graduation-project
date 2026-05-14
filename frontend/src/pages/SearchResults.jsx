@@ -16,11 +16,6 @@ export default function SearchResults({
   onNavigate, theme, toggleTheme, isLoggedIn,
   initialFilters = {},
 }) {
-  /* ── skip-initial-fetch guard ── */
-  const didSeedRef = useRef(false);
-  /* ── skip-initial-district-reset guard ── */
-  const didMountCityRef = useRef(false);
-
   /* ── Property types from API ── */
   const [propTypes, setPropTypes] = useState([]);
 
@@ -33,7 +28,8 @@ export default function SearchResults({
   /* ── Filter state ── */
   const [city,     setCity]     = useState(initialFilters.city     || "");
   const [district, setDistrict] = useState(initialFilters.district || "");
-  const [selType,  setSelType]  = useState(initialFilters.propType || ""); // single string
+  const [selType,      setSelType]      = useState(initialFilters.propType  || ""); // single string
+  const [selCondition, setSelCondition] = useState(initialFilters.condition || ""); // single string
   /* beds: raw input string debounced */
   const [bedsInput, setBedsInput] = useState(
     initialFilters.bedrooms ? String(initialFilters.bedrooms) : ""
@@ -53,13 +49,14 @@ export default function SearchResults({
   const [maxPrice,      setMaxPrice]      = useState(""); // committed → triggers fetch
 
   /* ── UI ── */
-  const [typeOpen,     setTypeOpen]     = useState(true);
-  const [filterOpen,   setFilterOpen]   = useState(false);
+  const [typeOpen,      setTypeOpen]      = useState(true);
+  const [conditionOpen, setConditionOpen] = useState(true);
+  const [filterOpen,    setFilterOpen]    = useState(false);
   const [favs,         setFavs]         = useState([]);
 
   /* ── API state ── */
-  const [results, setResults] = useState(initialFilters.results || []);
-  const [loading, setLoading] = useState(!initialFilters.results);
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState(null);
   const [page,    setPage]    = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -69,7 +66,8 @@ export default function SearchResults({
     const p = { page: pageNum };
     if (city)     p.city     = city;
     if (district) p.district = district;
-    if (selType)  p.type     = selType;
+    if (selType)      p.type      = selType;
+    if (selCondition) p.condition = selCondition;
     if (beds)                   p.bedrooms  = Number(beds);
     if (selBaths.length === 1) p.bathrooms = selBaths[0];
     if (minPrice) p.minPrice = Number(minPrice);
@@ -77,7 +75,7 @@ export default function SearchResults({
     if (sortBy === "Price ascending")  { p.orderBy = "price"; p.orderDirection = "asc";  }
     if (sortBy === "Price descending") { p.orderBy = "price"; p.orderDirection = "desc"; }
     return p;
-  }, [city, district, selType, beds, selBaths, minPrice, maxPrice, sortBy]);
+  }, [city, district, selType, selCondition, beds, selBaths, minPrice, maxPrice, sortBy]);
 
   /* ── Fetch property types on mount ── */
   useEffect(() => {
@@ -96,21 +94,14 @@ export default function SearchResults({
   }, []);
 
   /* ── Fetch districts when city changes ── */
+  // Track the city value at mount time so we never wipe a seeded district
+  const initialCityRef = useRef(initialFilters.city || "");
   useEffect(() => {
-    // On the very first mount, don't wipe the district that came from initialFilters.
-    // Just load the district list so the sidebar select is populated.
-    if (!didMountCityRef.current) {
-      didMountCityRef.current = true;
-      if (!city) return;
-      setDistrictsLoading(true);
-      api.get(`/cities/${city}/districts`)
-        .then(res => setDistricts(res.data))
-        .catch(err => console.error("Failed to load districts:", err))
-        .finally(() => setDistrictsLoading(false));
-      return;
+    // Only reset district when city changes AFTER mount (user-driven change)
+    if (city !== initialCityRef.current) {
+      setDistrict("");
+      initialCityRef.current = city; // update so next change also resets
     }
-    // Subsequent city changes: reset district and reload list
-    setDistrict("");
     setDistricts([]);
     if (!city) return;
     setDistrictsLoading(true);
@@ -139,24 +130,13 @@ export default function SearchResults({
 
   /* ── Re-fetch on every filter change ── */
   useEffect(() => {
-    // First mount: consume seeded results from HomePage without re-fetching
-    if (!didSeedRef.current) {
-      didSeedRef.current = true;
-      if (initialFilters.results) {
-        setResults(initialFilters.results);
-        setLoading(false);
-        return;
-      }
-    }
-
     let cancelled = false;
 
     const doFetch = async () => {
       try {
         setLoading(true);
         setError(null);
-        const params = buildParams(1);
-        const res = await api.get("/search", { params });
+        const res = await api.get("/search", { params: buildParams(1) });
         if (!cancelled) {
           setResults(res.data);
           setPage(1);
@@ -165,11 +145,9 @@ export default function SearchResults({
       } catch (err) {
         if (!cancelled) {
           console.error(err);
-          // If no filters are active and the API errors (e.g. requires at least one param),
-          // show an empty result set rather than an error banner.
-          const params = buildParams(1);
-          const hasFilters = Object.keys(params).some(k => k !== "page");
-          if (!hasFilters) {
+          const status = err.response?.status;
+          // Treat 404 / 400 as "no results", only show error for server faults
+          if (status && status < 500) {
             setResults([]);
             setHasMore(false);
           } else {
@@ -184,7 +162,7 @@ export default function SearchResults({
     doFetch();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [city, district, selType, beds, selBaths, minPrice, maxPrice, sortBy]);
+  }, [city, district, selType, selCondition, beds, selBaths, minPrice, maxPrice, sortBy]);
 
   /* ── Load more ── */
   const loadMore = async () => {
@@ -231,7 +209,8 @@ export default function SearchResults({
   const activeTags = [
     ...(city     ? [{ label: city,     clear: () => setCity("")     }] : []),
     ...(district ? [{ label: district, clear: () => setDistrict("") }] : []),
-    ...(selType  ? [{ label: selType,  clear: () => setSelType("")  }] : []),
+    ...(selType      ? [{ label: selType,      clear: () => setSelType("")      }] : []),
+    ...(selCondition ? [{ label: selCondition, clear: () => setSelCondition("") }] : []),
     ...(beds ? [{ label: `${beds} bed${Number(beds) !== 1 ? 's' : ''}`, clear: () => { setBeds(""); setBedsInput(""); } }] : []),
     ...selBaths.map(b => ({ label: `${b} bath`, clear: () => setSelBaths(p => p.filter(x => x !== b)) })),
     ...(minPrice ? [{ label: `Min ${formatPrice(minPrice)}`, clear: () => { setMinPrice(""); setMinPriceInput(""); } }] : []),
@@ -239,11 +218,22 @@ export default function SearchResults({
   ];
 
   const resetFilters = () => {
-    didSeedRef.current = true; // ensure we don't skip the next fetch
-    setCity(""); setDistrict(""); setSelType("");
-    setBedsInput(""); setBeds(""); setSelBaths([]);
-    setMinPriceInput(""); setMaxPriceInput("");
-    setMinPrice(""); setMaxPrice("");
+    // Reset initialCityRef BEFORE setting city so the city useEffect
+    // sees city==initialCityRef.current and skips the district wipe
+    // (district is already being cleared explicitly below)
+    initialCityRef.current = "";
+    setError(null);
+    setCity("");
+    setDistrict("");
+    setSelType("");
+    setSelCondition("");
+    setBedsInput("");
+    setBeds("");
+    setSelBaths([]);
+    setMinPriceInput("");
+    setMaxPriceInput("");
+    setMinPrice("");
+    setMaxPrice("");
     setSortBy("New");
   };
 
@@ -317,6 +307,37 @@ export default function SearchResults({
                       {selType === t && <span className="sr-radio-dot" />}
                     </span>
                     <span className="sr-check-label">{t}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* ── Condition — radio single select ── */}
+          <div className="sr-section">
+            <div className="sr-section-label">Condition</div>
+            <button className="sr-dropdown-btn" onClick={() => setConditionOpen(v => !v)}>
+              <span>{selCondition || "Any condition"}</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                strokeLinecap="round" strokeLinejoin="round"
+                style={{ transform: conditionOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
+            {conditionOpen && (
+              <div className="sr-dropdown-list">
+                <label className="sr-check-item" onClick={() => setSelCondition("")}>
+                  <span className={`sr-radio ${selCondition === "" ? "on" : ""}`}>
+                    {selCondition === "" && <span className="sr-radio-dot" />}
+                  </span>
+                  <span className="sr-check-label">Any</span>
+                </label>
+                {["not finished", "semi finished", "fully finished", "luxury finished"].map(c => (
+                  <label key={c} className="sr-check-item" onClick={() => setSelCondition(prev => prev === c ? "" : c)}>
+                    <span className={`sr-radio ${selCondition === c ? "on" : ""}`}>
+                      {selCondition === c && <span className="sr-radio-dot" />}
+                    </span>
+                    <span className="sr-check-label">{c}</span>
                   </label>
                 ))}
               </div>

@@ -36,10 +36,6 @@ export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, o
   const [citiesLoading,    setCitiesLoading]    = useState(false);
   const [districtsLoading, setDistrictsLoading] = useState(false);
 
-  // Search loading state
-  const [searching, setSearching] = useState(false);
-  const [searchError, setSearchError] = useState(null);
-
   // API state (featured properties)
   const [properties, setProperties] = useState([]);
   const [loading,    setLoading]    = useState(true);
@@ -137,38 +133,12 @@ export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, o
     }
   };
 
-  /* ── SEARCH HANDLER ─────────────────────────────────────────────────── */
-  const handleSearch = async () => {
-    setSearching(true);
-    setSearchError(null);
-
-    // Build params — only include fields the user actually filled in
-    const params = { page: 1 };
-    if (city)      params.city      = city;
-    if (district)  params.district  = district;
-    if (propType)  params.type      = propType;
-    if (bedrooms)  params.bedrooms  = bedrooms === "5+" ? 5 : Number(bedrooms);
-    if (bathrooms) params.bathrooms = Number(bathrooms);
-    if (floor && floor !== "Garden") params.floors = Number(floor);
-
-    try {
-      console.log("Searching with params:", params);
-      const res = await api.get("/search", { params });
-
-      // Pass results + active filters to parent so SearchResults page can use them
-      onSearch({
-        city, district, bedrooms, bathrooms, floor,
-        results: res.data,
-        params,
-      });
-    } catch (err) {
-      console.error(err);
-      setSearchError("Search failed. Please try again.");
-    } finally {
-      setSearching(false);
-    }
+  /* ── SEARCH HANDLER ─────────────────────────────────────────────────────────────────────── */
+  const handleSearch = () => {
+    // Just pass filter values — SearchResults owns all API fetching
+    onSearch({ city, district, propType, bedrooms, bathrooms, floor });
   };
-  /* ─────────────────────────────────────────────────────────────────────── */
+  /* ──────────────────────────────────────────────────────────────────────────────── */
 
   const cats = POPULAR[popularTab];
 
@@ -244,20 +214,8 @@ export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, o
                 </select>
               </div>
             </div>
-
-            {searchError && (
-              <p style={{ color: "#ff4d6d", fontSize: "0.85rem", marginTop: "8px", textAlign: "center" }}>
-                {searchError}
-              </p>
-            )}
-
-            <button
-              className="search-btn"
-              onClick={handleSearch}
-              disabled={searching}
-              style={{ opacity: searching ? 0.7 : 1, cursor: searching ? "not-allowed" : "pointer" }}
-            >
-              {searching ? "Searching…" : "Search Properties"}
+            <button className="search-btn" onClick={handleSearch}>
+              Search Properties
             </button>
           </div>
         </div>
