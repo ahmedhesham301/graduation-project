@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
-import BackButton from "../components/BackButton";
 import { api } from "../components/Axios";
 import { BUCKET_url } from "../components/vars";
 import "./PropertyDetails.css";
@@ -107,7 +106,7 @@ export default function PropertyDetails({
   	
   const backLabel =
     fromPage === "favourite" ? "Back To Favourites" :
-    fromPage === "search"    ? "Back To Search"     : "Back To Home";
+    fromPage === "search"    ? "Back To Search"     : "Back";
 
   /* ── Loading / Error states ── */
   if (loading)
@@ -155,12 +154,21 @@ export default function PropertyDetails({
 
       <div className="pd-container">
         {/* ── Back ── */}
-          <BackButton
-          onClick={() => onNavigate(fromPage)}
-          label={
-            fromPage === "favourite" ? "Back To Favourites" :
-            fromPage === "search"    ? "Back To Search":"Back To Home"}
-          />
+        <button className="pd-custom-back" onClick={() => onNavigate(fromPage)}>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+          <span>{backLabel}</span>
+        </button>
 
         {/* ── Gallery ── */}
         <div className="pd-gallery">

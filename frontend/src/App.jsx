@@ -58,20 +58,23 @@ export default function App() {
   };
 
   const handleNavigate = (target, data = {}) => {
-    const protectedPages = ["profile", "favourite"];
+  const protectedPages = ["profile", "favourite"];
 
-    if (protectedPages.includes(target) && !isLoggedIn) {
-      setPage("signin");
-    } else {
-      if (target === "propertyDetails") {
-        setPreviousPage(page);}
-      setPage(target);
+  if (protectedPages.includes(target) && !isLoggedIn) {
+    setPage("signin");
+  } else {
 
-      if (data.id) {
-        setSelectedPropertyId(data.id);
-      }
+    if (target === "propertyDetails") {
+      setPreviousPage(page);
     }
-  };
+
+    setPage(target);
+
+    if (data.propertyId) {
+      setSelectedPropertyId(data.propertyId);
+    }
+  }
+};
 
   return (
     <div className={`app theme-${theme}`}>

@@ -481,7 +481,7 @@ export default function SearchResults({
             <>
               <div className={`sr-grid ${loading ? "sr-grid-dim" : ""}`}>
                 {results.map(p => (
-                  <div className="sr-card" key={p.id}>
+                  <div className="sr-card" key={p.id} onClick={() =>onNavigate("propertyDetails", { propertyId: p.id,fromPage: "search",})}>
                     <div className="sr-card-img-wrap">
                       <div
                         className="sr-card-img"
