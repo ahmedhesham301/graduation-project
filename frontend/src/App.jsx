@@ -56,26 +56,27 @@ export default function App() {
     setSearchFilters(filters);
     setPage("search");
   };
-
   const handleNavigate = (target, data = {}) => {
-  const protectedPages = ["profile", "favourite"];
+    const protectedPages = ["profile", "favourite"];
 
-  if (protectedPages.includes(target) && !isLoggedIn) {
-    setPage("signin");
-  } else {
+    if (protectedPages.includes(target) && !isLoggedIn) {
+      setPage("signin");
+    } else {
 
-    if (target === "propertyDetails") {
-      setPreviousPage(page);
+      if (target === "propertyDetails") {
+        setPreviousPage(page);
+      }
+
+      setPage(target);
+
+      // FIX: Check for both data.id and data.propertyId to ensure the ID is set
+      if (data.id) {
+        setSelectedPropertyId(data.id);
+      } else if (data.propertyId) {
+        setSelectedPropertyId(data.propertyId);
+      }
     }
-
-    setPage(target);
-
-    if (data.propertyId) {
-      setSelectedPropertyId(data.propertyId);
-    }
-  }
-};
-
+  };
   return (
     <div className={`app theme-${theme}`}>
       {page === "home" && (
