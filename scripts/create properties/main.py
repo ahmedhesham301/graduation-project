@@ -38,8 +38,7 @@ resp = session.post(
     json={"email": "ahdmed@gmail.com", "password": "123456789"},
 )
 
-session.post(f"{api_host}/auth/become-seller")
-
+session.post(f"{api_host}/user/become-seller")
 # get the cities and distrcts and put them in a variable
 cities = session.get(f"{api_host}/cities").json()
 locations = {}
