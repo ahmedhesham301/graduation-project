@@ -20,17 +20,18 @@ export const generalLimiter = (req, res, next) => generalLimiterImpl(req, res, n
 export async function initRateLimiters() {
     authLimiterImpl = rateLimit({
         windowMs: 15 * 60 * 1000,
-        max: 5000000,
+        max: 30,
         standardHeaders: "draft-8",
         legacyHeaders: false,
         store: makeStore("rl:auth:"),
-        skipSuccessfulRequests: true,
+        skipSuccessfulRequests: false,
+        skipFailedRequests: true,
         message: { error: "Too many login attempts. Please try again in 15 minutes." }
     })
 
     propertyLimiterImpl = rateLimit({
         windowMs: 60 * 60 * 1000,
-        max: 100000000,
+        max: 250,
         standardHeaders: "draft-8",
         legacyHeaders: false,
         store: makeStore("rl:property:"),
@@ -38,15 +39,26 @@ export async function initRateLimiters() {
             if (req.session?.userID) return `user:${req.session.userID}`
             return `ip:${ipKeyGenerator(req.ip)}`
         },
-        message: { error: "Too many property listings created. Please try again in an hour." }
+        handler: (req, res) => {
+            res.status(429).json({
+                error: "Too many property listings created. Limit: 250 per hour."
+            })
+        },
+        skip: (req) => req.session?.isAdmin
     })
+
+    
 
     generalLimiterImpl = rateLimit({
         windowMs: 60 * 1000,
-        max: 100000000,
+        max: 1000,
         standardHeaders: "draft-8",
         legacyHeaders: false,
         store: makeStore("rl:general:"),
-        message: { error: "Too many requests. Please slow down." }
+        handler: (req, res) => {
+            res.status(429).json({
+                error: "Too many requests. Please slow down."
+            })
+        }
     })
 }
