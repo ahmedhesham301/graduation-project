@@ -56,27 +56,33 @@ export default function App() {
     setSearchFilters(filters);
     setPage("search");
   };
-  const handleNavigate = (target, data = {}) => {
-    const protectedPages = ["profile", "favourite"];
+const handleNavigate = (target, data = {}) => {
+  const protectedPages = ["profile", "favourite"];
 
-    if (protectedPages.includes(target) && !isLoggedIn) {
-      setPage("signin");
-    } else {
+  // "chat" is an overlay, not a real page — go home instead
+  const resolvedTarget = target === "chat" ? "home" : target;
 
-      if (target === "propertyDetails") {
+  if (protectedPages.includes(resolvedTarget) && !isLoggedIn) {
+    setPage("signin");
+  } else {
+
+    if (resolvedTarget === "propertyDetails") {
+      if (data.fromPage) {
+        setPreviousPage(data.fromPage);
+      } else {
         setPreviousPage(page);
       }
-
-      setPage(target);
-
-      // FIX: Check for both data.id and data.propertyId to ensure the ID is set
-      if (data.id) {
-        setSelectedPropertyId(data.id);
-      } else if (data.propertyId) {
-        setSelectedPropertyId(data.propertyId);
-      }
     }
-  };
+
+    setPage(resolvedTarget);
+
+    if (data.id) {
+      setSelectedPropertyId(data.id);
+    } else if (data.propertyId) {
+      setSelectedPropertyId(data.propertyId);
+    }
+  }
+};
   return (
     <div className={`app theme-${theme}`}>
       {page === "home" && (
@@ -133,7 +139,7 @@ export default function App() {
           isLoggedIn={isLoggedIn}
         />
       )}
-    <ChatBot />
+    <ChatBot onNavigate={handleNavigate} />
       
     </div>
   );

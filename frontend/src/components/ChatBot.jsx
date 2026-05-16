@@ -21,10 +21,10 @@ const IconChat = () => (
   </svg>
 );
 const IconBot = () => (
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-robot" viewBox="0 0 16 16">
-  <path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5M3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.6 26.6 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.93.93 0 0 1-.765.935c-.845.147-2.34.346-4.235.346s-3.39-.2-4.235-.346A.93.93 0 0 1 3 9.219zm4.542-.827a.25.25 0 0 0-.217.068l-.92.9a25 25 0 0 1-1.871-.183.25.25 0 0 0-.068.495c.55.076 1.232.149 2.02.193a.25.25 0 0 0 .189-.071l.754-.736.847 1.71a.25.25 0 0 0 .404.062l.932-.97a25 25 0 0 0 1.922-.188.25.25 0 0 0-.068-.495c-.538.074-1.207.145-1.98.189a.25.25 0 0 0-.166.076l-.754.785-.842-1.7a.25.25 0 0 0-.182-.135"/>
-  <path d="M8.5 1.866a1 1 0 1 0-1 0V3h-2A4.5 4.5 0 0 0 1 7.5V8a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1v-.5A4.5 4.5 0 0 0 10.5 3h-2zM14 7.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.5A3.5 3.5 0 0 1 5.5 4h5A3.5 3.5 0 0 1 14 7.5"/>
-</svg>
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+    <path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5M3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.6 26.6 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.93.93 0 0 1-.765.935c-.845.147-2.34.346-4.235.346s-3.39-.2-4.235-.346A.93.93 0 0 1 3 9.219zm4.542-.827a.25.25 0 0 0-.217.068l-.92.9a25 25 0 0 1-1.871-.183.25.25 0 0 0-.068.495c.55.076 1.232.149 2.02.193a.25.25 0 0 0 .189-.071l.754-.736.847 1.71a.25.25 0 0 0 .404.062l.932-.97a25 25 0 0 0 1.922-.188.25.25 0 0 0-.068-.495c-.538.074-1.207.145-1.98.189a.25.25 0 0 0-.166.076l-.754.785-.842-1.7a.25.25 0 0 0-.182-.135"/>
+    <path d="M8.5 1.866a1 1 0 1 0-1 0V3h-2A4.5 4.5 0 0 0 1 7.5V8a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1v-.5A4.5 4.5 0 0 0 10.5 3h-2zM14 7.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.5A3.5 3.5 0 0 1 5.5 4h5A3.5 3.5 0 0 1 14 7.5"/>
+  </svg>
 );
 const IconPin = () => (
   <svg width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -32,13 +32,18 @@ const IconPin = () => (
     <circle cx="12" cy="10" r="3" />
   </svg>
 );
+const IconArrow = () => (
+  <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+    <path d="M9 18l6-6-6-6" />
+  </svg>
+);
 
 /* ── Helpers ── */
 function formatPrice(p) {
   const n = parseInt(p);
   if (isNaN(n)) return p;
-  if (n >= 1000000) return (n / 1000000).toFixed(2) + "M EGP";
-  if (n >= 1000) return (n / 1000).toFixed(0) + "K EGP";
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + "M EGP";
+  if (n >= 1_000)     return (n / 1_000).toFixed(0)     + "K EGP";
   return n + " EGP";
 }
 
@@ -50,18 +55,35 @@ const QUICK_PROMPTS = [
 ];
 
 /* ── Property Card ── */
-function PropertyCard({ property }) {
+function PropertyCard({ property, onNavigate }) {
   const { id, type, area, rooms, bathrooms, price, city, district, media } = property;
   const imgSrc = media ? `${BUCKET_url}/media/${id}/${media}` : null;
 
+ const handleClick = () => {
+  if (onNavigate && id) {
+    onNavigate("propertyDetails", {
+      id,
+      fromPage: "chat",
+    });
+  }
+};
+
   return (
-    <div className="cb-prop-card">
+    <div
+      className="cb-prop-card"
+      onClick={handleClick}
+      style={{ cursor: onNavigate ? "pointer" : "default" }}
+      title="View property details"
+    >
       {imgSrc ? (
         <img
           className="cb-prop-img"
           src={imgSrc}
           alt={type}
-          onError={(e) => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }}
+          onError={(e) => {
+            e.target.style.display = "none";
+            e.target.nextSibling.style.display = "flex";
+          }}
         />
       ) : null}
       <div className="cb-prop-img-ph" style={{ display: imgSrc ? "none" : "flex" }}>
@@ -76,6 +98,12 @@ function PropertyCard({ property }) {
         <div className="cb-prop-loc">
           <IconPin /> {district}, {city}
         </div>
+        {/* "View details" hint */}
+        {onNavigate && (
+          <div className="cb-prop-cta">
+            View details <IconArrow />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -94,7 +122,7 @@ function TypingBubble() {
 }
 
 /* ── Message ── */
-function Message({ msg }) {
+function Message({ msg, onNavigate }) {
   const { sender, text, type, properties } = msg;
 
   if (type === "properties") {
@@ -102,7 +130,9 @@ function Message({ msg }) {
       <div className="cb-msg-row bot cb-props-row">
         <div className="cb-bot-av"><IconBot /></div>
         <div className="cb-prop-list">
-          {properties.map((p, i) => <PropertyCard key={p.id ?? i} property={p} />)}
+          {properties.map((p, i) => (
+            <PropertyCard key={p.id ?? i} property={p} onNavigate={onNavigate} />
+          ))}
         </div>
       </div>
     );
@@ -119,7 +149,7 @@ function Message({ msg }) {
 }
 
 /* ── Main Component ── */
-export default function Chatbot() {
+export default function Chatbot({ onNavigate }) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
@@ -128,10 +158,10 @@ export default function Chatbot() {
       text: "Hello! I'm your 3Karati property assistant. I can help you find homes, apartments, or answer any real estate questions.",
     },
   ]);
-  const [input, setInput] = useState("");
+  const [input, setInput]       = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [quickShown, setQuickShown] = useState(true);
-  const msgsRef = useRef(null);
+  const msgsRef  = useRef(null);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -158,10 +188,6 @@ export default function Chatbot() {
     try {
       const res = await api.post("/chatbot", { message: text });
 
-      // Support multiple response shapes from the backend:
-      // 1. Direct array:          res.data = [ {id, price, ...}, ... ]
-      // 2. Wrapped array:         res.data.reply / res.data.data / res.data.properties
-      // 3. Plain text:            res.data.reply / res.data.message / res.data (string)
       const raw = res.data;
 
       const isPropertyArray = (val) =>
@@ -170,21 +196,28 @@ export default function Chatbot() {
         typeof val[0] === "object" &&
         (val[0].price !== undefined || val[0].id !== undefined);
 
-      // Resolve the actual payload
       const reply =
-        isPropertyArray(raw)         ? raw              // direct array
-        : isPropertyArray(raw?.reply)  ? raw.reply        // { reply: [...] }
-        : isPropertyArray(raw?.data)   ? raw.data         // { data: [...] }
-        : isPropertyArray(raw?.properties) ? raw.properties // { properties: [...] }
-        : raw?.reply ?? raw?.message ?? raw?.text ?? raw; // text fallback
+        isPropertyArray(raw)              ? raw
+        : isPropertyArray(raw?.reply)     ? raw.reply
+        : isPropertyArray(raw?.data)      ? raw.data
+        : isPropertyArray(raw?.properties)? raw.properties
+        : raw?.reply ?? raw?.message ?? raw?.text ?? raw;
 
       if (isPropertyArray(reply)) {
-        setMessages((prev) => [...prev, { sender: "bot", type: "properties", properties: reply }]);
+        setMessages((prev) => [
+          ...prev,
+          { sender: "bot", type: "properties", properties: reply },
+        ]);
       } else if (typeof reply === "string" && reply.trim()) {
-        setMessages((prev) => [...prev, { sender: "bot", type: "text", text: reply }]);
+        setMessages((prev) => [
+          ...prev,
+          { sender: "bot", type: "text", text: reply },
+        ]);
       } else {
-        // Last resort: stringify whatever came back so something always shows
-        setMessages((prev) => [...prev, { sender: "bot", type: "text", text: JSON.stringify(reply) }]);
+        setMessages((prev) => [
+          ...prev,
+          { sender: "bot", type: "text", text: JSON.stringify(reply) },
+        ]);
       }
     } catch (err) {
       const serverMsg = err.response?.data?.message || err.response?.data?.error;
@@ -223,14 +256,20 @@ export default function Chatbot() {
                 <span className="cb-status-dot" /> Online · Real estate AI
               </div>
             </div>
-            <button className="cb-header-close" onClick={() => setIsOpen(false)} aria-label="Close chat">
+            <button
+              className="cb-header-close"
+              onClick={() => setIsOpen(false)}
+              aria-label="Close chat"
+            >
               <IconClose />
             </button>
           </div>
 
           {/* Messages */}
           <div className="cb-msgs" ref={msgsRef}>
-            {messages.map((msg, i) => <Message key={i} msg={msg} />)}
+            {messages.map((msg, i) => (
+              <Message key={i} msg={msg} onNavigate={onNavigate} />
+            ))}
 
             {/* Quick prompt buttons */}
             {quickShown && (

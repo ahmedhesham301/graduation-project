@@ -106,7 +106,8 @@ export default function PropertyDetails({
   	
   const backLabel =
     fromPage === "favourite" ? "Back To Favourites" :
-    fromPage === "search"    ? "Back To Search"     : "Back";
+    fromPage === "search"    ? "Back To Search"     :
+    fromPage === "chat"      ? "Back" : "Back";
 
   /* ── Loading / Error states ── */
   if (loading)
