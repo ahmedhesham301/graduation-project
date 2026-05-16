@@ -6,7 +6,7 @@ import "./AddProperty.css";
 export default function AddProperty({ onBack }) {
   const [form, setForm] = useState({
     propertyType: "apartment",
-    condition: "finished",
+    condition: "fully finished",
     lat: "",
     lon: "",
     price: "",
@@ -339,10 +339,10 @@ export default function AddProperty({ onBack }) {
             <div className="ap-field">
               <label className="ap-label">condition</label>
               <select className="ap-select" value={form.condition} onChange={e => set("condition", e.target.value)}>
-                <option>finished</option>
-                <option>semi-finished</option>
-                <option>core &amp; shell</option>
-                <option>new</option>
+                <option>fully finished</option>
+                <option>luxury finished </option>
+                <option>semi finished</option>
+                <option>not finished</option>
               </select>
             </div>
             <div className="ap-field">

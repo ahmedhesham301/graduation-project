@@ -5,7 +5,8 @@ import {
     HeadObjectCommand,
     PutPublicAccessBlockCommand,
     PutBucketPolicyCommand,
-    PutObjectCommand
+    PutObjectCommand,
+    PutBucketCorsCommand
 } from "@aws-sdk/client-s3";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -72,6 +73,19 @@ export async function s3Init() {
                     ],
                 }),
             }));
+            await s3.send(new PutBucketCorsCommand({
+                Bucket: process.env.BUCKET_NAME,
+                CORSConfiguration: {
+                    CORSRules: [
+                        {
+                            AllowedHeaders: ["*"],
+                            AllowedMethods: ["GET", "PUT", "POST", "DELETE", "HEAD"],
+                            AllowedOrigins: ["*"], // Allows all domains
+                            ExposeHeaders: ["ETag"],
+                            MaxAgeSeconds: 3000
+                        }
+                    ]
+                }}))
         } catch (error) {
             console.error(error)
             process.exit(1)
