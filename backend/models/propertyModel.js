@@ -43,6 +43,100 @@ export async function createPropertyRecord(sellerId, type, lat, lon, area, floor
     return rows[0]
 }
 
+export async function updatePropertyRecord(propertyId, updates) {
+    const client = await pool.connect()
+
+    try {
+        await client.query("BEGIN")
+
+        // Lock the row so the old price we record cannot change mid-update.
+        const currentResult = await client.query({
+            text: `
+                SELECT id, price, status
+                FROM properties
+                WHERE id = $1
+                AND deleted_at IS NULL
+                FOR UPDATE
+            `,
+            values: [propertyId]
+        })
+
+        const currentProperty = currentResult.rows[0]
+        if (!currentProperty) {
+            await client.query("ROLLBACK")
+            return null
+        }
+
+        const fields = []
+        const values = []
+        let index = 1
+
+        function addField(column, value) {
+            fields.push(`${column} = $${index++}`)
+            values.push(value)
+        }
+
+        if ("description" in updates) addField("description", updates.description)
+        if ("condition" in updates) addField("condition", updates.condition)
+        if ("price" in updates) addField("price", updates.price)
+
+        if ("status" in updates) {
+            addField("status", updates.status)
+
+            // A sold listing must have sold_at. If the caller only says
+            // status=sold, record the sale time as now.
+            if (updates.status === "sold" && (!("sold_at" in updates) || updates.sold_at === null)) {
+                addField("sold_at", new Date())
+            }
+
+            // Non-sold listings should not keep stale sale data.
+            if (updates.status !== "sold") {
+                addField("sold_at", null)
+                addField("sold_price", null)
+            }
+        }
+
+        if ("sold_at" in updates && !(updates.status === "sold" && updates.sold_at === null)) {
+            addField("sold_at", updates.sold_at)
+        }
+        if ("sold_price" in updates) addField("sold_price", updates.sold_price)
+
+        values.push(propertyId)
+
+        const updatedResult = await client.query({
+            text: `
+                UPDATE properties
+                SET ${fields.join(", ")}
+                WHERE id = $${index}
+                RETURNING *
+            `,
+            values
+        })
+
+        const updatedProperty = updatedResult.rows[0]
+        const newPrice = Number(updatedProperty.price)
+        const oldPrice = Number(currentProperty.price)
+
+        if ("price" in updates && newPrice !== oldPrice) {
+            await client.query({
+                text: `
+                    INSERT INTO property_price_history (property_id, old_price, new_price)
+                    VALUES ($1, $2, $3)
+                `,
+                values: [propertyId, oldPrice, newPrice]
+            })
+        }
+
+        await client.query("COMMIT")
+        return updatedProperty
+    } catch (error) {
+        await client.query("ROLLBACK")
+        throw error
+    } finally {
+        client.release()
+    }
+}
+
 const PAGE_SIZE = 20;
 const filterMap = {
     bathrooms: (i) => `bathrooms = $${i}`,

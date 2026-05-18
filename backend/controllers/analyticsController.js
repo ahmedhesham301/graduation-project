@@ -8,6 +8,8 @@
 
 import {
     fetchSellerAnalytics,
+    fetchSellerPropertyAnalytics,
+    fetchMarketTrends,
     fetchSellerPerformance
 } from "../services/analyticsServices.js"
 
@@ -29,6 +31,38 @@ export async function getAnalytics(req, res) {
     } catch (error) {
         console.error(error)
         res.status(500).json({ error: "Failed to fetch analytics" })
+    }
+}
+
+/**
+ * Handles GET /api/seller/analytics/properties
+ *
+ * Returns per-listing analytics for the logged-in seller so the seller can
+ * see which properties generate views, saves, and contact intent.
+ */
+export async function getPropertyAnalytics(req, res) {
+    try {
+        const analytics = await fetchSellerPropertyAnalytics(req.session.userID)
+        res.status(200).json(analytics)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ error: "Failed to fetch property analytics" })
+    }
+}
+
+/**
+ * Handles GET /api/analytics/market-trends
+ *
+ * This is public aggregate market data. It never returns buyer details,
+ * seller details, or individual viewer identities.
+ */
+export async function getMarketTrends(req, res) {
+    try {
+        const trends = await fetchMarketTrends()
+        res.status(200).json(trends)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ error: "Failed to fetch market trends" })
     }
 }
 

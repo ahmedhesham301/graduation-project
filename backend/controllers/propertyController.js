@@ -1,6 +1,8 @@
 import {
     getPropertyById,
-    createProperty
+    createProperty,
+    updateProperty,
+    contactPropertySeller
 } from "../services/propertyServices.js"
 import { search, deletePropertyById, getTypes } from "../models/propertyModel.js";
 import { preparePropertyMediaUploads, getMediaUrls } from "../services/propertyMediaService.js";
@@ -49,6 +51,59 @@ export async function create(req, res) {
 
         console.log(error);
         res.status(500).json({ error: "Internal server error" })
+    }
+}
+
+export async function update(req, res) {
+    try {
+        const property = await updateProperty(req.params.propertyId, req.body)
+
+        if (!property) {
+            return res.status(404).json({ error: "Property not found" })
+        }
+
+        res.status(200).json(property)
+    } catch (error) {
+        if (error.code === '22P02' && error.routine === 'enum_in') {
+            return res.status(422).json({ error: "Invalid property value" })
+        }
+
+        if (error.code === '23514') {
+            return res.status(422).json({
+                error: "Invalid property state. Sold properties need sold_at, and unsold properties cannot keep sold data."
+            })
+        }
+
+        console.error(error)
+        res.status(500).json({ error: "Internal server error" })
+    }
+}
+
+export async function contactSeller(req, res) {
+    try {
+        const userId = req.session.userID ?? null
+
+        // For guests, persist one session id so repeated contact clicks from
+        // the same browser can be counted as one visitor if needed later.
+        if (!userId) {
+            req.session.analyticsContact = true
+        }
+
+        const contact = await contactPropertySeller(
+            req.params.propertyId,
+            userId,
+            userId ? null : req.sessionID,
+            req.body.contact_method
+        )
+
+        if (!contact) {
+            return res.status(404).json({ error: "Property not found" })
+        }
+
+        res.status(201).json({ message: "Contact recorded", contact })
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ error: "Failed to record contact" })
     }
 }
 

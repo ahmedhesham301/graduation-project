@@ -13,6 +13,49 @@
 import { pool } from "../database/postgresql.js";
 
 /**
+ * Stores one property view event.
+ *
+ * userId is present for logged-in users. viewerSessionId is used for guests,
+ * so market analytics can still count anonymous demand.
+ */
+export async function recordPropertyView(propertyId, userId, viewerSessionId) {
+    const query = {
+        name: 'record-property-view',
+        text: `
+            INSERT INTO property_views (property_id, user_id, viewer_session_id)
+            VALUES ($1, $2, $3)
+        `,
+        values: [propertyId, userId ?? null, viewerSessionId ?? null]
+    }
+
+    await pool.query(query)
+}
+
+/**
+ * Stores one contact-intent event for a property.
+ *
+ * This tracks the moment a visitor asks for seller contact details, which is
+ * a stronger signal than a simple page view.
+ */
+export async function recordPropertyContact(propertyId, userId, contactSessionId, contactMethod) {
+    const query = {
+        name: 'record-property-contact',
+        text: `
+            INSERT INTO property_contacts (
+                property_id,
+                user_id,
+                contact_session_id,
+                contact_method
+            )
+            VALUES ($1, $2, $3, $4)
+        `,
+        values: [propertyId, userId ?? null, contactSessionId ?? null, contactMethod]
+    }
+
+    await pool.query(query)
+}
+
+/**
  * Returns aggregated seller statistics in one query using CTEs.
  *
  * WHY CTEs instead of separate queries?
@@ -116,13 +159,229 @@ export async function getSellerAnalytics(sellerId) {
 }
 
 /**
+ * Returns one analytics row per property owned by the seller.
+ *
+ * Views, saves, and contacts are aggregated in separate CTEs first. That
+ * prevents inflated counts from joining multiple event tables directly.
+ */
+export async function getSellerPropertyAnalyticsStats(sellerId) {
+    const query = {
+        text: `
+            WITH
+
+            seller_properties AS (
+                SELECT
+                    p.id,
+                    p.price,
+                    p.status,
+                    p.pending_media,
+                    p.created_at,
+                    pt.name AS type,
+                    c.name AS city,
+                    d.name AS district
+                FROM properties p
+                JOIN property_types pt ON pt.id = p.type_id
+                JOIN cities c ON c.id = p.city_id
+                JOIN districts d ON d.id = p.district_id
+                WHERE p.seller_id = $1
+                AND p.deleted_at IS NULL
+            ),
+
+            view_counts AS (
+                SELECT
+                    property_id,
+                    COUNT(*) AS views
+                FROM property_views
+                WHERE property_id IN (SELECT id FROM seller_properties)
+                GROUP BY property_id
+            ),
+
+            save_counts AS (
+                SELECT
+                    property_id,
+                    COUNT(*) AS saves
+                FROM saved
+                WHERE property_id IN (SELECT id FROM seller_properties)
+                GROUP BY property_id
+            ),
+
+            contact_counts AS (
+                SELECT
+                    property_id,
+                    COUNT(*) AS contacts
+                FROM property_contacts
+                WHERE property_id IN (SELECT id FROM seller_properties)
+                GROUP BY property_id
+            )
+
+            SELECT
+                sp.id AS property_id,
+                sp.type,
+                sp.city,
+                sp.district,
+                sp.price,
+                sp.status,
+                sp.pending_media,
+                sp.created_at,
+                COALESCE(vc.views, 0) AS views,
+                COALESCE(sc.saves, 0) AS saves,
+                COALESCE(cc.contacts, 0) AS contacts,
+                CASE
+                    WHEN COALESCE(vc.views, 0) = 0 THEN 0
+                    ELSE ROUND((COALESCE(sc.saves, 0)::numeric / vc.views) * 100, 2)
+                END AS view_to_save_rate,
+                CASE
+                    WHEN COALESCE(vc.views, 0) = 0 THEN 0
+                    ELSE ROUND((COALESCE(cc.contacts, 0)::numeric / vc.views) * 100, 2)
+                END AS view_to_contact_rate
+            FROM seller_properties sp
+            LEFT JOIN view_counts vc ON vc.property_id = sp.id
+            LEFT JOIN save_counts sc ON sc.property_id = sp.id
+            LEFT JOIN contact_counts cc ON cc.property_id = sp.id
+            ORDER BY contacts DESC, saves DESC, views DESC, sp.created_at DESC
+        `,
+        values: [sellerId]
+    }
+
+    const { rows } = await pool.query(query)
+    return rows
+}
+
+/**
+ * Returns global market trend data.
+ *
+ * This endpoint needs three kinds of historical facts:
+ * - properties.created_at: when a listing entered the market
+ * - properties.sold_at/status: when a listing left the market as sold
+ * - property_price_history/property_views: price movement and demand
+ */
+export async function getMarketTrendStats() {
+    const query = {
+        text: `
+            WITH
+
+            market_properties AS (
+                SELECT
+                    p.id,
+                    p.price,
+                    p.sold_price,
+                    p.status,
+                    p.created_at,
+                    p.sold_at,
+                    c.name AS city
+                FROM properties p
+                JOIN cities c ON c.id = p.city_id
+                WHERE p.deleted_at IS NULL
+            ),
+
+            view_counts AS (
+                SELECT
+                    pv.property_id,
+                    COUNT(*) AS views
+                FROM property_views pv
+                GROUP BY pv.property_id
+            ),
+
+            save_counts AS (
+                SELECT
+                    s.property_id,
+                    COUNT(*) AS saves
+                FROM saved s
+                GROUP BY s.property_id
+            ),
+
+            summary AS (
+                SELECT
+                    COUNT(*) AS total_listings,
+                    COUNT(*) FILTER (WHERE status = 'listed') AS active_listings,
+                    COUNT(*) FILTER (WHERE status = 'sold') AS sold_listings,
+                    COALESCE((SELECT COUNT(*) FROM property_views), 0) AS total_views,
+                    COALESCE((SELECT COUNT(*) FROM saved), 0) AS total_saves,
+                    COALESCE(ROUND(AVG(price)), 0) AS average_listing_price
+                FROM market_properties
+            ),
+
+            -- New listings by month. This works with your original schema.
+            listing_trends AS (
+                SELECT
+                    to_char(date_trunc('month', created_at), 'YYYY-MM') AS month,
+                    COUNT(*) AS new_listings
+                FROM market_properties
+                GROUP BY date_trunc('month', created_at)
+                ORDER BY date_trunc('month', created_at)
+            ),
+
+            -- Sold listings by month. Requires status='sold' and sold_at.
+            sales_trends AS (
+                SELECT
+                    to_char(date_trunc('month', sold_at), 'YYYY-MM') AS month,
+                    COUNT(*) AS sold_listings,
+                    COALESCE(ROUND(AVG(COALESCE(sold_price, price))), 0) AS average_sold_price
+                FROM market_properties
+                WHERE status = 'sold'
+                AND sold_at IS NOT NULL
+                GROUP BY date_trunc('month', sold_at)
+                ORDER BY date_trunc('month', sold_at)
+            ),
+
+            -- Price movement by month. Requires inserting a row whenever
+            -- a property's price changes.
+            price_trends AS (
+                SELECT
+                    to_char(date_trunc('month', changed_at), 'YYYY-MM') AS month,
+                    COUNT(*) AS price_changes,
+                    COALESCE(ROUND(AVG(new_price)), 0) AS average_new_price
+                FROM property_price_history
+                GROUP BY date_trunc('month', changed_at)
+                ORDER BY date_trunc('month', changed_at)
+            ),
+
+            -- Demand trend by month. anonymous viewers use viewer_session_id;
+            -- logged-in viewers use user_id.
+            view_trends AS (
+                SELECT
+                    to_char(date_trunc('month', viewed_at), 'YYYY-MM') AS month,
+                    COUNT(*) AS views,
+                    COUNT(DISTINCT COALESCE(user_id::text, viewer_session_id)) AS unique_viewers
+                FROM property_views
+                GROUP BY date_trunc('month', viewed_at)
+                ORDER BY date_trunc('month', viewed_at)
+            ),
+
+            hotspots AS (
+                SELECT
+                    mp.city,
+                    COUNT(*) FILTER (WHERE mp.status = 'listed') AS active_listings,
+                    COALESCE(SUM(vc.views), 0) AS views,
+                    COALESCE(SUM(sc.saves), 0) AS saves,
+                    COALESCE(ROUND(AVG(mp.price)), 0) AS average_price
+                FROM market_properties mp
+                LEFT JOIN view_counts vc ON vc.property_id = mp.id
+                LEFT JOIN save_counts sc ON sc.property_id = mp.id
+                GROUP BY mp.city
+                ORDER BY views DESC, saves DESC, active_listings DESC
+                LIMIT 10
+            )
+
+            SELECT
+                (SELECT row_to_json(summary) FROM summary) AS summary,
+                COALESCE((SELECT json_agg(listing_trends) FROM listing_trends), '[]'::json) AS listing_trends,
+                COALESCE((SELECT json_agg(sales_trends) FROM sales_trends), '[]'::json) AS sales_trends,
+                COALESCE((SELECT json_agg(price_trends) FROM price_trends), '[]'::json) AS price_trends,
+                COALESCE((SELECT json_agg(view_trends) FROM view_trends), '[]'::json) AS view_trends,
+                COALESCE((SELECT json_agg(hotspots) FROM hotspots), '[]'::json) AS hotspots
+        `
+    }
+
+    const { rows } = await pool.query(query)
+    return rows[0]
+}
+
+/**
  * Returns performance-style analytics for the logged-in seller.
  *
- * Important limitation:
- * The current schema has properties and saved/favorites, but it does not
- * have orders, views, contacts, or sold dates. So this endpoint measures
- * performance using data we can trust today: listings, publish state,
- * listing age, and save/favorite engagement.
+ * This endpoint stays seller-level. Property-level views, saves, and
+ * contacts are returned by getSellerPropertyAnalyticsStats.
  */
 export async function getSellerPerformanceStats(sellerId) {
     const query = {

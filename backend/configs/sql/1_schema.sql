@@ -29,6 +29,19 @@ CREATE TYPE "property_conditions" AS ENUM (
   'luxury finished'
 );
 
+CREATE TYPE "property_statuses" AS ENUM (
+  'listed',
+  'sold',
+  'withdrawn'
+);
+
+CREATE TYPE "property_contact_methods" AS ENUM (
+  'phone',
+  'email',
+  'whatsapp',
+  'message'
+);
+
 CREATE TABLE "users" (
   "id" SERIAL PRIMARY KEY,
   "full_name" VARCHAR NOT NULL,
@@ -66,9 +79,17 @@ CREATE TABLE "properties" (
   "description" VARCHAR,
   "price" BIGINT NOT NULL CHECK (price > 0),
   "pending_media" bool NOT NULL DEFAULT true,
+  "status" property_statuses NOT NULL DEFAULT 'listed',
   "condition" property_conditions NOT NULL,
   "deleted_at" timestamptz,
-  "created_at" timestamptz NOT NULL DEFAULT (now())
+  "sold_at" timestamptz,
+  "sold_price" BIGINT CHECK (sold_price IS NULL OR sold_price > 0),
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  CHECK (
+    (status = 'sold' AND sold_at IS NOT NULL)
+    OR
+    (status <> 'sold' AND sold_at IS NULL AND sold_price IS NULL)
+  )
 );
 
 CREATE TABLE "cities" (
@@ -107,6 +128,34 @@ CREATE TABLE "property_features" (
   "feature_id" INTEGER NOT NULL
 );
 
+CREATE TABLE "property_price_history" (
+  "id" SERIAL PRIMARY KEY,
+  "property_id" INTEGER NOT NULL,
+  "old_price" BIGINT,
+  "new_price" BIGINT NOT NULL CHECK (new_price > 0),
+  "changed_at" timestamptz NOT NULL DEFAULT (now()),
+  CHECK (old_price IS NULL OR old_price > 0)
+);
+
+CREATE TABLE "property_views" (
+  "id" SERIAL PRIMARY KEY,
+  "property_id" INTEGER NOT NULL,
+  "user_id" INTEGER,
+  "viewer_session_id" VARCHAR,
+  "viewed_at" timestamptz NOT NULL DEFAULT (now()),
+  CHECK (user_id IS NOT NULL OR viewer_session_id IS NOT NULL)
+);
+
+CREATE TABLE "property_contacts" (
+  "id" SERIAL PRIMARY KEY,
+  "property_id" INTEGER NOT NULL,
+  "user_id" INTEGER,
+  "contact_session_id" VARCHAR,
+  "contact_method" property_contact_methods NOT NULL,
+  "contacted_at" timestamptz NOT NULL DEFAULT (now()),
+  CHECK (user_id IS NOT NULL OR contact_session_id IS NOT NULL)
+);
+
 CREATE INDEX ON "saved" ("user_id");
 
 CREATE UNIQUE INDEX ON "saved" ("user_id", "property_id");
@@ -131,6 +180,14 @@ CREATE INDEX ON "properties" ("deleted_at");
 
 CREATE INDEX ON "properties" ("pending_media");
 
+CREATE INDEX ON "properties" ("status");
+
+CREATE INDEX ON "properties" ("sold_at");
+
+CREATE INDEX ON "properties" ("sold_price");
+
+CREATE INDEX ON "properties" ("created_at");
+
 CREATE INDEX ON "properties" USING GIST ("coordinates");
 
 CREATE UNIQUE INDEX ON "districts" ("city_id", "name");
@@ -140,6 +197,24 @@ CREATE INDEX ON "property_media" ("property_id");
 CREATE INDEX ON "property_features" ("feature_id");
 
 CREATE UNIQUE INDEX ON "property_features" ("property_id", "feature_id");
+
+CREATE INDEX ON "property_price_history" ("property_id");
+
+CREATE INDEX ON "property_price_history" ("changed_at");
+
+CREATE INDEX ON "property_views" ("property_id");
+
+CREATE INDEX ON "property_views" ("user_id");
+
+CREATE INDEX ON "property_views" ("viewed_at");
+
+CREATE INDEX ON "property_contacts" ("property_id");
+
+CREATE INDEX ON "property_contacts" ("user_id");
+
+CREATE INDEX ON "property_contacts" ("contact_method");
+
+CREATE INDEX ON "property_contacts" ("contacted_at");
 
 ALTER TABLE "seller_profile" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
@@ -162,3 +237,13 @@ ALTER TABLE "property_media" ADD FOREIGN KEY ("property_id") REFERENCES "propert
 ALTER TABLE "property_features" ADD FOREIGN KEY ("property_id") REFERENCES "properties" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
 ALTER TABLE "property_features" ADD FOREIGN KEY ("feature_id") REFERENCES "features" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "property_price_history" ADD FOREIGN KEY ("property_id") REFERENCES "properties" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "property_views" ADD FOREIGN KEY ("property_id") REFERENCES "properties" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "property_views" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "property_contacts" ADD FOREIGN KEY ("property_id") REFERENCES "properties" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+ALTER TABLE "property_contacts" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id") DEFERRABLE INITIALLY IMMEDIATE;

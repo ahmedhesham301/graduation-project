@@ -10,6 +10,8 @@
 
 import {
     getSellerAnalytics,
+    getMarketTrendStats,
+    getSellerPropertyAnalyticsStats,
     getSellerPerformanceStats
 } from "../models/analyticsModel.js"
 
@@ -45,6 +47,72 @@ export async function fetchSellerAnalytics(sellerId) {
     }))
 
     return { summary, most_saved, by_city, by_type }
+}
+
+export async function fetchSellerPropertyAnalytics(sellerId) {
+    const rows = await getSellerPropertyAnalyticsStats(sellerId)
+
+    return rows.map(row => ({
+        property_id: row.property_id,
+        type: row.type,
+        city: row.city,
+        district: row.district,
+        price: Number(row.price),
+        status: row.status,
+        pending_media: row.pending_media,
+        created_at: row.created_at,
+        views: Number(row.views),
+        saves: Number(row.saves),
+        contacts: Number(row.contacts),
+        view_to_save_rate: Number(row.view_to_save_rate),
+        view_to_contact_rate: Number(row.view_to_contact_rate)
+    }))
+}
+
+export async function fetchMarketTrends() {
+    const raw = await getMarketTrendStats()
+
+    const summary = raw.summary ? {
+        total_listings: Number(raw.summary.total_listings),
+        active_listings: Number(raw.summary.active_listings),
+        sold_listings: Number(raw.summary.sold_listings),
+        total_views: Number(raw.summary.total_views),
+        total_saves: Number(raw.summary.total_saves),
+        average_listing_price: Number(raw.summary.average_listing_price)
+    } : null
+
+    const listing_trends = (raw.listing_trends || []).map(row => ({
+        month: row.month,
+        new_listings: Number(row.new_listings)
+    }))
+
+    const sales_trends = (raw.sales_trends || []).map(row => ({
+        month: row.month,
+        sold_listings: Number(row.sold_listings),
+        average_sold_price: Number(row.average_sold_price)
+    }))
+
+    const price_trends = (raw.price_trends || []).map(row => ({
+        month: row.month,
+        price_changes: Number(row.price_changes),
+        average_new_price: Number(row.average_new_price)
+    }))
+
+    const view_trends = (raw.view_trends || []).map(row => ({
+        month: row.month,
+        views: Number(row.views),
+        unique_viewers: Number(row.unique_viewers)
+    }))
+
+    const hotspots = (raw.hotspots || []).map(row => ({
+        city: row.city,
+        active_listings: Number(row.active_listings),
+        views: Number(row.views),
+        saves: Number(row.saves),
+        average_price: Number(row.average_price)
+    }))
+
+    return { summary, listing_trends, sales_trends, price_trends, view_trends, hotspots }
 }
 
 export async function fetchSellerPerformance(sellerId) {
