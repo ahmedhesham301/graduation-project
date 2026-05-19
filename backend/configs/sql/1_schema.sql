@@ -19,7 +19,8 @@ CREATE TYPE "media_types" AS ENUM (
   'jpeg',
   'jpg',
   'png',
-  'webp'
+  'webp',
+  'zip'
 );
 
 CREATE TYPE "property_conditions" AS ENUM (
