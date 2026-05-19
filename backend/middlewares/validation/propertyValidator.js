@@ -35,8 +35,48 @@ const propertySchema = z.object({
     media: mediaSchema.array().min(1).max(30)
 })
 
+const propertyPatchSchema = z.object({
+    description: z.string().max(1000).nullable().optional(),
+    condition: z.string().min(1).max(100).optional(),
+    price: z.coerce.number().int().positive().optional(),
+    status: z.enum(["listed", "sold", "withdrawn"]).optional(),
+    sold_at: z.coerce.date().nullable().optional(),
+    sold_price: z.coerce.number().int().positive().nullable().optional()
+}).refine(
+    (data) => Object.keys(data).length > 0,
+    { message: "At least one property field is required" }
+)
+
+const propertyContactSchema = z.object({
+    contact_method: z.enum(["phone", "email", "whatsapp", "message"]).default("phone")
+})
+
 export async function validatePropertyBody(req, res, next) {
     const result = await propertySchema.safeParseAsync(req.body)
+
+    if (!result.success) {
+        handleValidationError(result.error, res)
+        return
+    }
+
+    req.body = result.data
+    next()
+}
+
+export async function validatePropertyPatchBody(req, res, next) {
+    const result = await propertyPatchSchema.safeParseAsync(req.body)
+
+    if (!result.success) {
+        handleValidationError(result.error, res)
+        return
+    }
+
+    req.body = result.data
+    next()
+}
+
+export async function validatePropertyContactBody(req, res, next) {
+    const result = await propertyContactSchema.safeParseAsync(req.body ?? {})
 
     if (!result.success) {
         handleValidationError(result.error, res)
