@@ -1,7 +1,134 @@
-import { useState, useRef } from "react";
-import { useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { api } from "../components/Axios";
 import "./AddProperty.css";
+
+/* ── Leaflet map picker (loaded lazily to avoid SSR issues) ── */
+const OSM_TILE = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+const LEAFLET_CSS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+const LEAFLET_JS  = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+
+/* ───────────────────────────────────────────────────
+   MapPicker  — click/drag a pin on OpenStreetMap
+   calls onPick({ lat, lon }) whenever the pin moves
+─────────────────────────────────────────────────── */
+function MapPicker({ lat, lon, onPick }) {
+  const containerRef = useRef(null);
+  const mapRef       = useRef(null);
+  const markerRef    = useRef(null);
+
+  // Default centre: Cairo
+  const DEFAULT_LAT = 30.0444;
+  const DEFAULT_LON = 31.2357;
+
+  useEffect(() => {
+    // Load Leaflet CSS once
+    if (!document.getElementById("leaflet-css")) {
+      const link = document.createElement("link");
+      link.id   = "leaflet-css";
+      link.rel  = "stylesheet";
+      link.href = LEAFLET_CSS;
+      document.head.appendChild(link);
+    }
+
+    // Load Leaflet JS once, then init map
+    const initMap = () => {
+      const L = window.L;
+      if (mapRef.current) return; // already initialised
+
+      const initialLat = lat || DEFAULT_LAT;
+      const initialLon = lon || DEFAULT_LON;
+
+      const map = L.map(containerRef.current, { zoomControl: true }).setView(
+        [initialLat, initialLon],
+        13
+      );
+      L.tileLayer(OSM_TILE, {
+        attribution: "© OpenStreetMap contributors",
+        maxZoom: 19,
+      }).addTo(map);
+
+      // Custom pin icon that matches the app's blue theme
+      const icon = L.divIcon({
+        className: "",
+        html: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40">
+          <path d="M16 0C7.163 0 0 7.163 0 16c0 10 16 24 16 24s16-14 16-24C32 7.163 24.837 0 16 0z" fill="#1a8cca"/>
+          <circle cx="16" cy="16" r="7" fill="white"/>
+          <circle cx="16" cy="16" r="4" fill="#1a8cca"/>
+        </svg>`,
+        iconSize:   [32, 40],
+        iconAnchor: [16, 40],
+      });
+
+      const marker = L.marker([initialLat, initialLon], {
+        icon,
+        draggable: true,
+      }).addTo(map);
+
+      // Drag end → update coords
+      marker.on("dragend", () => {
+        const { lat: newLat, lng: newLon } = marker.getLatLng();
+        onPick({ lat: newLat.toFixed(6), lon: newLon.toFixed(6) });
+      });
+
+      // Click on map → move pin
+      map.on("click", (e) => {
+        marker.setLatLng(e.latlng);
+        onPick({ lat: e.latlng.lat.toFixed(6), lon: e.latlng.lng.toFixed(6) });
+      });
+
+      mapRef.current    = map;
+      markerRef.current = marker;
+    };
+
+    if (window.L) {
+      initMap();
+    } else if (!document.getElementById("leaflet-js")) {
+      const script = document.createElement("script");
+      script.id  = "leaflet-js";
+      script.src = LEAFLET_JS;
+      script.onload = initMap;
+      document.head.appendChild(script);
+    } else {
+      // Script tag exists but not loaded yet — wait
+      document.getElementById("leaflet-js").addEventListener("load", initMap);
+    }
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current    = null;
+        markerRef.current = null;
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep marker in sync if parent updates lat/lon externally
+  useEffect(() => {
+    if (markerRef.current && lat && lon) {
+      markerRef.current.setLatLng([parseFloat(lat), parseFloat(lon)]);
+      mapRef.current?.panTo([parseFloat(lat), parseFloat(lon)]);
+    }
+  }, [lat, lon]);
+
+  return (
+    <div className="ap-map-picker-wrap">
+      <div ref={containerRef} className="ap-map-picker" />
+      <div className="ap-map-coords">
+        {lat && lon ? (
+          <>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a8cca" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+            </svg>
+            <span>{parseFloat(lat).toFixed(5)}, {parseFloat(lon).toFixed(5)}</span>
+          </>
+        ) : (
+          <span className="ap-map-hint">Click or drag the pin to set the property location</span>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function AddProperty({ onBack }) {
   const [form, setForm] = useState({
@@ -28,6 +155,51 @@ export default function AddProperty({ onBack }) {
 
   // ✅ message state for Add Property only
   const [msg, setMsg] = useState({ type: "", text: "" });
+
+  // Place name search
+  const [placeQuery, setPlaceQuery]         = useState("");
+  const [placeSuggestions, setPlaceSuggestions] = useState([]);
+  const [placeSearching, setPlaceSearching] = useState(false);
+  const [placeErr, setPlaceErr]             = useState("");
+  const [selectedPlace, setSelectedPlace]   = useState("");
+  const placeDebounceRef = useRef(null);
+
+  const searchPlaces = (query) => {
+    setPlaceQuery(query);
+    setSelectedPlace("");
+    setPlaceErr("");
+    setPlaceSuggestions([]);
+
+    if (!query.trim()) return;
+
+    clearTimeout(placeDebounceRef.current);
+    placeDebounceRef.current = setTimeout(async () => {
+      setPlaceSearching(true);
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&addressdetails=1&countrycodes=eg`;
+        const res = await fetch(url, { headers: { "Accept-Language": "en" } });
+        const data = await res.json();
+        if (data.length === 0) {
+          setPlaceErr("No results found. Try a more specific name.");
+        } else {
+          setPlaceSuggestions(data);
+        }
+      } catch {
+        setPlaceErr("Search failed. Check your connection and try again.");
+      } finally {
+        setPlaceSearching(false);
+      }
+    }, 500);
+  };
+
+  const pickSuggestion = (place) => {
+    setSelectedPlace(place.display_name);
+    setPlaceQuery(place.display_name);
+    setPlaceSuggestions([]);
+    setPlaceErr("");
+    set("lat", parseFloat(place.lat).toFixed(6));
+    set("lon", parseFloat(place.lon).toFixed(6));
+  };
 
   const fileRef = useRef();
 
@@ -228,28 +400,7 @@ export default function AddProperty({ onBack }) {
               </select>
             </div>
 
-            <div className="ap-field">
-              <label className="ap-label">lat</label>
-              <input
-                className="ap-input"
-                min="0"
-                type="number"
-                placeholder="e.g. 30.0444"
-                value={form.lat}
-                onChange={(e) => set("lat", e.target.value)}
-              />
-            </div>
-            <div className="ap-field">
-              <label className="ap-label">lon</label>
-              <input
-                className="ap-input"
-                min="0"
-                type="number"
-                placeholder="e.g. 31.2357"
-                value={form.lon}
-                onChange={(e) => set("lon", e.target.value)}
-              />
-            </div>
+
             <div className="ap-field">
               <label className="ap-label">rooms</label>
               <select
@@ -389,6 +540,97 @@ export default function AddProperty({ onBack }) {
               placeholder="e.g.  cairo, maadi, degla al saryaat"
               value={form.location} onChange={e => set("location", e.target.value)} />
           </div> */}
+
+          {/* ── Location Picker ── */}
+          <div className="ap-field ap-field--full">
+            <label className="ap-label">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight:"5px",verticalAlign:"middle"}}>
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+              </svg>
+              Property Location
+              <span className="ap-label-required"> *</span>
+            </label>
+
+            {/* Place name search */}
+            <div className="ap-place-search-wrap">
+              <div className="ap-gmaps-row">
+                <div className="ap-gmaps-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a8cca" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                </div>
+                <input
+                  className={`ap-input ap-gmaps-input ${placeErr ? "ap-input--err" : ""}`}
+                  type="text"
+                  placeholder="Search by place name, address or landmark…"
+                  value={placeQuery}
+                  onChange={(e) => searchPlaces(e.target.value)}
+                  autoComplete="off"
+                />
+                {placeSearching && (
+                  <span className="ap-place-spinner">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a8cca" strokeWidth="2.5" strokeLinecap="round">
+                      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83">
+                        <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="0.8s" repeatCount="indefinite"/>
+                      </path>
+                    </svg>
+                  </span>
+                )}
+                {placeQuery && !placeSearching && (
+                  <button
+                    type="button"
+                    className="ap-gmaps-clear"
+                    onClick={() => { setPlaceQuery(""); setPlaceSuggestions([]); setPlaceErr(""); setSelectedPlace(""); }}
+                    title="Clear"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
+                )}
+              </div>
+
+              {/* Suggestions dropdown */}
+              {placeSuggestions.length > 0 && (
+                <ul className="ap-place-suggestions">
+                  {placeSuggestions.map((p) => (
+                    <li
+                      key={p.place_id}
+                      className="ap-place-suggestion-item"
+                      onClick={() => pickSuggestion(p)}
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a8cca" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0,marginTop:"2px"}}>
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+                      </svg>
+                      <span>{p.display_name}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {placeErr && <p className="ap-gmaps-err">{placeErr}</p>}
+              {!placeErr && !selectedPlace && (
+                <p className="ap-gmaps-hint">Type a name or address, pick from results — or click/drag the pin below</p>
+              )}
+              {selectedPlace && (
+                <p className="ap-place-selected">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  Location set
+                </p>
+              )}
+            </div>
+
+            <MapPicker
+              lat={form.lat}
+              lon={form.lon}
+              onPick={({ lat, lon }) => {
+                set("lat", lat);
+                set("lon", lon);
+              }}
+            />
+          </div>
 
           {/* ── Upload Photos ── */}
           <div className="ap-upload-wrap">
