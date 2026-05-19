@@ -408,7 +408,8 @@ export async function getSellerPerformanceStats(sellerId) {
 
             -- Favorites/saves are the engagement signal available in this schema.
             save_counts AS (
-                SELECT
+                SELECT */
+
                     s.property_id,
                     COUNT(*) AS saves
                 FROM saved s
