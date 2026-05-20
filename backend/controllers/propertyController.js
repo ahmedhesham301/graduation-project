@@ -5,7 +5,7 @@ import {
     contactPropertySeller
 } from "../services/propertyServices.js"
 import { search, deletePropertyById, getTypes } from "../models/propertyModel.js";
-import { preparePropertyMediaUploads, getMediaUrls } from "../services/propertyMediaService.js";
+import { preparePropertyMediaUploads, getMediaUrls, getVirtualTour } from "../services/propertyMediaService.js";
 
 
 export async function getPropertyByIdHandler(req, res) {
@@ -138,6 +138,7 @@ export async function deleteProperty(req, res) {
 }
 
 import { getNearbyProperties } from "../services/propertyServices.js"
+import { response } from "express";
 export async function getNearby(req, res) {
     try {
         const { lat, lon, radius, page } = req.updatedParameters
@@ -154,6 +155,18 @@ export async function getPropertyTypes(req, res) {
     try {
         const types = await getTypes()
         res.status(200).json(types)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ error: "Internal server error" })
+    }
+}
+
+
+export async function getPropertyTourHandler(req, res) {
+    try {
+        const tour = await getVirtualTour(req.params.propertyId)
+        if (!tour) return res.status(404).send()
+        return res.status(200).json(tour)
     } catch (error) {
         console.error(error)
         res.status(500).json({ error: "Internal server error" })

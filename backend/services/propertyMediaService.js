@@ -1,6 +1,6 @@
 import { v7 as uuidv7 } from "uuid";
 import { createPresignedUploadUrl } from "../s3/s3.js";
-import { createPropertyMediaRecords, getAllMedia } from "../models/propertyMediaModel.js";
+import { createPropertyMediaRecords, getAllMedia,getTour } from "../models/propertyMediaModel.js";
 import mime from 'mime';
 
 export async function preparePropertyMediaUploads(propertyId, mediaFiles) {
@@ -39,3 +39,8 @@ export async function getMediaUrls(propertyId) {
     return urls
 }
 
+export async function getVirtualTour(propertyId) {
+    const tour = await getTour(propertyId)
+    if (!tour) return tour
+    return convertMediaToUrls(tour)
+}

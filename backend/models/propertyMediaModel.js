@@ -44,9 +44,19 @@ export async function isMediaFullyUploaded(propertyId) {
 export async function getAllMedia(propertyId) {
     const query = {
         name: 'get-all-media',
-        text: `SELECT * FROM property_media WHERE property_id = $1 AND uploaded_at IS NOT NULL ORDER BY uploaded_at`,
+        text: `SELECT * FROM property_media WHERE property_id = $1 AND uploaded_at IS NOT NULL AND extension != 'zip' ORDER BY uploaded_at`,
         values: [propertyId]
     }
     let result = await pool.query(query)
     return result.rows
+}
+
+export async function getTour(propertyId) {
+    const query = {
+        name: 'get-virtual-tour',
+        text: `SELECT * FROM property_media WHERE property_id = $1 AND uploaded_at IS NOT NULL AND extension = 'zip'`,
+        values: [propertyId]
+    }
+    let result = await pool.query(query)
+    return result.rows[0]
 }

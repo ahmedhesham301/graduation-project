@@ -4,7 +4,7 @@ import { Router } from "express"
 import {
     getPropertyByIdHandler, create,
     update, contactSeller, deleteProperty, searchForProperty,
-    getNearby, getPropertyTypes
+    getNearby, getPropertyTypes, getPropertyTourHandler
 } from "../controllers/propertyController.js"
 import {
     validatePropertyBody,
@@ -25,6 +25,7 @@ const router = Router()
 router.get('/properties/nearby', validateNearbyQuery, getNearby)
 router.get('/properties/types', getPropertyTypes)
 router.get("/properties/:propertyId", validatePropertyId, trackPropertyView, getPropertyByIdHandler)
+router.get("/properties/:propertyId/tour", validatePropertyId, getPropertyTourHandler)
 router.get('/search', validateSearchQuery, searchForProperty)
 
 
