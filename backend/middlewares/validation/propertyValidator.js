@@ -3,7 +3,7 @@ import { z } from "zod"
 import { handleValidationError } from "./handleValidationError.js";
 
 const idSchema = z.coerce.number().int().positive()
-const fileExt = z.enum(["jpeg", "png", "webp", "jpg"])
+const fileExt = z.enum(["jpeg", "png", "webp", "jpg","zip"])
 const mediaSchema = z.object({
     fileName: z.coerce.string().min(5).max(200).refine((fileName) => {
         const parts = fileName.split(".")

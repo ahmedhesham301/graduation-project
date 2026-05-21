@@ -26,7 +26,11 @@ for filename in os.listdir("./media"):
             "path": path,
         }
     )
-
+tour = {
+    "fileName": "tour.zip",
+    "path": "./tour.zip",
+    "size": os.path.getsize("./tour.zip"),
+}
 if not files:
     print("No media files found in ./media")
     sys.exit(1)
@@ -74,6 +78,7 @@ def create_property(index: int):
 
         media_count = random.randint(1, min(3, len(files)))
         selected_files = random.sample(files, media_count)
+        selected_files.append(tour)
 
         city = random.choice(cities)
 
