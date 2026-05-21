@@ -76,9 +76,10 @@ def create_property(index: int):
         session = Session()
         session.cookies.update(shared_cookies)
 
-        media_count = random.randint(1, min(3, len(files)))
+        media_count = random.randint(1, min(5, len(files)))
         selected_files = random.sample(files, media_count)
-        selected_files.append(tour)
+        if random.randint(1,3) == 1:
+            selected_files.append(tour)
 
         city = random.choice(cities)
 
