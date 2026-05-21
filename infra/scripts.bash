@@ -16,7 +16,7 @@ eksctl create iamserviceaccount \
     --cluster=$(terraform output -raw cluster_name) \
     --namespace=kube-system \
     --name=aws-load-balancer-controller \
-    --attach-policy-arn=arn:aws:iam::825765423527:policy/AWSLoadBalancerControllerIAMPolicy \
+    --attach-policy-arn=arn:aws:iam::011934824847:policy/AWSLoadBalancerControllerIAMPolicy \
     --override-existing-serviceaccounts \
     --region eu-central-1 \
     --approve
@@ -32,4 +32,4 @@ helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
   --set clusterName=$(terraform output -raw cluster_name) \
   --set serviceAccount.create=false \
   --set serviceAccount.name=aws-load-balancer-controller \
-  --version 1.14.0
+  --version 3.3.0

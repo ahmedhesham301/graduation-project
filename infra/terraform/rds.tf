@@ -2,7 +2,7 @@ module "db" {
   source = "terraform-aws-modules/rds/aws"
 
   identifier = "demodb"
-  
+  multi_az = true
   engine         = "postgres"
   engine_version = "18"
   instance_class = "db.t4g.micro"
@@ -20,6 +20,7 @@ module "db" {
   vpc_security_group_ids              = [aws_security_group.db.id]
 
   # DB subnet group
-  create_db_subnet_group = true
-  subnet_ids             = module.vpc.private_subnets
+  # create_db_subnet_group = true
+  # subnet_ids             = module.vpc.private_subnets
+  db_subnet_group_name = module.vpc.database_subnet_group
 }

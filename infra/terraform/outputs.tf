@@ -32,3 +32,8 @@ output "vpc_id" {
   description = "value"
   value       = module.vpc.vpc_id
 }
+
+output "bastion_ip" {
+  description = "value"
+  value       = module.fck-nat.instance_public_ip
+}

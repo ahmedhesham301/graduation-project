@@ -2,6 +2,7 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "21.19.0"
 
+  depends_on = [ module.fck-nat.name ]
   name               = "3akarati-cluster"
   kubernetes_version = "1.35"
   endpoint_public_access                   = true
@@ -27,11 +28,15 @@ module "eks" {
       most_recent    = true
     }
     coredns = {
-      before_compute = true
+      # before_compute = true
       most_recent    = true
     }
     kube-proxy = {
       before_compute = true
+      most_recent    = true
+    }
+    metrics-server = {
+      # before_compute = true
       most_recent    = true
     }
   }
@@ -39,9 +44,9 @@ module "eks" {
   eks_managed_node_groups = {
     one = {
       min_size       = 1
-      max_size       = 3
-      desired_size   = 1
-      instance_types = ["t3.medium"]
+      max_size       = 6
+      desired_size   = 3
+      instance_types = ["t3.small"]
       iam_role_additional_policies = {
         cni = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
       }

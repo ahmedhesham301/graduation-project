@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: api-cm
+  name: server-cm
 data:
-  PGHOST: demodb.cl24aiy8qp59.eu-central-1.rds.amazonaws.com
+  PGHOST: demodb.cbgykwq4g3t8.eu-central-1.rds.amazonaws.com
   PGPASSWORD: "12345678"
   PGUSER: postgres
   REDIS_HOST: redis-stack.default.svc.cluster.local

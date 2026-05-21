@@ -26,4 +26,4 @@
           - containerPort: 8080
           envFrom:
           - configMapRef:
-              name: api-cm
+              name: server-cm

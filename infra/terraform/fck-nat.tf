@@ -14,7 +14,7 @@ module "fck-nat" {
     "rtb-${idx}" => rtb_id
   }
 
-  instance_type                 = "t2.micro"
+  instance_type                 = "t3.small"
   additional_security_group_ids = [aws_security_group.bastion.id]
   use_ssh                       = true
   ssh_key_name                  = "main"
