@@ -4,6 +4,18 @@ import { api } from "../components/Axios";
 import { BUCKET_url } from "../components/vars";
 import "./PropertyDetails.css";
 
+/* ── 360° viewer: renders the pre-built app-files/index.html blob ── */
+function PannellumViewer({ imageUrl }) {
+  return (
+    <iframe
+      src={imageUrl}
+      title="360° VR Tour"
+      style={{ width: "100%", height: "100%", border: "none", display: "block" }}
+      allowFullScreen
+    />
+  );
+}
+
 export default function PropertyDetails({ 
   fromPage = "home",
   onNavigate,
@@ -20,6 +32,12 @@ export default function PropertyDetails({
   const [favLoading, setFavLoading] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  /* ── VR tour state ── */
+  const [tourUrl, setTourUrl] = useState(null);
+  const [tourLoading, setTourLoading] = useState(false);
+  const [showVR, setShowVR] = useState(true);
+
   const openLightbox = (index) => { setLightboxIndex(index); setLightboxOpen(true); };
   const closeLightbox = () => setLightboxOpen(false);
 
@@ -34,7 +52,6 @@ export default function PropertyDetails({
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [lightboxOpen, property]);
-
 
   /* ── Fetch property by ID ── */
   useEffect(() => {
@@ -53,6 +70,171 @@ export default function PropertyDetails({
     };
     fetchProperty();
   }, [propertyId]);
+
+  /* ── Fetch & unzip VR tour after property loads ── */
+  useEffect(() => {
+    if (!propertyId || !property) return;
+
+    const objectUrls = []; // Track generated URLs for cleanup
+
+    const loadTour = async () => {
+      setTourLoading(true);
+      try {
+        const res = await api.get(`/properties/${propertyId}/tour`);
+        const zipFilename = typeof res.data === "string"
+          ? res.data.replace(/^"|"$/g, "").trim()
+          : String(res.data).trim();
+
+        if (!zipFilename) return;
+
+        const base = BUCKET_url.replace(/\/+$/, "");
+        const zipRes = await fetch(`${base}/media/${propertyId}/${zipFilename}`);
+        if (!zipRes.ok) throw new Error("Zip not found");
+        const zipBlob = await zipRes.blob();
+
+        const JSZip = (await import("jszip")).default;
+        const zip = await JSZip.loadAsync(zipBlob);
+        const allFiles = Object.values(zip.files).filter((f) => !f.dir);
+
+        // 1. Find index.html
+        const indexFile = allFiles.find((f) => /index\.html$/i.test(f.name));
+        if (!indexFile) throw new Error("No index.html found in zip");
+
+        const folderPrefix = indexFile.name.replace(/index\.html$/i, "");
+
+        // 2. Sort files into buckets
+        const textAssets = {};
+        const dataUriAssets = {};
+        const blobAssets = {}; // For heavy 360 tiles
+
+        await Promise.all(
+          allFiles.map(async (f) => {
+            if (f.name === indexFile.name) return;
+            const relKey = f.name.startsWith(folderPrefix) ? f.name.slice(folderPrefix.length) : f.name;
+            const ext = relKey.split(".").pop().toLowerCase();
+            const isText = ["js", "css", "json", "txt", "xml"].includes(ext);
+
+            if (isText) {
+              textAssets[relKey] = await f.async("string");
+            } else if (relKey.includes("img/") || relKey.startsWith("img/")) {
+              // Tiny UI icons -> Base64
+              const b64 = await f.async("base64");
+              const mime = ext === "png" ? "image/png" : "image/jpeg";
+              dataUriAssets[relKey] = `data:${mime};base64,${b64}`;
+            } else {
+              // Heavy Tiles -> Lightweight Blob URLs
+              const mime = ["jpg", "jpeg"].includes(ext) ? "image/jpeg" : "application/octet-stream";
+              const fileBlob = await f.async("blob");
+              const typedBlob = new Blob([fileBlob], { type: mime });
+              const objUrl = URL.createObjectURL(typedBlob);
+              objectUrls.push(objUrl);
+              blobAssets[relKey] = objUrl;
+            }
+          })
+        );
+
+        let htmlText = await indexFile.async("string");
+
+        // 3. Inline scripts
+        htmlText = htmlText.replace(
+          /<script([^>]*?)src=["']([^"']+)["']([^>]*)>[\s\S]*?<\/script>/gi,
+          (match, pre, src, post) => {
+            const key = src.replace(/^[./]+/, ""); // strip ./
+            return textAssets[key] ? `<script${pre}${post}>${textAssets[key]}</script>` : match;
+          }
+        );
+
+        // 4. Inline CSS & inject Base64 UI images into the CSS
+        htmlText = htmlText.replace(
+          /<link([^>]*?)href=["']([^"']+\.css)["']([^>]*)>/gi,
+          (match, pre, href) => {
+            const key = href.replace(/^[./]+/, "");
+            let css = textAssets[key];
+            if (css) {
+              Object.entries(dataUriAssets).forEach(([imgKey, imgData]) => {
+                const escaped = imgKey.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+                const re = new RegExp(escaped, "g");
+                css = css.replace(re, imgData);
+              });
+              return `<style>${css}</style>`;
+            }
+            return match;
+          }
+        );
+
+        // 5. Replace any UI icons directly referenced in HTML
+        Object.entries(dataUriAssets).forEach(([imgKey, imgData]) => {
+          const escaped = imgKey.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          const re = new RegExp(`(["'])(?:[./]+)?${escaped}\\1`, "g");
+          htmlText = htmlText.replace(re, `$1${imgData}$1`);
+        });
+
+        // 6. Build Interceptor for the VR Engine (Marzipano dynamic paths)
+        const interceptor = `
+          window.__VR_ASSETS__ = ${JSON.stringify(blobAssets)};
+          
+          function _getAsset(url) {
+            if (!url || typeof url !== 'string') return null;
+            for (let key in window.__VR_ASSETS__) {
+              if (url.endsWith(key)) return window.__VR_ASSETS__[key];
+            }
+            return null;
+          }
+
+          // Intercept JS Image creation (Marzipano uses this)
+          const imgDescr = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+          if (imgDescr) {
+            Object.defineProperty(HTMLImageElement.prototype, 'src', {
+              set: function(val) {
+                const asset = _getAsset(val);
+                imgDescr.set.call(this, asset || val);
+              },
+              get: function() { return imgDescr.get.call(this); }
+            });
+          }
+
+          // Intercept XHR / Fetch as fallback
+          const _fetch = window.fetch;
+          window.fetch = function(req, init) {
+            const url = typeof req === 'string' ? req : req.url;
+            const asset = _getAsset(url);
+            return _fetch(asset || req, init);
+          };
+
+          const _open = XMLHttpRequest.prototype.open;
+          XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+            const asset = _getAsset(url);
+            return _open.call(this, method, asset || url, ...rest);
+          };
+        `;
+
+        // Inject interceptor into <head>
+        htmlText = htmlText.replace("<head>", `<head><script>${interceptor}</script>`);
+
+        // 7. Render Final
+        const htmlBlob = new Blob([htmlText], { type: "text/html" });
+        const finalUrl = URL.createObjectURL(htmlBlob);
+        objectUrls.push(finalUrl);
+
+        setTourUrl(finalUrl);
+        setShowVR(true);
+      } catch (err) {
+        console.warn("VR tour unavailable:", err);
+        setTourUrl(null);
+        setShowVR(false);
+      } finally {
+        setTourLoading(false);
+      }
+    };
+
+    loadTour();
+
+    return () => {
+      objectUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [propertyId, property]);
+
+
 
   /* ── Check if already favourited ── */
   useEffect(() => {
@@ -103,11 +285,12 @@ export default function PropertyDetails({
         }&layer=mapnik&marker=${property.lat},${property.lon}`
       : null;
 
-  	
   const backLabel =
     fromPage === "favourite" ? "Back To Favourites" :
     fromPage === "search"    ? "Back To Search"     :
     fromPage === "chat"      ? "Back" : "Back";
+
+  const hasTour = tourLoading || tourUrl;
 
   /* ── Loading / Error states ── */
   if (loading)
@@ -171,59 +354,111 @@ export default function PropertyDetails({
           <span>{backLabel}</span>
         </button>
 
-        {/* ── Gallery ── */}
-        <div className="pd-gallery">
-          {/* Main image */}
-          <div className="pd-gallery-main">
-            {mediaList.length > 0 ? (
-              <img
-                src={imgUrl(mediaList[activeImg])}
-                alt={`${property.type} main`}
-                className="pd-main-img pd-main-img--clickable"
-                className="pd-main-img"
-                onClick={() => openLightbox(activeImg)}
-              />
+        {/* ── VR / Photos toggle ── */}
+        {hasTour && (
+          <div className="pd-view-toggle">
+            <button
+              className={`pd-toggle-btn ${showVR ? "active" : ""}`}
+              onClick={() => setShowVR(true)}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              360° Tour
+            </button>
+            <button
+              className={`pd-toggle-btn ${!showVR ? "active" : ""}`}
+              onClick={() => setShowVR(false)}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="12" rx="2"/>
+                <path d="M3 19h18M8 15v4M16 15v4"/>
+              </svg>
+              Photos
+            </button>
+          </div>
+        )}
+
+        {/* ── VR Viewer ── */}
+        {hasTour && showVR && (
+          <div className="pd-vr-wrap">
+            {tourLoading ? (
+              <div className="pd-vr-loading">
+                <div className="pd-spinner" />
+                <span>Loading 360° tour…</span>
+              </div>
             ) : (
-              <div className="pd-img-placeholder">No Image</div>
+              <>
+                <div className="pd-vr-badge">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  Drag to explore
+                </div>
+                <PannellumViewer imageUrl={tourUrl} />
+              </>
             )}
           </div>
+        )}
 
-          {/* Thumbnails column */}
-          <div className="pd-gallery-thumbs">
-            {mediaList.slice(1, 3).map((m, i) => (
-              <div
-                key={m}
-                className={`pd-thumb ${activeImg === i + 1 ? "active" : ""}`}
-                onClick={() =>  { setActiveImg(i + 1); openLightbox(i + 1); }}
-              >
-                <img src={imgUrl(m)} alt={`thumb ${i + 1}`} />
+        {/* ── Gallery (shown when VR is hidden or no tour) ── */}
+        {(!hasTour || !showVR) && (
+          <>
+            <div className="pd-gallery">
+              {/* Main image */}
+              <div className="pd-gallery-main">
+                {mediaList.length > 0 ? (
+                  <img
+                    src={imgUrl(mediaList[activeImg])}
+                    alt={`${property.type} main`}
+                    className="pd-main-img pd-main-img--clickable"
+                    onClick={() => openLightbox(activeImg)}
+                  />
+                ) : (
+                  <div className="pd-img-placeholder">No Image</div>
+                )}
               </div>
-            ))}
-            {mediaList.length > 3 && (
-              <div
-                className="pd-thumb pd-thumb-more"
-                onClick={() =>  { setActiveImg(3); openLightbox(3); }}
-              >
-                <img src={imgUrl(mediaList[3])} alt="more" />
-                <span className="pd-thumb-overlay">+{mediaList.length - 3} more</span>
+
+              {/* Thumbnails column */}
+              <div className="pd-gallery-thumbs">
+                {mediaList.slice(1, 3).map((m, i) => (
+                  <div
+                    key={m}
+                    className={`pd-thumb ${activeImg === i + 1 ? "active" : ""}`}
+                    onClick={() => { setActiveImg(i + 1); openLightbox(i + 1); }}
+                  >
+                    <img src={imgUrl(m)} alt={`thumb ${i + 1}`} />
+                  </div>
+                ))}
+                {mediaList.length > 3 && (
+                  <div
+                    className="pd-thumb pd-thumb-more"
+                    onClick={() => { setActiveImg(3); openLightbox(3); }}
+                  >
+                    <img src={imgUrl(mediaList[3])} alt="more" />
+                    <span className="pd-thumb-overlay">+{mediaList.length - 3} more</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Thumbnail strip (mobile / extra) */}
+            {mediaList.length > 1 && (
+              <div className="pd-thumb-strip">
+                {mediaList.map((m, i) => (
+                  <div
+                    key={m}
+                    className={`pd-strip-item ${activeImg === i ? "active" : ""}`}
+                    onClick={() => { setActiveImg(i); openLightbox(i); }}
+                  >
+                    <img src={imgUrl(m)} alt={`img ${i}`} />
+                  </div>
+                ))}
               </div>
             )}
-          </div>
-        </div>
-
-        {/* ── Thumbnail strip (mobile / extra) ── */}
-        {mediaList.length > 1 && (
-          <div className="pd-thumb-strip">
-            {mediaList.map((m, i) => (
-              <div
-                key={m}
-                className={`pd-strip-item ${activeImg === i ? "active" : ""}`}
-                onClick={() =>  { setActiveImg(i); openLightbox(i); }}
-              >
-                <img src={imgUrl(m)} alt={`img ${i}`} />
-              </div>
-            ))}
-          </div>
+          </>
         )}
 
         {/* ── Main content ── */}
