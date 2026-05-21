@@ -4,17 +4,10 @@
 
 DO $$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'property_statuses') THEN
-    CREATE TYPE property_statuses AS ENUM ('listed', 'sold', 'withdrawn');
-  END IF;
-
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'property_contact_methods') THEN
-    CREATE TYPE property_contact_methods AS ENUM ('phone', 'email', 'whatsapp', 'message');
+    CREATE TYPE property_contact_methods AS ENUM ('phone', 'email', 'whatsapp');
   END IF;
 END $$;
-
-ALTER TABLE properties
-  ADD COLUMN IF NOT EXISTS status property_statuses NOT NULL DEFAULT 'listed';
 
 ALTER TABLE properties
   ADD COLUMN IF NOT EXISTS sold_at timestamptz;
@@ -40,7 +33,7 @@ CREATE TABLE IF NOT EXISTS property_views (
   CHECK (user_id IS NOT NULL OR viewer_session_id IS NOT NULL)
 );
 
-CREATE TABLE IF NOT EXISTS property_contacts (
+CREATE TABLE IF NOT EXISTS property_contact_events (
   id SERIAL PRIMARY KEY,
   property_id INTEGER NOT NULL,
   user_id INTEGER,
@@ -50,7 +43,6 @@ CREATE TABLE IF NOT EXISTS property_contacts (
   CHECK (user_id IS NOT NULL OR contact_session_id IS NOT NULL)
 );
 
-CREATE INDEX IF NOT EXISTS properties_status_idx ON properties (status);
 CREATE INDEX IF NOT EXISTS properties_sold_at_idx ON properties (sold_at);
 CREATE INDEX IF NOT EXISTS properties_sold_price_idx ON properties (sold_price);
 CREATE INDEX IF NOT EXISTS properties_created_at_idx ON properties (created_at);
@@ -62,13 +54,24 @@ CREATE INDEX IF NOT EXISTS property_views_property_id_idx ON property_views (pro
 CREATE INDEX IF NOT EXISTS property_views_user_id_idx ON property_views (user_id);
 CREATE INDEX IF NOT EXISTS property_views_viewed_at_idx ON property_views (viewed_at);
 
-CREATE INDEX IF NOT EXISTS property_contacts_property_id_idx ON property_contacts (property_id);
-CREATE INDEX IF NOT EXISTS property_contacts_user_id_idx ON property_contacts (user_id);
-CREATE INDEX IF NOT EXISTS property_contacts_contact_method_idx ON property_contacts (contact_method);
-CREATE INDEX IF NOT EXISTS property_contacts_contacted_at_idx ON property_contacts (contacted_at);
+CREATE INDEX IF NOT EXISTS property_contact_events_property_id_idx ON property_contact_events (property_id);
+CREATE INDEX IF NOT EXISTS property_contact_events_user_id_idx ON property_contact_events (user_id);
+CREATE INDEX IF NOT EXISTS property_contact_events_contact_method_idx ON property_contact_events (contact_method);
+CREATE INDEX IF NOT EXISTS property_contact_events_contacted_at_idx ON property_contact_events (contacted_at);
 
 DO $$
 BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_name = 'properties'
+    AND column_name = 'status'
+  ) THEN
+    ALTER TABLE properties DROP COLUMN status;
+  END IF;
+
+  DROP TYPE IF EXISTS property_statuses;
+
   IF NOT EXISTS (
     SELECT 1
     FROM pg_constraint
@@ -77,19 +80,40 @@ BEGIN
     ALTER TABLE properties
       ADD CONSTRAINT properties_sold_state_check
       CHECK (
-        (status = 'sold' AND sold_at IS NOT NULL)
+        (sold_at IS NULL AND sold_price IS NULL)
         OR
-        (status <> 'sold' AND sold_at IS NULL AND sold_price IS NULL)
+        (sold_at IS NOT NULL)
       );
+  END IF;
+
+  IF to_regclass('property_contacts') IS NOT NULL
+     AND to_regclass('property_contact_events') IS NOT NULL THEN
+    INSERT INTO property_contact_events (
+      property_id,
+      user_id,
+      contact_session_id,
+      contact_method,
+      contacted_at
+    )
+    SELECT
+      property_id,
+      user_id,
+      contact_session_id,
+      contact_method,
+      contacted_at
+    FROM property_contacts
+    ON CONFLICT DO NOTHING;
+
+    DROP TABLE property_contacts;
   END IF;
 
   IF NOT EXISTS (
     SELECT 1
     FROM pg_constraint
-    WHERE conname = 'property_contacts_property_id_fkey'
+    WHERE conname = 'property_contact_events_property_id_fkey'
   ) THEN
-    ALTER TABLE property_contacts
-      ADD CONSTRAINT property_contacts_property_id_fkey
+    ALTER TABLE property_contact_events
+      ADD CONSTRAINT property_contact_events_property_id_fkey
       FOREIGN KEY (property_id) REFERENCES properties (id)
       DEFERRABLE INITIALLY IMMEDIATE;
   END IF;
@@ -97,10 +121,10 @@ BEGIN
   IF NOT EXISTS (
     SELECT 1
     FROM pg_constraint
-    WHERE conname = 'property_contacts_user_id_fkey'
+    WHERE conname = 'property_contact_events_user_id_fkey'
   ) THEN
-    ALTER TABLE property_contacts
-      ADD CONSTRAINT property_contacts_user_id_fkey
+    ALTER TABLE property_contact_events
+      ADD CONSTRAINT property_contact_events_user_id_fkey
       FOREIGN KEY (user_id) REFERENCES users (id)
       DEFERRABLE INITIALLY IMMEDIATE;
   END IF;

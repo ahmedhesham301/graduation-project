@@ -47,6 +47,10 @@ export async function updateProperty(propertyId, propertyData) {
 export async function contactPropertySeller(propertyId, userId, contactSessionId, contactMethod) {
     const property = await getPropertyById(propertyId)
     if (!property) return null
+    
+    if (userId && property.seller_id === userId) {
+        return { is_self: true }
+    }
 
     await recordPropertyContact(propertyId, userId, contactSessionId, contactMethod)
 

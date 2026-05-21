@@ -39,15 +39,26 @@ export async function recordPropertyView(propertyId, userId, viewerSessionId) {
  */
 export async function recordPropertyContact(propertyId, userId, contactSessionId, contactMethod) {
     const query = {
-        name: 'record-property-contact',
+        // no name: — named prepared statements cache the type plan on first call,
+        // which breaks when nullable params switch between null and a real value
         text: `
-            INSERT INTO property_contacts (
+            INSERT INTO property_contact_events (
                 property_id,
                 user_id,
                 contact_session_id,
                 contact_method
             )
-            VALUES ($1, $2, $3, $4)
+            SELECT $1, $2::integer, $3::text, $4::property_contact_methods
+            WHERE NOT EXISTS (
+                SELECT 1 FROM property_contact_events
+                WHERE property_id = $1
+                AND (
+                    (user_id IS NOT NULL AND user_id = $2::integer)
+                    OR
+                    (contact_session_id IS NOT NULL AND contact_session_id = $3::text)
+                )
+                AND contacted_at > NOW() - INTERVAL '24 hours'
+            )
         `,
         values: [propertyId, userId ?? null, contactSessionId ?? null, contactMethod]
     }
@@ -164,7 +175,7 @@ export async function getSellerAnalytics(sellerId) {
  * Views, saves, and contacts are aggregated in separate CTEs first. That
  * prevents inflated counts from joining multiple event tables directly.
  */
-export async function getSellerPropertyAnalyticsStats(sellerId) {
+export async function getSellerPropertyAnalyticsStats(sellerId, limit, offset) {
     const query = {
         text: `
             WITH
@@ -173,8 +184,8 @@ export async function getSellerPropertyAnalyticsStats(sellerId) {
                 SELECT
                     p.id,
                     p.price,
-                    p.status,
                     p.pending_media,
+                    p.sold_at,
                     p.created_at,
                     pt.name AS type,
                     c.name AS city,
@@ -209,7 +220,16 @@ export async function getSellerPropertyAnalyticsStats(sellerId) {
                 SELECT
                     property_id,
                     COUNT(*) AS contacts
-                FROM property_contacts
+                FROM property_contact_events
+                WHERE property_id IN (SELECT id FROM seller_properties)
+                GROUP BY property_id
+            ),
+
+            price_change_counts AS (
+                SELECT
+                    property_id,
+                    COUNT(*) AS price_changes
+                FROM property_price_history
                 WHERE property_id IN (SELECT id FROM seller_properties)
                 GROUP BY property_id
             )
@@ -220,12 +240,17 @@ export async function getSellerPropertyAnalyticsStats(sellerId) {
                 sp.city,
                 sp.district,
                 sp.price,
-                sp.status,
+                CASE
+                    WHEN sp.sold_at IS NOT NULL THEN 'sold'
+                    WHEN sp.pending_media = true THEN 'draft'
+                    ELSE 'listed'
+                END AS listing_status,
                 sp.pending_media,
                 sp.created_at,
                 COALESCE(vc.views, 0) AS views,
                 COALESCE(sc.saves, 0) AS saves,
                 COALESCE(cc.contacts, 0) AS contacts,
+                COALESCE(pc.price_changes, 0) AS price_changes,
                 CASE
                     WHEN COALESCE(vc.views, 0) = 0 THEN 0
                     ELSE ROUND((COALESCE(sc.saves, 0)::numeric / vc.views) * 100, 2)
@@ -233,14 +258,17 @@ export async function getSellerPropertyAnalyticsStats(sellerId) {
                 CASE
                     WHEN COALESCE(vc.views, 0) = 0 THEN 0
                     ELSE ROUND((COALESCE(cc.contacts, 0)::numeric / vc.views) * 100, 2)
-                END AS view_to_contact_rate
+                END AS view_to_contact_rate,
+                COUNT(*) OVER() AS total_count
             FROM seller_properties sp
             LEFT JOIN view_counts vc ON vc.property_id = sp.id
             LEFT JOIN save_counts sc ON sc.property_id = sp.id
             LEFT JOIN contact_counts cc ON cc.property_id = sp.id
-            ORDER BY contacts DESC, saves DESC, views DESC, sp.created_at DESC
+            LEFT JOIN price_change_counts pc ON pc.property_id = sp.id
+            ORDER BY views DESC, saves DESC, contacts DESC, sp.created_at DESC
+            LIMIT $2 OFFSET $3
         `,
-        values: [sellerId]
+        values: [sellerId, limit, offset]
     }
 
     const { rows } = await pool.query(query)
@@ -252,7 +280,7 @@ export async function getSellerPropertyAnalyticsStats(sellerId) {
  *
  * This endpoint needs three kinds of historical facts:
  * - properties.created_at: when a listing entered the market
- * - properties.sold_at/status: when a listing left the market as sold
+ * - properties.sold_at: when a listing left the market as sold
  * - property_price_history/property_views: price movement and demand
  */
 export async function getMarketTrendStats() {
@@ -265,13 +293,13 @@ export async function getMarketTrendStats() {
                     p.id,
                     p.price,
                     p.sold_price,
-                    p.status,
+                    p.pending_media,
+                    p.deleted_at,
                     p.created_at,
                     p.sold_at,
                     c.name AS city
                 FROM properties p
                 JOIN cities c ON c.id = p.city_id
-                WHERE p.deleted_at IS NULL
             ),
 
             view_counts AS (
@@ -292,12 +320,19 @@ export async function getMarketTrendStats() {
 
             summary AS (
                 SELECT
-                    COUNT(*) AS total_listings,
-                    COUNT(*) FILTER (WHERE status = 'listed') AS active_listings,
-                    COUNT(*) FILTER (WHERE status = 'sold') AS sold_listings,
+                    COUNT(*) FILTER (WHERE deleted_at IS NULL) AS total_listings,
+                    COUNT(*) FILTER (
+                        WHERE deleted_at IS NULL
+                        AND pending_media = false
+                        AND sold_at IS NULL
+                    ) AS active_listings,
+                    COUNT(*) FILTER (
+                        WHERE deleted_at IS NULL
+                        AND sold_at IS NOT NULL
+                    ) AS sold_listings,
                     COALESCE((SELECT COUNT(*) FROM property_views), 0) AS total_views,
                     COALESCE((SELECT COUNT(*) FROM saved), 0) AS total_saves,
-                    COALESCE(ROUND(AVG(price)), 0) AS average_listing_price
+                    COALESCE(ROUND(AVG(price) FILTER (WHERE deleted_at IS NULL)), 0) AS average_listing_price
                 FROM market_properties
             ),
 
@@ -307,19 +342,20 @@ export async function getMarketTrendStats() {
                     to_char(date_trunc('month', created_at), 'YYYY-MM') AS month,
                     COUNT(*) AS new_listings
                 FROM market_properties
+                WHERE deleted_at IS NULL
                 GROUP BY date_trunc('month', created_at)
                 ORDER BY date_trunc('month', created_at)
             ),
 
-            -- Sold listings by month. Requires status='sold' and sold_at.
+            -- Sold listings by month. Requires sold_at.
             sales_trends AS (
                 SELECT
                     to_char(date_trunc('month', sold_at), 'YYYY-MM') AS month,
                     COUNT(*) AS sold_listings,
                     COALESCE(ROUND(AVG(COALESCE(sold_price, price))), 0) AS average_sold_price
                 FROM market_properties
-                WHERE status = 'sold'
-                AND sold_at IS NOT NULL
+                WHERE sold_at IS NOT NULL
+                AND deleted_at IS NULL
                 GROUP BY date_trunc('month', sold_at)
                 ORDER BY date_trunc('month', sold_at)
             ),
@@ -351,13 +387,18 @@ export async function getMarketTrendStats() {
             hotspots AS (
                 SELECT
                     mp.city,
-                    COUNT(*) FILTER (WHERE mp.status = 'listed') AS active_listings,
+                    COUNT(*) FILTER (
+                        WHERE mp.deleted_at IS NULL
+                        AND mp.pending_media = false
+                        AND mp.sold_at IS NULL
+                    ) AS active_listings,
                     COALESCE(SUM(vc.views), 0) AS views,
                     COALESCE(SUM(sc.saves), 0) AS saves,
                     COALESCE(ROUND(AVG(mp.price)), 0) AS average_price
                 FROM market_properties mp
                 LEFT JOIN view_counts vc ON vc.property_id = mp.id
                 LEFT JOIN save_counts sc ON sc.property_id = mp.id
+                WHERE mp.deleted_at IS NULL
                 GROUP BY mp.city
                 ORDER BY views DESC, saves DESC, active_listings DESC
                 LIMIT 10
@@ -394,6 +435,7 @@ export async function getSellerPerformanceStats(sellerId) {
                     p.id,
                     p.price,
                     p.pending_media,
+                    p.sold_at,
                     p.created_at,
                     pt.name AS type,
                     c.name AS city,
@@ -425,6 +467,7 @@ export async function getSellerPerformanceStats(sellerId) {
                     sp.district,
                     sp.price,
                     sp.pending_media,
+                    sp.sold_at,
                     sp.created_at,
                     ROUND((EXTRACT(EPOCH FROM (now() - sp.created_at)) / 86400)::numeric, 1) AS listing_age_days,
                     COALESCE(sc.saves, 0) AS saves
@@ -436,12 +479,22 @@ export async function getSellerPerformanceStats(sellerId) {
             summary AS (
                 SELECT
                     COUNT(*) AS total_listings,
-                    COUNT(*) FILTER (WHERE pending_media = false) AS active_listings,
-                    COUNT(*) FILTER (WHERE pending_media = true) AS draft_listings,
+                    COUNT(*) FILTER (
+                        WHERE pending_media = false
+                        AND sold_at IS NULL
+                    ) AS active_listings,
+                    COUNT(*) FILTER (
+                        WHERE pending_media = true
+                        AND sold_at IS NULL
+                    ) AS draft_listings,
+                    COUNT(*) FILTER (WHERE sold_at IS NOT NULL) AS sold_listings,
                     COALESCE(SUM(saves), 0) AS total_saves,
                     COALESCE(ROUND(AVG(saves)::numeric, 2), 0) AS average_saves_per_listing,
                     COALESCE(
-                        ROUND(AVG(listing_age_days) FILTER (WHERE pending_media = false), 1),
+                        ROUND(AVG(listing_age_days) FILTER (
+                            WHERE pending_media = false
+                            AND sold_at IS NULL
+                        ), 1),
                         0
                     ) AS average_active_listing_age_days,
                     MAX(created_at) AS newest_listing_at,
@@ -458,6 +511,11 @@ export async function getSellerPerformanceStats(sellerId) {
                     city,
                     district,
                     price,
+                    CASE
+                        WHEN sold_at IS NOT NULL THEN 'sold'
+                        WHEN pending_media = true THEN 'draft'
+                        ELSE 'listed'
+                    END AS listing_status,
                     pending_media,
                     listing_age_days,
                     saves

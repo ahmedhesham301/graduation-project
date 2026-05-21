@@ -39,16 +39,22 @@ const propertyPatchSchema = z.object({
     description: z.string().max(1000).nullable().optional(),
     condition: z.string().min(1).max(100).optional(),
     price: z.coerce.number().int().positive().optional(),
-    status: z.enum(["listed", "sold", "withdrawn"]).optional(),
     sold_at: z.coerce.date().nullable().optional(),
     sold_price: z.coerce.number().int().positive().nullable().optional()
 }).refine(
     (data) => Object.keys(data).length > 0,
     { message: "At least one property field is required" }
+).refine(
+    (data) => {
+        if (data.sold_at && data.sold_price === undefined) return false;
+        if (data.sold_price && data.sold_at === undefined) return false;
+        return true;
+    },
+    { message: "sold_price and sold_at must be provided together" }
 )
 
 const propertyContactSchema = z.object({
-    contact_method: z.enum(["phone", "email", "whatsapp", "message"]).default("phone")
+    contact_method: z.enum(["phone", "email", "whatsapp"])
 })
 
 export async function validatePropertyBody(req, res, next) {

@@ -35,15 +35,24 @@ export async function getAnalytics(req, res) {
 }
 
 /**
- * Handles GET /api/seller/analytics/properties
+ * Handles GET /api/analytics/seller/properties
  *
  * Returns per-listing analytics for the logged-in seller so the seller can
  * see which properties generate views, saves, and contact intent.
+ *
+ * Query params:
+ *   - page: page number (default 1, min 1)
+ *   - limit: items per page (default 20, max 100, min 1)
+ *
+ * Response includes data array with pagination metadata.
  */
-export async function getPropertyAnalytics(req, res) {
+export async function getSellerPropertyAnalytics(req, res) {
     try {
-        const analytics = await fetchSellerPropertyAnalytics(req.session.userID)
-        res.status(200).json(analytics)
+        const page  = Math.max(1, parseInt(req.query.page)  || 1)
+        const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20))
+
+        const result = await fetchSellerPropertyAnalytics(req.session.userID, page, limit)
+        res.status(200).json(result)
     } catch (error) {
         console.error(error)
         res.status(500).json({ error: "Failed to fetch property analytics" })
