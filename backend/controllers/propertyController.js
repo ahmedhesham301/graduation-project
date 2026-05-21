@@ -70,7 +70,7 @@ export async function update(req, res) {
 
         if (error.code === '23514') {
             return res.status(422).json({
-                error: "Invalid property state. Sold properties need sold_at, and unsold properties cannot keep sold data."
+                error: "Invalid property state. sold_price requires sold_at."
             })
         }
 
@@ -99,8 +99,12 @@ export async function contactSeller(req, res) {
         if (!contact) {
             return res.status(404).json({ error: "Property not found" })
         }
+        
+        if (contact.is_self) {
+            return res.status(400).json({ error: "You cannot contact yourself" })
+        }
 
-        res.status(201).json({ message: "Contact recorded", contact })
+        res.status(201).json({ message: "Contact recorded" })
     } catch (error) {
         console.error(error)
         res.status(500).json({ error: "Failed to record contact" })
