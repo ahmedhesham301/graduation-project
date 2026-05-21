@@ -4,7 +4,7 @@ import { pool } from "../database/postgresql.js";
 export async function findPropertyById(id, pendingMedia = null) {
     const query = {
         name: 'find-property-by-id',
-        text: `SELECT 
+        text: `SELECT
         p.id, p.seller_id,
         u.full_name AS seller_name, u.email AS seller_email, u.phone AS seller_phone, p.condition,
         pt.name AS type,ST_Y(p.coordinates) AS lat,ST_X(p.coordinates) AS lon,
@@ -12,14 +12,14 @@ export async function findPropertyById(id, pendingMedia = null) {
         FROM properties p
         JOIN users u
             ON u.id = p.seller_id
-        JOIN cities c 
+        JOIN cities c
             ON c.id = p.city_id
-        JOIN districts d 
+        JOIN districts d
             ON d.id = p.district_id
             AND d.city_id = c.id
         JOIN property_types pt
             ON pt.id = p.type_id
-        WHERE p.id = $1 AND ($2::boolean IS NULL OR p.pending_media = $2);`,
+        WHERE p.id = $1 AND p.deleted_at IS NULL AND ($2::boolean IS NULL OR p.pending_media = $2);`,
         values: [id, pendingMedia ?? null]
     }
     const { rows } = await pool.query(query)
@@ -52,7 +52,7 @@ export async function updatePropertyRecord(propertyId, updates) {
         // Lock the row so the old price we record cannot change mid-update.
         const currentResult = await client.query({
             text: `
-                SELECT id, price, status
+                SELECT id, price
                 FROM properties
                 WHERE id = $1
                 AND deleted_at IS NULL
@@ -80,24 +80,11 @@ export async function updatePropertyRecord(propertyId, updates) {
         if ("condition" in updates) addField("condition", updates.condition)
         if ("price" in updates) addField("price", updates.price)
 
-        if ("status" in updates) {
-            addField("status", updates.status)
-
-            // A sold listing must have sold_at. If the caller only says
-            // status=sold, record the sale time as now.
-            if (updates.status === "sold" && (!("sold_at" in updates) || updates.sold_at === null)) {
-                addField("sold_at", new Date())
-            }
-
-            // Non-sold listings should not keep stale sale data.
-            if (updates.status !== "sold") {
-                addField("sold_at", null)
+        if ("sold_at" in updates) {
+            addField("sold_at", updates.sold_at)
+            if (updates.sold_at === null && !("sold_price" in updates)) {
                 addField("sold_price", null)
             }
-        }
-
-        if ("sold_at" in updates && !(updates.status === "sold" && updates.sold_at === null)) {
-            addField("sold_at", updates.sold_at)
         }
         if ("sold_price" in updates) addField("sold_price", updates.sold_price)
 

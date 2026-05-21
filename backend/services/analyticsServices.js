@@ -49,24 +49,38 @@ export async function fetchSellerAnalytics(sellerId) {
     return { summary, most_saved, by_city, by_type }
 }
 
-export async function fetchSellerPropertyAnalytics(sellerId) {
-    const rows = await getSellerPropertyAnalyticsStats(sellerId)
+export async function fetchSellerPropertyAnalytics(sellerId, page = 1, limit = 20) {
+    const offset = (page - 1) * limit;
+    const rows = await getSellerPropertyAnalyticsStats(sellerId, limit, offset)
 
-    return rows.map(row => ({
+    const total = rows.length > 0 ? Number(rows[0].total_count) : 0
+
+    const data = rows.map(row => ({
         property_id: row.property_id,
         type: row.type,
         city: row.city,
         district: row.district,
         price: Number(row.price),
-        status: row.status,
+        listing_status: row.listing_status,
         pending_media: row.pending_media,
         created_at: row.created_at,
         views: Number(row.views),
         saves: Number(row.saves),
         contacts: Number(row.contacts),
+        price_changes: Number(row.price_changes),
         view_to_save_rate: Number(row.view_to_save_rate),
         view_to_contact_rate: Number(row.view_to_contact_rate)
     }))
+
+    return {
+        data,
+        pagination: {
+            page,
+            limit,
+            total,
+            total_pages: Math.ceil(total / limit)
+        }
+    }
 }
 
 export async function fetchMarketTrends() {
@@ -122,6 +136,7 @@ export async function fetchSellerPerformance(sellerId) {
         total_listings: Number(raw.summary.total_listings),
         active_listings: Number(raw.summary.active_listings),
         draft_listings: Number(raw.summary.draft_listings),
+        sold_listings: Number(raw.summary.sold_listings),
         total_saves: Number(raw.summary.total_saves),
         average_saves_per_listing: Number(raw.summary.average_saves_per_listing),
         average_active_listing_age_days: Number(raw.summary.average_active_listing_age_days),
@@ -135,6 +150,7 @@ export async function fetchSellerPerformance(sellerId) {
         city: property.city,
         district: property.district,
         price: Number(property.price),
+        listing_status: property.listing_status,
         pending_media: property.pending_media,
         listing_age_days: Number(property.listing_age_days),
         saves: Number(property.saves)
