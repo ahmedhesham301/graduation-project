@@ -66,3 +66,9 @@ services:
     ports:
       - 9000:9000
       - 9001:9001
+
+  ml:
+    image: ahmedhesham301/3akarati-ml:latest
+    restart: unless-stopped
+    ports:
+      - 5000:5000
