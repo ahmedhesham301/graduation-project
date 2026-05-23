@@ -31,11 +31,11 @@ jobs:
         context: ./ML
         file: ./ML/Dockerfile
         push: true
-        tags: ahmedhesham301/3akarati-frontend:latest
+        tags: ahmedhesham301/3akarati-ml:latest
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@v0.36.0
       with:
-        image-ref: 'ahmedhesham301/3akarati-frontend:latest'
+        image-ref: 'ahmedhesham301/3akarati-ml:latest'
         format: 'template'
         template: '@/contrib/sarif.tpl'
         output: 'trivy-results.sarif'
