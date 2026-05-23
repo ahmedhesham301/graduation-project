@@ -1,8 +1,6 @@
 import pandas as pd
-import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_absolute_error, r2_score
 from sklearn.preprocessing import OneHotEncoder
 
 # 1. Load the data
@@ -56,21 +54,21 @@ model = RandomForestRegressor(n_estimators=100, random_state=42)
 model.fit(x_train, y_train)
 
 
-new_data = pd.DataFrame([["shop", 252, 1, 2, 2, "semi finished", "Gharbia", "Tanta"]],
-                        columns=["type", "area", "floors", "rooms", "bathrooms", "condition", "city", "district"])
+def predict(data):
+    new_data = pd.DataFrame([data])
 
-# Apply target encoding using saved mappings
-new_data['city'] = new_data['city'].map(city_mapping).fillna(city_mean)
-new_data['district'] = new_data['district'].map(district_mapping).fillna(district_mean)
+    # Apply target encoding using saved mappings
+    new_data['city'] = new_data['city'].map(city_mapping).fillna(city_mean)
+    new_data['district'] = new_data['district'].map(district_mapping).fillna(district_mean)
 
-# Apply OHE using saved encoder
-new_ohe = pd.DataFrame(ohe.transform(new_data[["type", "condition"]]), columns=ohe_cols, index=new_data.index)
-new_data = new_data.drop(["type", "condition"], axis=1)
-new_data = pd.concat([new_data, new_ohe], axis=1)
+    # Apply OHE using saved encoder
+    new_ohe = pd.DataFrame(ohe.transform(new_data[["type", "condition"]]), columns=ohe_cols, index=new_data.index)
+    new_data = new_data.drop(["type", "condition"], axis=1)
+    new_data = pd.concat([new_data, new_ohe], axis=1)
 
-# Match column order
-new_data = new_data[x_train.columns]
+    # Match column order
+    new_data = new_data[x_train.columns]
 
-# Predict
-predicted_price = model.predict(new_data)
-print(f"Predicted Price: {predicted_price[0]}")
+    # Predict
+    predicted_price = model.predict(new_data)
+    return {"price": predicted_price[0]}
