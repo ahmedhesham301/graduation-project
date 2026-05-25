@@ -417,10 +417,6 @@ export default function AddProperty({ onBack }) {
                 <option>6+</option>
               </select>
             </div>
-          </div>
-
-          {/* ── Row 2 ── */}
-          <div className="ap-row">
             <div className="ap-field">
               <label className="ap-label">bathrooms</label>
               <select
@@ -452,6 +448,10 @@ export default function AddProperty({ onBack }) {
                 <option>Top floor</option>
               </select>
             </div>
+          </div>
+
+          {/* ── Row 2 ── */}
+          <div className="ap-row">
             <div className="ap-field">
               <label className="ap-label">City</label>
               <select
@@ -483,10 +483,6 @@ export default function AddProperty({ onBack }) {
                 ))}
               </select>
             </div>
-          </div>
-
-          {/* ── Row 3 ── */}
-          <div className="ap-row">
             <div className="ap-field">
               <label className="ap-label">condition</label>
               <select className="ap-select" value={form.condition} onChange={e => set("condition", e.target.value)}>
@@ -497,6 +493,21 @@ export default function AddProperty({ onBack }) {
               </select>
             </div>
             <div className="ap-field">
+              <label className="ap-label">Area</label>
+              <input
+                className="ap-input"
+                min="0"
+                type="number"
+                placeholder="e.g. 140"
+                value={form.area}
+                onChange={(e) => set("area", e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* ── Row 3 ── */}
+          <div className="ap-row">
+            <div className="ap-field">
               <label className="ap-label">price</label>
               <input
                 className="ap-input"
@@ -506,17 +517,6 @@ export default function AddProperty({ onBack }) {
                 value={form.price}
                 onChange={(e) => set("price", e.target.value)}
                 prefix="EGP"
-              />
-            </div>
-            <div className="ap-field">
-              <label className="ap-label">Area</label>
-              <input
-                className="ap-input"
-                min="0"
-                type="number"
-                placeholder="e.g. 140"
-                value={form.area}
-                onChange={(e) => set("area", e.target.value)}
               />
             </div>
           </div>

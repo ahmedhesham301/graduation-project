@@ -302,3 +302,33 @@
   .fp-body { padding: 76px 12px 28px; }
   .fp-card-actions .fp-action-btn { padding: 5px 10px; font-size: 12px; }
 }
+
+/* ── Load more ── */
+.fp-load-more-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 28px;
+}
+
+.fp-load-more-btn {
+  padding: 10px 28px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fp-load-more-btn:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.fp-load-more-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

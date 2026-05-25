@@ -493,10 +493,8 @@ export default function SearchResults({
                         }}
                       />
                       <span className="sr-type-badge">{p.type}</span>
-                      <button
-                        className={`sr-fav-btn ${favs.includes(p.id) ? "active" : ""}`}
-                        onClick={() => toggleFav(p.id)}
-                      >
+                      <button className={`sr-fav-btn ${favs.includes(p.id) ? "active" : ""}`}
+                        onClick={(e) => {e.stopPropagation(); toggleFav(p.id);}}>
                         <svg width="16" height="16" viewBox="0 0 24 24"
                           fill={favs.includes(p.id) ? "#e53935" : "none"}
                           stroke={favs.includes(p.id) ? "#e53935" : "#fff"}
