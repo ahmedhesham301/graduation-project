@@ -29,6 +29,16 @@ export default function SignUp({ onNavigate }) {
       setMsg({ type: "err", text: "Password must be between 8 and 72 characters." });
       return;
     }
+      const phone = form.phone.replace("+20", "");
+
+  if (!/^01[0125][0-9]{8}$/.test(form.phone)) {
+  setMsg({
+    type: "err",
+    text: "Please enter a valid Egyptian phone number.",
+  });
+  return;
+}
+
 
     setLoading(true);
     setMsg({ type: "", text: "" });
@@ -37,7 +47,7 @@ export default function SignUp({ onNavigate }) {
       const response = await axios.post(`${API_BASE}/auth/register`, {
         fullName: form.name,
         email: form.email,
-        phone: form.phone,
+        phone: "+2" + form.phone,
         password: form.password,
       });
 
@@ -67,10 +77,16 @@ export default function SignUp({ onNavigate }) {
         <p className="tagline">Create a free account and start exploring.</p>
         {msg.text && <div className={`msg ${msg.type}`}>{msg.text}</div>}
         <form onSubmit={handleSubmit} className="auth-form">
-          <InputField label="Full name" type="text" name="name" placeholder="Your full name" value={form.name} onChange={handleChange} icon="user" />
-          <InputField label="Email address" type="email" name="email" placeholder="you@example.com" value={form.email} onChange={handleChange} icon="email" />
-          <InputField label="Phone number" type="tel" name="phone" placeholder="+20xxxxxxxxxx" value={form.phone} onChange={handleChange} icon="phone" />
-          <InputField label="Password" type="password" name="password" placeholder="Min. 8, max. 72 characters" value={form.password} onChange={handleChange} icon="lock" />
+        <InputField label="Full name" type="text" name="name" placeholder="Your full name" value={form.name} onChange={handleChange} icon="user" />
+        <InputField label="Email address" type="email" name="email" placeholder="you@example.com" value={form.email} onChange={handleChange} icon="email" />
+        <InputField label="Phone number"  type="tel"  name="phone"  placeholder="01xxxxxxxxx"  value={form.phone}  onChange={(e) => {
+        let numbersOnly = e.target.value.replace(/\D/g, "");
+        if (numbersOnly.length > 11) {
+        numbersOnly = numbersOnly.slice(0, 11);}
+        setForm({...form,phone: numbersOnly,});
+        setMsg({ type: "", text: "" });}}
+        icon="phone"/>          
+        <InputField label="Password" type="password" name="password" placeholder="Min. 8, max. 72 characters" value={form.password} onChange={handleChange} icon="lock" />
           <button type="submit" className="btn-primary" disabled={loading} style={{ marginTop: "6px" }}>
             {loading ? "Creating account…" : "Create Account"}
           </button>

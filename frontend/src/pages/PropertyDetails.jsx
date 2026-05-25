@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Navbar from "../components/Navbar";
 import { api } from "../components/Axios";
 import { BUCKET_url } from "../components/vars";
@@ -6,13 +6,84 @@ import "./PropertyDetails.css";
 
 /* ── 360° viewer: renders the pre-built app-files/index.html blob ── */
 function PannellumViewer({ imageUrl }) {
+  const iframeRef = useRef(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const onFullChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener("fullscreenchange", onFullChange);
+
+    return () => {
+      document.removeEventListener("fullscreenchange", onFullChange);
+    };
+  }, []);
+
+  const toggleFullscreen = async () => {
+    if (!iframeRef.current) return;
+
+    try {
+      if (!document.fullscreenElement) {
+        await iframeRef.current.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   return (
-    <iframe
-      src={imageUrl}
-      title="360° VR Tour"
-      style={{ width: "100%", height: "100%", border: "none", display: "block" }}
-      allowFullScreen
-    />
+    <div className="pd-vr-frame-wrap">
+      <button
+        className="pd-vr-fullscreen-btn"
+        onClick={toggleFullscreen}
+      >
+        {isFullscreen ? (
+          /* X icon */
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        ) : (
+          /* fullscreen icon */
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points="15 3 21 3 21 9" />
+            <polyline points="9 21 3 21 3 15" />
+            <line x1="21" y1="3" x2="14" y2="10" />
+            <line x1="3" y1="21" x2="10" y2="14" />
+          </svg>
+        )}
+      </button>
+
+      <iframe
+        ref={iframeRef}
+        src={imageUrl}
+        title="360° VR Tour"
+        className="pd-vr-iframe"
+        allowFullScreen
+      />
+    </div>
   );
 }
 
