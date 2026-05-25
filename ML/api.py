@@ -8,6 +8,7 @@ CORS(app)
 
 @app.route("/", methods=["get"])
 def handle_predict():
+    print(request.get_json())
     return predict(request.get_json())
 
 
