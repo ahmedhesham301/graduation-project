@@ -1,6 +1,6 @@
-<mxfile host="Electron">
+<mxfile host="app.diagrams.net">
   <diagram name="Page-1" id="JOthqNcNfN4AE8JtWxVj">
-    <mxGraphModel dx="1664" dy="1040" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="2060" dy="1054" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -33,9 +33,6 @@
         </mxCell>
         <mxCell id="1YG3vkProWivm9PcS8Nl-19" parent="1" style="sketch=0;outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=12;fontStyle=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_subnet;strokeColor=#879196;fillColor=none;verticalAlign=top;align=left;spacingLeft=30;fontColor=#879196;dashed=0;container=0;" value="public subnet" vertex="1">
           <mxGeometry height="180" width="200" x="890" y="280" as="geometry" />
-        </mxCell>
-        <mxCell id="1YG3vkProWivm9PcS8Nl-25" parent="1" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#8C4FFF;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.nat_gateway;container=0;" value="NAT Gateway" vertex="1">
-          <mxGeometry height="49" width="49" x="549" y="345.5" as="geometry" />
         </mxCell>
         <mxCell id="1YG3vkProWivm9PcS8Nl-26" parent="1" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;fillColor=#C925D1;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.rds;container=0;" value="RDS" vertex="1">
           <mxGeometry height="50" width="50" x="255" y="870" as="geometry" />
@@ -78,6 +75,9 @@
         </mxCell>
         <mxCell id="XA_jqNhf0v6N9FyDZ8A3-6" parent="1" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;fillColor=#C925D1;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.rds;container=0;" value="RDS" vertex="1">
           <mxGeometry height="50" width="50" x="969.5" y="865" as="geometry" />
+        </mxCell>
+        <mxCell id="QqeTgo0ZzmBZZNJAK-rp-1" parent="1" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws3.ec2;fillColor=#F58534;gradientColor=none;" value="&lt;span style=&quot;color: rgb(189, 199, 212);&quot;&gt;NAT instances&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;color: rgb(189, 199, 212);&quot;&gt;and bastion host&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="59" width="51.5" x="550" y="340.5" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
