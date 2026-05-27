@@ -1,0 +1,38 @@
+sequenceDiagram
+    autonumber
+    actor User
+    participant Frontend as React Frontend
+    participant Backend as Node.js Backend
+    participant S3 as Amazon S3
+    participant DB as PostgreSQL (PostGIS)
+
+    User->>Frontend: Enter property details & select media files
+    User->>Frontend: Click "Create Property"
+    
+    Note over Frontend,Backend: 1. Initialize Property & Request Upload URLs
+    Frontend->>Backend: POST /api/properties (Property Data & Media Metadata)
+    
+    Backend->>DB: INSERT INTO properties
+    DB-->>Backend: Return Property ID
+
+    rect rgb(240, 248, 255)
+        Note over Backend,S3: 2. Generate Presigned URLs Phase
+        Backend->>DB: INSERT INTO property_media (Status: Pending)
+        Backend->>S3: Generate Presigned URLs (via AWS SDK)
+        S3-->>Backend: Return Presigned URLs
+    end
+    
+    Backend-->>Frontend: 201 Created (Return Property ID & Presigned URLs)
+
+    rect rgb(240, 248, 255)
+        Note over Frontend,S3: 3. Direct Media Upload Phase
+        Frontend->>S3: PUT media files (using Presigned URLs)
+        S3-->>Frontend: 200 OK (Upload Successful)
+        
+        Frontend->>Backend: POST /api/properties/{id}/media/{media_id} (confrim)
+        Backend->>DB: UPDATE property_media (Status: Uploaded)
+        DB-->>Backend: Acknowledge Update
+    end
+    Backend-->>Frontend: 200 OK (Confirmation Success)
+    
+    Frontend-->>User: Display success message & redirect to property page
