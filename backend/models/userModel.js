@@ -69,7 +69,7 @@ export async function upgradeToSeller(userId) {
 export async function findUserById(id) {
     const query = {
         name: 'find-user-profile-by-id',
-        text: `SELECT full_name, email, phone FROM users WHERE id = $1`,
+        text: `SELECT id, full_name, email, phone FROM users WHERE id = $1`,
         values: [id]
     }
     const { rows } = await pool.query(query)
