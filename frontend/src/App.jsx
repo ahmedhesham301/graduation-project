@@ -6,6 +6,7 @@ import ProfileSettings from "./pages/ProfileSettings";
 import FavouriteProperties from "./pages/FavouriteProperties";
 import SearchResults from "./pages/SearchResults";
 import PropertyDetails from "./pages/PropertyDetails";
+import Inbox from "./pages/Inbox";
 import ChatBot from "./components/ChatBot";
 import { api } from "./components/Axios";
 import "./App.css";
@@ -15,10 +16,29 @@ export default function App() {
   const [previousPage, setPreviousPage] = useState("home")
   const [theme, setTheme] = useState("light");
   const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem("isLoggedIn") === "true");
+  const [currentUser, setCurrentUser] = useState({ id: 0 });
   const [searchFilters, setSearchFilters] = useState({});
   const [selectedPropertyId, setSelectedPropertyId] = useState(null);
+  const [profileTab, setProfileTab] = useState(null);
 
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
+
+  // Fetch current user when logged in
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setCurrentUser({ id: 0 });
+      return;
+    }
+    const fetchUser = async () => {
+      try {
+        const { data } = await api.get("/user/me");
+        setCurrentUser({ id: data.id, name: data.full_name });
+      } catch (err) {
+        console.error("Failed to fetch current user:", err);
+      }
+    };
+    fetchUser();
+  }, [isLoggedIn]);
 
   // Central cleanup — called both by manual logout button and the 401 interceptor
   const clearAuthState = useCallback(() => {
@@ -76,6 +96,12 @@ const handleNavigate = (target, data = {}) => {
 
     setPage(resolvedTarget);
 
+    if (resolvedTarget === "profile" && data.tab) {
+      setProfileTab(data.tab);
+    } else if (resolvedTarget === "profile") {
+      setProfileTab(null);
+    }
+
     if (data.id) {
       setSelectedPropertyId(data.id);
     } else if (data.propertyId) {
@@ -108,6 +134,7 @@ const handleNavigate = (target, data = {}) => {
           theme={theme}
           isLoggedIn={isLoggedIn}
           onLogout={handleLogout}
+          initialTab={profileTab}
         />
       )}
       {page === "favourite" && (
@@ -137,9 +164,13 @@ const handleNavigate = (target, data = {}) => {
           theme={theme}
           toggleTheme={toggleTheme}
           isLoggedIn={isLoggedIn}
+          currentUser={currentUser}
         />
       )}
-    <ChatBot onNavigate={handleNavigate} />
+    {page === "inbox" && (
+        <Inbox currentUser={currentUser} onNavigate={handleNavigate} />
+      )}
+      <ChatBot onNavigate={handleNavigate} />
       
     </div>
   );

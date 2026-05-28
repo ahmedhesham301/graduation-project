@@ -33,8 +33,9 @@ export default function SignIn({ onNavigate, onLogin }) {
         password: form.password,
       });
 
-      const { token, isSeller, is_seller, role } = response.data;
+      const { token, isSeller, is_seller, role, userId } = response.data;
       if (token) localStorage.setItem("token", token);
+      if (userId) localStorage.setItem("userId", String(userId));
       localStorage.setItem("isSeller", String(isSeller ?? is_seller ?? role === "seller" ?? false));
 
       setMsg({

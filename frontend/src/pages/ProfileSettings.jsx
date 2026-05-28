@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import AddProperty from "./AddProperty";
 import FavouriteProperties from "./FavouriteProperties";
+import ChatHistory from "./ChatHistory";
+import MyProperties from "./MyProperties";
 import "./ProfileSettings.css";
 import { api } from "../components/Axios";
 
@@ -35,6 +37,11 @@ const IconLogout = () => (
     <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
   </svg>
 );
+const IconChat = () => (
+  <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+  </svg>
+);
 const IconInfo = () => (
   <svg width="15" height="15" fill="none" stroke="#2563eb" strokeWidth="2" viewBox="0 0 24 24">
     <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
@@ -59,10 +66,15 @@ const IconStorefront = () => (
     <line x1="9" y1="14" x2="15" y2="14" />
   </svg>
 );
+const IconBuilding = () => (
+  <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+  </svg>
+);
 
 /* ── Main Component ── */
-export default function ProfileSettings({ onNavigate, onLogout }) {
-  const [activeNav, setActiveNav]         = useState("edit");
+export default function ProfileSettings({ onNavigate, onLogout, initialTab }) {
+  const [activeNav, setActiveNav]         = useState(initialTab || "edit");
   const [editMode, setEditMode]           = useState(false);
   const [menuOpen, setMenuOpen]           = useState(false);
   const [loading, setLoading]             = useState(true);
@@ -70,6 +82,10 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
   const [isSeller, setIsSeller]           = useState(localStorage.getItem("isSeller") === "true");
   const [sellerLoading, setSellerLoading] = useState(false);
   const [sellerError, setSellerError]     = useState(null);
+
+  useEffect(() => {
+    if (initialTab) setActiveNav(initialTab);
+  }, [initialTab]);
 
   const defaultData = { fullName: "", phone: "", email: "" };
   const [formData, setFormData]   = useState(defaultData);
@@ -112,7 +128,11 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
   const navItems = [
     { id: "edit",      label: "Edit profile", Icon: IconEditPen },
     { id: "favourite", label: "Favourite",    Icon: IconHeart },
-    ...(isSeller ? [{ id: "addproperty", label: "Add Property", Icon: IconPlusCircle }] : []),
+    { id: "chat",      label: "My Chats",    Icon: IconChat },
+    ...(isSeller ? [
+      { id: "addproperty", label: "Add Property", Icon: IconPlusCircle },
+      { id: "myproperties", label: "My Properties", Icon: IconBuilding },
+    ] : []),
     { id: "help",      label: "Help",         Icon: IconHelp },
   ];
 
@@ -317,6 +337,14 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
           onNavigate={onNavigate}/>
           )}
 
+
+          {activeNav === "chat" && (
+            <ChatHistory onBack={() => setActiveNav("edit")} onNavigate={onNavigate} />
+          )}
+
+          {activeNav === "myproperties" && (
+            <MyProperties onBack={() => setActiveNav("edit")} onNavigate={onNavigate} />
+          )}
 
           {activeNav === "help" && (
             <div className="ps-placeholder">
