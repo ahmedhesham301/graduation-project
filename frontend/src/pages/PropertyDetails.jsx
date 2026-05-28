@@ -133,6 +133,7 @@ export default function PropertyDetails({
       try {
         setLoading(true);
         setError(null);
+        const isSeller = currentUser?.role === "seller";
         const endpoint = isSeller
           ? `/seller/properties/${propertyId}`
           : `/properties/${propertyId}`;
