@@ -14,6 +14,10 @@ import {
     getSellerPropertyAnalyticsStats,
     getSellerPerformanceStats
 } from "../models/analyticsModel.js"
+import { redisClient } from "../database/redis.js"
+
+const MARKET_TRENDS_CACHE_KEY = "analytics:market-trends"
+const MARKET_TRENDS_TTL_SECONDS = 60 * 60
 
 export async function fetchSellerAnalytics(sellerId) {
     const raw = await getSellerAnalytics(sellerId)
@@ -84,6 +88,14 @@ export async function fetchSellerPropertyAnalytics(sellerId, page = 1, limit = 2
 }
 
 export async function fetchMarketTrends() {
+    try {
+        const cached = await redisClient.get(MARKET_TRENDS_CACHE_KEY)
+        if (cached) return JSON.parse(cached)
+    } catch (error) {
+        // Cache should speed up analytics, not make analytics unavailable.
+        console.error("Failed to read market trends cache", error)
+    }
+
     const raw = await getMarketTrendStats()
 
     const summary = raw.summary ? {
@@ -126,7 +138,19 @@ export async function fetchMarketTrends() {
         average_price: Number(row.average_price)
     }))
 
-    return { summary, listing_trends, sales_trends, price_trends, view_trends, hotspots }
+    const result = { summary, listing_trends, sales_trends, price_trends, view_trends, hotspots }
+
+    try {
+        await redisClient.setEx(
+            MARKET_TRENDS_CACHE_KEY,
+            MARKET_TRENDS_TTL_SECONDS,
+            JSON.stringify(result)
+        )
+    } catch (error) {
+        console.error("Failed to write market trends cache", error)
+    }
+
+    return result
 }
 
 export async function fetchSellerPerformance(sellerId) {

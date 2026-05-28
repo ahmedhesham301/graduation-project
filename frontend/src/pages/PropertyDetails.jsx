@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import PropertyChat from "../components/PropertyChat";
 import Navbar from "../components/Navbar";
 import { api } from "../components/Axios";
 import { BUCKET_url } from "../components/vars";
@@ -87,14 +88,14 @@ function PannellumViewer({ imageUrl }) {
   );
 }
 
-export default function PropertyDetails({ 
+export default function PropertyDetails({
   fromPage = "home",
   onNavigate,
   theme,
   toggleTheme,
   isLoggedIn,
   propertyId,
-  isSeller = false,
+  currentUser,
 }) {
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -744,12 +745,21 @@ export default function PropertyDetails({
               {property.seller_phone && (
                 <p className="pd-seller-phone">{property.seller_phone}</p>
               )}
+
+              {/* Chat with seller */}
+              <PropertyChat
+                propertyId={propertyId}
+                sellerId={property.seller_id}
+                currentUser={currentUser}
+                onNavigate={onNavigate}
+                sellerName={property.seller_name}
+              />
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── Lightbox ── */}
+            {/* ── Lightbox ── */}
       {lightboxOpen && mediaList.length > 0 && (
         <div className="pd-lightbox" onClick={closeLightbox}>
           {/* Close button */}

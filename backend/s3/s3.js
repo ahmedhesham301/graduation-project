@@ -11,6 +11,7 @@ import {
 import { NodeHttpHandler } from "@smithy/node-http-handler";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 let s3Config = {}
+let s3PresignConfig = {}
 if (process.env.ENV === "dev") {
     s3Config = {
         endpoint: "http://" + process.env.S3_ENDPOINT, // RustFS endpoint
@@ -25,6 +26,12 @@ if (process.env.ENV === "dev") {
             socketTimeout: 5000,
         }),
     }
+    // Presigned URLs need localhost for browser access
+    const presignEndpoint = "http://" + process.env.S3_ENDPOINT.replace("rustfs", "localhost");
+    s3PresignConfig = {
+        ...s3Config,
+        endpoint: presignEndpoint,
+    }
 } else if (process.env.ENV === "prod") {
     s3Config = {
         region: "eu-central-1",
@@ -37,9 +44,11 @@ if (process.env.ENV === "dev") {
             socketTimeout: 5000,
         }),
     }
+    s3PresignConfig = s3Config
 }
 
 const s3 = new S3Client(s3Config);
+const s3Presign = new S3Client(s3PresignConfig);
 
 export async function s3Init() {
     // Create a bucket if the env is dev
@@ -103,7 +112,7 @@ export async function s3Init() {
 
 export async function createPresignedUploadUrl(propertyId, uuid, extension, mimeType, fileSize, fileName) {
     const presignedUrl = await getSignedUrl(
-        s3,
+        s3Presign,
         new PutObjectCommand({
             Bucket: process.env.BUCKET_NAME,
             Key: `media/${propertyId}/${uuid}.${extension}`,

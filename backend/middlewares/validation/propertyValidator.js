@@ -39,6 +39,11 @@ const propertyPatchSchema = z.object({
     description: z.string().max(1000).nullable().optional(),
     condition: z.string().min(1).max(100).optional(),
     price: z.coerce.number().int().positive().optional(),
+    rooms: z.coerce.number().int().positive().optional(),
+    bathrooms: z.coerce.number().int().positive().optional(),
+    floors: z.coerce.number().int().min(0).optional(),
+    area: z.coerce.number().int().positive().optional(),
+    type: z.string().min(1).max(100).optional(),
     sold_at: z.coerce.date().nullable().optional(),
     sold_price: z.coerce.number().int().positive().nullable().optional()
 }).refine(

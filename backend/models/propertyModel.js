@@ -79,6 +79,15 @@ export async function updatePropertyRecord(propertyId, updates) {
         if ("description" in updates) addField("description", updates.description)
         if ("condition" in updates) addField("condition", updates.condition)
         if ("price" in updates) addField("price", updates.price)
+        if ("rooms" in updates) addField("rooms", updates.rooms)
+        if ("bathrooms" in updates) addField("bathrooms", updates.bathrooms)
+        if ("floors" in updates) addField("floors", updates.floors)
+        if ("area" in updates) addField("area", updates.area)
+
+        if ("type" in updates) {
+            fields.push(`type_id = (SELECT id FROM property_types WHERE name = $${index++})`)
+            values.push(updates.type)
+        }
 
         if ("sold_at" in updates) {
             addField("sold_at", updates.sold_at)
@@ -289,6 +298,24 @@ export async function getTypes() {
     }
 
     const { rows } = await pool.query(query)
-    
+
     return rows.map(row => row.name)
+}
+
+export async function getSellerProperties(sellerId) {
+    const query = {
+        name: 'get-seller-properties',
+        text: `SELECT p.id, pt.name AS type, p.area, p.rooms, p.bathrooms, p.price, p.condition,
+                    c.name AS city, d.name AS district, p.description, p.created_at,
+                    (SELECT s3_key FROM property_media pm WHERE pm.property_id = p.id ORDER BY pm.uploaded_at ASC LIMIT 1) AS thumbnail
+             FROM properties p
+             JOIN cities c ON c.id = p.city_id
+             JOIN districts d ON d.id = p.district_id
+             JOIN property_types pt ON pt.id = p.type_id
+             WHERE p.seller_id = $1 AND p.deleted_at IS NULL
+             ORDER BY p.created_at DESC`,
+        values: [sellerId]
+    }
+    const { rows } = await pool.query(query)
+    return rows
 }

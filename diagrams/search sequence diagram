@@ -1,0 +1,18 @@
+sequenceDiagram
+    actor Buyer
+    participant Frontend as React Frontend
+    participant Backend as Node.js Backend
+    participant DB as PostgreSQL (PostGIS)
+    participant S3 as Amazon S3
+
+    %% Browsing and Spatial Search
+    Buyer->>Frontend: Search for properties (map area/filters)
+    Frontend->>Backend: GET /api/properties
+    Backend->>DB: Query data
+    DB-->>Backend: Return matching real estate listings (with S3 URLs)
+    Backend-->>Frontend: JSON property list
+    
+    %% Direct S3 Asset Retrieval
+    Frontend->>S3: GET /bucket/property-images/... (Fetch media)
+    S3-->>Frontend: Return image files
+    Frontend-->>Buyer: Display properties with loaded images on map/UI

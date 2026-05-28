@@ -60,3 +60,12 @@ export async function getTour(propertyId) {
     let result = await pool.query(query)
     return result.rows[0]
 }
+
+export async function deleteMediaRecord(propertyId, s3Key) {
+    const query = {
+        text: `DELETE FROM property_media WHERE property_id = $1 AND s3_key = $2 RETURNING *`,
+        values: [propertyId, s3Key]
+    }
+    const { rows } = await pool.query(query)
+    return rows[0] || null
+}
