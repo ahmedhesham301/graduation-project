@@ -11,12 +11,48 @@ import { api } from "./components/Axios";
 import "./App.css";
 
 export default function App() {
-  const [page, setPage] = useState("home");
-  const [previousPage, setPreviousPage] = useState("home")
-  const [theme, setTheme] = useState("light");
-  const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem("isLoggedIn") === "true");
-  const [searchFilters, setSearchFilters] = useState({});
-  const [selectedPropertyId, setSelectedPropertyId] = useState(null);
+  const [page, setPage] = useState(
+    () => sessionStorage.getItem("page") ?? "home"
+  );
+  const [previousPage, setPreviousPage] = useState(
+    () => sessionStorage.getItem("previousPage") ?? "home"
+  );
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("theme") ?? "light"
+  );
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    () => localStorage.getItem("isLoggedIn") === "true"
+  );
+  const [searchFilters, setSearchFilters] = useState(() => {
+    try {
+      return JSON.parse(sessionStorage.getItem("searchFilters")) ?? {};
+    } catch {
+      return {};
+    }
+  });
+  const [selectedPropertyId, setSelectedPropertyId] = useState(
+    () => sessionStorage.getItem("selectedPropertyId") ?? null
+  );
+  const [isSellerView, setIsSellerView] = useState(
+    () => sessionStorage.getItem("isSellerView") === "true"
+  );
+
+  // Persist theme to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  // Persist navigation state to sessionStorage whenever it changes
+  useEffect(() => { sessionStorage.setItem("page", page); }, [page]);
+  useEffect(() => { sessionStorage.setItem("previousPage", previousPage); }, [previousPage]);
+  useEffect(() => { sessionStorage.setItem("searchFilters", JSON.stringify(searchFilters)); }, [searchFilters]);
+  useEffect(() => {
+    if (selectedPropertyId) sessionStorage.setItem("selectedPropertyId", selectedPropertyId);
+    else sessionStorage.removeItem("selectedPropertyId");
+  }, [selectedPropertyId]);
+  useEffect(() => {
+    sessionStorage.setItem("isSellerView", String(isSellerView));
+  }, [isSellerView]);
 
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
@@ -25,6 +61,11 @@ export default function App() {
     localStorage.removeItem("token");
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("isSeller");
+    sessionStorage.removeItem("page");
+    sessionStorage.removeItem("previousPage");
+    sessionStorage.removeItem("searchFilters");
+    sessionStorage.removeItem("selectedPropertyId");
+    sessionStorage.removeItem("isSellerView");
     setIsLoggedIn(false);
     setPage("home");
   }, []);
@@ -67,6 +108,11 @@ const handleNavigate = (target, data = {}) => {
   } else {
 
     if (resolvedTarget === "propertyDetails") {
+      // Set property ID first before switching page
+      const propId = data.id ?? data.propertyId ?? null;
+      if (propId) setSelectedPropertyId(propId);
+      setIsSellerView(!!data.isSeller);
+
       if (data.fromPage) {
         setPreviousPage(data.fromPage);
       } else {
@@ -76,10 +122,10 @@ const handleNavigate = (target, data = {}) => {
 
     setPage(resolvedTarget);
 
-    if (data.id) {
-      setSelectedPropertyId(data.id);
-    } else if (data.propertyId) {
-      setSelectedPropertyId(data.propertyId);
+    // Fallback in case propertyDetails branch wasn't hit
+    if (target !== "propertyDetails") {
+      if (data.id) setSelectedPropertyId(data.id);
+      else if (data.propertyId) setSelectedPropertyId(data.propertyId);
     }
   }
 };
@@ -137,6 +183,7 @@ const handleNavigate = (target, data = {}) => {
           theme={theme}
           toggleTheme={toggleTheme}
           isLoggedIn={isLoggedIn}
+          isSeller={isSellerView}
         />
       )}
     <ChatBot onNavigate={handleNavigate} />

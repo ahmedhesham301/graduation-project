@@ -94,6 +94,7 @@ export default function PropertyDetails({
   toggleTheme,
   isLoggedIn,
   propertyId,
+  isSeller = false,
 }) {
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -131,7 +132,10 @@ export default function PropertyDetails({
       try {
         setLoading(true);
         setError(null);
-        const res = await api.get(`/properties/${propertyId}`);
+        const endpoint = isSeller
+          ? `/seller/properties/${propertyId}`
+          : `/properties/${propertyId}`;
+        const res = await api.get(endpoint);
         setProperty(res.data);
       } catch (err) {
         setError("Failed to load property details. Please try again.");

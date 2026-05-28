@@ -393,7 +393,7 @@ export default function AddProperty({ onBack }) {
                 <option>villa</option>
                 <option>duplex</option>
                 <option>chalet</option>
-                <option>townhouse</option>
+                <option>town house</option>
                 <option>studio</option>
                 <option>shop</option>
                 <option>office</option>

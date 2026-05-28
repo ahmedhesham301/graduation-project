@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import AddProperty from "./AddProperty";
 import FavouriteProperties from "./FavouriteProperties";
+import SellerDashboard from "./sellerDashboard";
 import "./ProfileSettings.css";
 import { api } from "../components/Axios";
 
@@ -59,6 +60,14 @@ const IconStorefront = () => (
     <line x1="9" y1="14" x2="15" y2="14" />
   </svg>
 );
+const IconDashboard = () => (
+  <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <rect x="3" y="3" width="7" height="9" rx="1" />
+    <rect x="14" y="3" width="7" height="5" rx="1" />
+    <rect x="14" y="12" width="7" height="9" rx="1" />
+    <rect x="3" y="16" width="7" height="5" rx="1" />
+  </svg>
+);
 
 /* ── Main Component ── */
 export default function ProfileSettings({ onNavigate, onLogout }) {
@@ -88,15 +97,11 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
         setFormData(mapped);
         setSavedData(mapped);
 
-        // ✅ Read seller status from API, fallback to localStorage
-        // const sellerFromApi = data.isSeller ?? data.is_seller ?? data.role === "seller";
-        // const sellerFromStorage = localStorage.getItem("isSeller") === "true";
-        // setIsSeller(sellerFromApi ?? sellerFromStorage);
-
         const sellerFromApi = data.isSeller ?? data.is_seller ?? data.role === "seller";
         if (sellerFromApi) {
-        setIsSeller(true);
-        localStorage.setItem("isSeller", "true");}
+          setIsSeller(true);
+          localStorage.setItem("isSeller", "true");
+        }
       } catch (err) {
         console.error(err.response?.data?.message ?? err.message);
       } finally {
@@ -112,7 +117,10 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
   const navItems = [
     { id: "edit",      label: "Edit profile", Icon: IconEditPen },
     { id: "favourite", label: "Favourite",    Icon: IconHeart },
-    ...(isSeller ? [{ id: "addproperty", label: "Add Property", Icon: IconPlusCircle }] : []),
+    ...(isSeller ? [
+      { id: "dashboard", label: "Dashboard", Icon: IconDashboard },
+      { id: "addproperty", label: "Add Property", Icon: IconPlusCircle }
+    ] : []),
     { id: "help",      label: "Help",         Icon: IconHelp },
   ];
 
@@ -146,7 +154,7 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
     try {
       await api.post("/user/become-seller");
       setIsSeller(true);
-      localStorage.setItem("isSeller", "true"); // ✅ persist seller status
+      localStorage.setItem("isSeller", "true");
     } catch (err) {
       setSellerError(err.response?.data?.message ?? "Request failed. Please try again.");
     } finally {
@@ -164,6 +172,7 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
     );
   }
  const countryCode = formData.phone.startsWith("+20") ? "+20" : "+20";
+ 
   return (
     <div className="ps-app">
 
@@ -217,6 +226,10 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
 
         {/* ── Content ── */}
         <div className="ps-content">
+
+          {activeNav === "dashboard" && (
+            <SellerDashboard onNavigate={onNavigate} />
+          )}
 
           {activeNav === "addproperty" && (
             <AddProperty onBack={() => setActiveNav("edit")} />
@@ -328,7 +341,6 @@ export default function ProfileSettings({ onNavigate, onLogout }) {
 
         </div>
       </main>
-
 
     </div>
   );

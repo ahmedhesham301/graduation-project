@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Navbar from "../components/Navbar";
 import { api } from "../components/Axios";
 import { BUCKET_url } from "../components/vars";
@@ -41,6 +41,16 @@ export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, o
   const [loading,    setLoading]    = useState(true);
   const [error,      setError]      = useState(null);
 
+  // Market trends
+  const [trends,        setTrends]        = useState(null);
+  const [trendsLoading, setTrendsLoading] = useState(true);
+  const trendsScrollRef = useRef(null);
+
+  const scrollTrends = (dir) => {
+    if (!trendsScrollRef.current) return;
+    trendsScrollRef.current.scrollBy({ left: dir * 220, behavior: "smooth" });
+  };
+
   useEffect(() => {
     const fetchProperties = async () => {
       try {
@@ -55,6 +65,22 @@ export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, o
       }
     };
     fetchProperties();
+  }, []);
+
+  // Fetch market trends
+  useEffect(() => {
+    const fetchTrends = async () => {
+      try {
+        setTrendsLoading(true);
+        const res = await api.get("/analytics/market-trends");
+        setTrends(res.data);
+      } catch (err) {
+        console.error("Failed to load market trends:", err);
+      } finally {
+        setTrendsLoading(false);
+      }
+    };
+    fetchTrends();
   }, []);
 
   // Fetch all cities on mount
@@ -241,6 +267,69 @@ export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, o
             </div>
           ))}
         </div>
+      </section>
+
+      {/* ── MARKET TRENDS ── */}
+      <section className="trends-section">
+        <div className="trends-header">
+          <div className="trends-header-left">
+            <span className="trends-eyebrow">Live Data</span>
+            <h2 className="section-title">Market Trends</h2>
+            <p className="section-sub">Real-time snapshot of Egypt's hottest real estate markets</p>
+          </div>
+          {trends && (
+            <div className="trends-summary-pills">
+              <div className="trends-pill">
+                <span className="trends-pill-num">{Number(trends.summary.total_listings).toLocaleString()}</span>
+                <span className="trends-pill-label">Total Listings</span>
+              </div>
+              <div className="trends-pill">
+                <span className="trends-pill-num">{Number(trends.summary.active_listings).toLocaleString()}</span>
+                <span className="trends-pill-label">Active Now</span>
+              </div>
+              <div className="trends-pill">
+                <span className="trends-pill-num">EGP {(trends.summary.average_listing_price / 1_000_000).toFixed(1)}M</span>
+                <span className="trends-pill-label">Avg. Price</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {trendsLoading && <div className="trends-loading"><span className="trends-spinner" />Loading market data…</div>}
+
+        {!trendsLoading && trends && (
+          <div className="trends-carousel">
+            <button className="trends-arrow trends-arrow-left" onClick={() => scrollTrends(-1)} aria-label="Scroll left">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <div className="trends-scroll-track" ref={trendsScrollRef}>
+              {trends.hotspots.slice(0, 10).map((spot, i) => (
+              <div className="trend-card" key={spot.city} style={{ animationDelay: `${i * 60}ms` }}>
+                <div className="trend-card-rank">#{i + 1}</div>
+                <div className="trend-card-city">{spot.city}</div>
+                <div className="trend-card-price">
+                  EGP {(spot.average_price / 1_000_000).toFixed(2)}M
+                  <span className="trend-card-price-label">avg price</span>
+                </div>
+                <div className="trend-card-divider" />
+                <div className="trend-card-listings">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
+                  </svg>
+                  <span>{Number(spot.active_listings).toLocaleString()} active</span>
+                </div>
+              </div>
+            ))}
+            </div>
+            <button className="trends-arrow trends-arrow-right" onClick={() => scrollTrends(1)} aria-label="Scroll right">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          </div>
+        )}
       </section>
 
       {/* ── LISTINGS ── */}
