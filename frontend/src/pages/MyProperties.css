@@ -1,0 +1,474 @@
+/* My Properties Styles */
+.mp-app {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.mp-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: all 0.2s;
+}
+
+.mp-back-btn:hover {
+  background: #e5e7eb;
+}
+
+.mp-header {
+  margin-bottom: 24px;
+}
+
+.mp-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: #111827;
+}
+
+.mp-subtitle {
+  color: #6b7280;
+  font-size: 14px;
+  margin: 0;
+}
+
+.mp-error {
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.mp-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.mp-empty h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #374151;
+  margin: 16px 0 8px;
+}
+
+.mp-empty p {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.mp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.mp-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  position: relative;
+  transition: box-shadow 0.2s;
+}
+
+.mp-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+/* Photos */
+.mp-card-photos {
+  background: #f3f4f6;
+  overflow: hidden;
+}
+
+.mp-photos-grid {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 4px;
+  max-height: 200px;
+}
+
+.mp-photo {
+  height: 190px;
+  min-width: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.mp-card-img-ph {
+  width: 100%;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f9fafb;
+}
+
+/* Card Body */
+.mp-card-body {
+  padding: 20px;
+}
+
+.mp-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.mp-card-price {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 2px;
+}
+
+.mp-card-type {
+  font-size: 14px;
+  font-weight: 500;
+  color: #3b82f6;
+  text-transform: capitalize;
+}
+
+.mp-card-location {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 12px;
+}
+
+.mp-card-specs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.mp-card-specs span {
+  padding: 5px 12px;
+  background: #f3f4f6;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #374151;
+}
+
+.mp-card-condition {
+  background: #ecfdf5 !important;
+  color: #059669 !important;
+  text-transform: capitalize;
+}
+
+.mp-card-desc {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.mp-card-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.mp-btn-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #eff6ff;
+  color: #2563eb;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.mp-btn-edit:hover {
+  background: #dbeafe;
+}
+
+.mp-btn-delete {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #fef2f2;
+  color: #dc2626;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.mp-btn-delete:hover {
+  background: #fee2e2;
+}
+
+/* Edit Form */
+.mp-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mp-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.mp-edit-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mp-edit-full {
+  width: 100%;
+}
+
+.mp-edit-row label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  text-transform: capitalize;
+}
+
+.mp-edit-row input,
+.mp-edit-row select,
+.mp-edit-row textarea {
+  padding: 9px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+  background: white;
+}
+
+.mp-edit-row input:focus,
+.mp-edit-row select:focus,
+.mp-edit-row textarea:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.mp-edit-row textarea {
+  resize: vertical;
+}
+
+.mp-edit-actions {
+  display: flex;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.mp-btn-cancel {
+  padding: 10px 20px;
+  background: #f3f4f6;
+  color: #374151;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.mp-btn-cancel:hover {
+  background: #e5e7eb;
+}
+
+.mp-btn-save {
+  padding: 10px 20px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.mp-btn-save:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.mp-btn-save:disabled {
+  background: #93c5fd;
+  cursor: not-allowed;
+}
+
+/* Delete Overlay */
+.mp-delete-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  z-index: 10;
+}
+
+.mp-delete-modal {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  text-align: center;
+  max-width: 300px;
+}
+
+.mp-delete-modal p {
+  font-size: 15px;
+  color: #374151;
+  margin: 0 0 16px;
+}
+
+.mp-delete-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.mp-btn-confirm-delete {
+  padding: 10px 24px;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.mp-btn-confirm-delete:hover {
+  background: #b91c1c;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .mp-edit-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .mp-card-top {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .mp-edit-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Photo Management in Edit Mode */
+.mp-edit-photos {
+  margin-bottom: 8px;
+}
+
+.mp-edit-photos-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.mp-edit-photos-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.mp-edit-photo-item {
+  position: relative;
+  width: 110px;
+  height: 90px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+.mp-edit-photo-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mp-new-photo {
+  border: 2px dashed #3b82f6;
+}
+
+.mp-photo-delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 26px;
+  height: 26px;
+  background: rgba(220, 38, 38, 0.9);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.mp-edit-photo-item:hover .mp-photo-delete-btn {
+  opacity: 1;
+}
+
+.mp-add-photo-btn {
+  width: 110px;
+  height: 90px;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 500;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.mp-add-photo-btn:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
