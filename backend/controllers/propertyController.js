@@ -4,8 +4,9 @@ import {
     updateProperty,
     contactPropertySeller
 } from "../services/propertyServices.js"
-import { search, deletePropertyById, getTypes } from "../models/propertyModel.js";
+import { search, deletePropertyById, getTypes, getSellerProperties } from "../models/propertyModel.js";
 import { preparePropertyMediaUploads, getMediaUrls, getVirtualTour } from "../services/propertyMediaService.js";
+import { deleteMediaRecord } from "../models/propertyMediaModel.js";
 
 
 export async function getPropertyByIdHandler(req, res) {
@@ -174,5 +175,47 @@ export async function getPropertyTourHandler(req, res) {
     } catch (error) {
         console.error(error)
         res.status(500).json({ error: "Internal server error" })
+    }
+}
+
+export async function getMyProperties(req, res) {
+    try {
+        const properties = await getSellerProperties(req.session.userID)
+        res.json(properties)
+    } catch (err) {
+        console.error("GET /properties/mine error:", err)
+        res.status(500).json({ error: "Failed to load properties" })
+    }
+}
+
+export async function deleteMedia(req, res) {
+    try {
+        const deleted = await deleteMediaRecord(req.params.propertyId, req.params.mediaKey)
+        if (!deleted) return res.status(404).json({ error: "Media not found" })
+        res.status(200).json({ message: "Media deleted" })
+    } catch (err) {
+        console.error("DELETE media error:", err)
+        res.status(500).json({ error: "Failed to delete media" })
+    }
+}
+
+export async function addMedia(req, res) {
+    try {
+        const { media } = req.body
+        if (!media || !Array.isArray(media) || media.length === 0) {
+            return res.status(400).json({ error: "No media files provided" })
+        }
+        const preparedUploads = await preparePropertyMediaUploads(req.params.propertyId, media)
+        const uploadUrlsByFileName = {}
+        for (const upload of preparedUploads) {
+            uploadUrlsByFileName[upload.fileName] = {
+                uploadUrl: upload.presignedUrl,
+                mediaId: upload.objectKey
+            }
+        }
+        res.status(201).json({ media: uploadUrlsByFileName })
+    } catch (err) {
+        console.error("POST media error:", err)
+        res.status(500).json({ error: "Failed to prepare media uploads" })
     }
 }
