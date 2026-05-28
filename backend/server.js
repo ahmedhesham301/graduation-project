@@ -64,7 +64,7 @@ function getRoomId(senderId, receiverId, propertyId) {
 }
 
 io.on('connection', (socket) => {
-    console.log('🔌 New socket:', socket.id);
+    console.log('New socket:', socket.id);
 
     socket.on('join_chat', ({ senderId, receiverId, propertyId }) => {
         const roomId = getRoomId(senderId, receiverId, propertyId);
@@ -84,7 +84,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
-        console.log('🔌 Socket disconnected:', socket.id);
+        console.log('Socket disconnected:', socket.id);
     });
 });
 
@@ -92,5 +92,5 @@ io.on('connection', (socket) => {
 // Start server (listen on HTTP server so socket.io works)
 // -----------------------------------------------------------
 httpServer.listen(8080, '0.0.0.0', () => {
-    console.log('🚀 Server running on http://0.0.0.0:8080/api');
+    console.log('Server running on http://0.0.0.0:8080/api');
 });

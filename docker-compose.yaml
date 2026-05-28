@@ -8,7 +8,6 @@ services:
       - 5432:5432
     restart: unless-stopped
     volumes:
-      - pgdata:/var/lib/postgresql/data
       - ./backend/configs/sql/:/docker-entrypoint-initdb.d/
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
@@ -27,8 +26,6 @@ services:
     environment:
       REDIS_ARGS: "--requirepass 1234"
     restart: unless-stopped
-    volumes:
-      - redisdata:/data
     healthcheck:
       test: ["CMD-SHELL", "redis-cli -a 1234 ping"]
       interval: 10s
@@ -41,10 +38,6 @@ services:
     restart: unless-stopped
     ports:
       - 8080:8080
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
-    command: npx nodemon server.js
     environment:
       PGHOST: db
       PGPASSWORD: 1234
@@ -82,4 +75,3 @@ services:
 
 volumes:
   pgdata:
-  redisdata:
