@@ -2,13 +2,16 @@ import { RedisStore } from "connect-redis"
 import session from "express-session"
 import { redisClient } from "../database/redis.js";
 
-const redisStore = new RedisStore({
-    client: redisClient,
-    prefix: "sess:"
-})
+let store;
+if (process.env.NODE_ENV !== 'test') {
+    store = new RedisStore({
+        client: redisClient,
+        prefix: "sess:"
+    })
+}
 
 export const sessionMiddleware = session({
-    store: redisStore,
+    ...(store ? { store } : {}),
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,

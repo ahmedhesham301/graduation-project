@@ -27,16 +27,23 @@ export async function login(req, res) {
     try {
         let userData = await authenticateUser(req.body.email, req.body.password)
 
-        await req.session.regenerate(function (err) {
-            if (err) {
-                res.status(500).json({ message: "internal server error" })
-                console.error(err)
-            }
+        await new Promise((resolve, reject) => {
+            req.session.regenerate((err) => {
+                if (err) return reject(err)
+                resolve()
+            })
         })
 
         req.session.userID = userData.id
         req.session.email = userData.email
         req.session.role = userData.role
+
+        await new Promise((resolve, reject) => {
+            req.session.save((err) => {
+                if (err) return reject(err)
+                resolve()
+            })
+        })
 
         res.status(200).json({ message: "login successful", name: userData.name, role: userData.role, userId: userData.id })
     } catch (error) {

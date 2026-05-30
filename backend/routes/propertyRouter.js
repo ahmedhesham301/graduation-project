@@ -25,7 +25,7 @@ const router = Router()
 
 router.get('/properties/nearby', validateNearbyQuery, getNearby)
 router.get('/properties/types', getPropertyTypes)
-router.get('/properties/mine', isAuthenticated, isSellerVerified, getMyProperties)
+router.get('/my-properties', isAuthenticated, isSellerVerified, getMyProperties)
 router.get("/properties/:propertyId", validatePropertyId, trackPropertyView, getPropertyByIdHandler)
 router.get("/properties/:propertyId/tour", validatePropertyId, getPropertyTourHandler)
 router.get('/search', validateSearchQuery, searchForProperty)

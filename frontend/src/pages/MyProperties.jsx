@@ -52,7 +52,7 @@ export default function MyProperties({ onBack, onNavigate }) {
 
   const fetchProperties = async () => {
     try {
-      const { data } = await api.get('/properties/mine');
+      const { data } = await api.get('/my-properties');
       setProperties(data);
       // Fetch media for each property
       data.forEach(p => fetchMedia(p.id));

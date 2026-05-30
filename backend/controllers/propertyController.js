@@ -41,10 +41,12 @@ export async function create(req, res) {
         res.status(201).json({ id: property.id, media: uploadUrlsByFileName })
     } catch (error) {
         if (error.code === '23503') {
-            return res.status(422).json({ error: "seller_id does not exist" })
+            console.log("Foreign key violation:", error.detail)
+            return res.status(422).json({ error: "Foreign key violation: " + error.detail })
         }
-        else if (error.code === '23502' && error.column === 'type_id') {
-            return res.status(422).json({ error: "Invalid property type2" })
+        else if (error.code === '23502') {
+            console.log("NOT NULL violation:", error.column, error.detail)
+            return res.status(422).json({ error: `Missing required value for: ${error.column}` })
         }
         else if (error.code === '22P02' && error.routine === 'enum_in') {
             return res.status(422).json({ error: "Invalid condition" })

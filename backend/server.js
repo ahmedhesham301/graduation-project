@@ -1,59 +1,18 @@
-import 'dotenv/config';
-import express from 'express';
-import morgan from 'morgan';
-import { initDB } from "./database/postgresql.js";
-import { initRedis } from "./database/redis.js";
-import { initRateLimiters } from "./middlewares/rateLimiter.js";
-import { sessionMiddleware } from "./middlewares/session.js";
-import authRouter from "./routes/authRouter.js";
-import propertyRouter from "./routes/propertyRouter.js";
-import savedRouter from "./routes/savedRouter.js";
-import locationRouter from "./routes/locationRouter.js";
-import chatBotRouter from "./routes/chatBotRouter.js";
-import userRouter from "./routes/userRouter.js";
-import analyticsRouter from "./routes/analyticsRouter.js";
-import chatRouter from "./routes/chatRouter.js";
-import { createMessage } from "./models/chatModel.js";
-import { s3Init } from "./s3/s3.js";
-import helmet from "helmet";
-import cors from "cors";
-import { healthCheck } from "./controllers/healthCheck.js";
-
-// -----------------------------------------------------------
-// Socket.io setup (uses the same HTTP server as Express)
-// -----------------------------------------------------------
+import { createApp } from "./app.js";
 import { createServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
+import { createMessage } from "./models/chatModel.js";
+import morgan from "morgan";
 
-await initDB();
-await initRedis();
-await initRateLimiters();
-await s3Init();
-
-const app = express();
-app.use(helmet());
+const app = await createApp();
 
 if (process.env.ENV === "dev") {
     app.use(morgan('dev'));
 }
-app.use(express.json());
-app.use(cors({
-    origin: ["http://localhost:5173"],
-    credentials: true
-}));
-app.use(sessionMiddleware);
 
-app.use('/api/health', healthCheck);
-app.use('/api', authRouter);
-app.use('/api', propertyRouter);
-app.use('/api/favorites', savedRouter);
-app.use('/api', locationRouter);
-app.use('/api', chatBotRouter);
-app.use('/api', userRouter);
-app.use('/api', analyticsRouter);
-app.use('/api', chatRouter);
-
-// ------------------------ SOCKET.IO LOGIC ------------------------
+// -----------------------------------------------------------
+// Socket.io setup (uses the same HTTP server as Express)
+// -----------------------------------------------------------
 const httpServer = createServer(app);
 const io = new SocketIOServer(httpServer, {
     cors: { origin: ["http://localhost:5173"], credentials: true }

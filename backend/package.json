@@ -15,7 +15,8 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "start": "nodemon server.js"
   },
   "dependencies": {
@@ -43,6 +44,9 @@
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
-    "morgan": "^1.10.1"
+    "@vitest/ui": "^4.1.7",
+    "morgan": "^1.10.1",
+    "supertest": "^7.2.2",
+    "vitest": "^4.1.7"
   }
 }
