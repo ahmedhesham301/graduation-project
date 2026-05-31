@@ -505,7 +505,7 @@ export async function getSoldPropertiesList(page = 1) {
         JOIN cities c ON p.city_id = c.id
         JOIN districts d ON p.district_id = d.id
         JOIN property_types pt ON p.type_id = pt.id
-        JOIN purchase_offers po ON po.property_id = p.id AND po.status = 'accepted'
+        JOIN purchase_offers po ON po.property_id = p.id AND po.status = 'completed'
         JOIN users buyer ON po.buyer_id = buyer.id
         WHERE p.sold_at IS NOT NULL
         ORDER BY p.sold_at DESC
@@ -514,7 +514,7 @@ export async function getSoldPropertiesList(page = 1) {
     const countQuery = `
         SELECT COUNT(*) 
         FROM properties p
-        JOIN purchase_offers po ON po.property_id = p.id AND po.status = 'accepted'
+        JOIN purchase_offers po ON po.property_id = p.id AND po.status = 'completed'
         WHERE p.sold_at IS NOT NULL
     `
 
