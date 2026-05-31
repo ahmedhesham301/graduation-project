@@ -1,20 +1,13 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { createAgent, createRequest, generateUser } from './helpers.js';
+import { createAgent, createRequest, createSellerAgent } from './helpers.js';
 
 describe('Property Management Module', () => {
     let agent;
     let propertyId;
 
     beforeAll(async () => {
-        agent = await createAgent();
-        const testUser = generateUser();
-
-        await agent.post('/api/auth/register').send(testUser);
-        await agent.post('/api/auth/login').send({
-            email: testUser.email,
-            password: testUser.password
-        });
-        await agent.post('/api/user/become-seller');
+        const seller = await createSellerAgent();
+        agent = seller.agent;
     });
 
     describe('POST /api/properties', () => {
@@ -66,7 +59,6 @@ describe('Property Management Module', () => {
             if (!propertyId) return;
 
             const res = await agent.get(`/api/properties/${propertyId}`);
-            // Property may return 404 if pending_media is true (no actual upload in test)
             expect([200, 404]).toContain(res.status);
         });
 

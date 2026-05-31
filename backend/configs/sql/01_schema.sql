@@ -33,7 +33,8 @@ CREATE TYPE "property_conditions" AS ENUM (
 CREATE TYPE "property_contact_methods" AS ENUM (
   'phone',
   'email',
-  'whatsapp'
+  'whatsapp',
+  'chat'
 );
 
 CREATE TABLE "users" (

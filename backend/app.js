@@ -12,6 +12,8 @@ import chatBotRouter from "./routes/chatBotRouter.js";
 import userRouter from "./routes/userRouter.js";
 import analyticsRouter from "./routes/analyticsRouter.js";
 import chatRouter from "./routes/chatRouter.js";
+import adminRouter from "./routes/adminRouter.js";
+import offerRouter from "./routes/offerRouter.js";
 import { s3Init } from "./s3/s3.js";
 import helmet from "helmet";
 import cors from "cors";
@@ -43,6 +45,8 @@ export async function createApp() {
     app.use('/api', userRouter);
     app.use('/api', analyticsRouter);
     app.use('/api', chatRouter);
+    app.use('/api', adminRouter);
+    app.use('/api', offerRouter);
 
     return app;
 }

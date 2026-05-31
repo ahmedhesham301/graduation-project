@@ -5,7 +5,7 @@
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'property_contact_methods') THEN
-    CREATE TYPE property_contact_methods AS ENUM ('phone', 'email', 'whatsapp');
+    CREATE TYPE property_contact_methods AS ENUM ('phone', 'email', 'whatsapp', 'chat');
   END IF;
 END $$;
 

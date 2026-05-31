@@ -8,7 +8,7 @@ export async function findPropertyById(id, pendingMedia = null) {
         p.id, p.seller_id,
         u.full_name AS seller_name, u.email AS seller_email, u.phone AS seller_phone, p.condition,
         pt.name AS type,ST_Y(p.coordinates) AS lat,ST_X(p.coordinates) AS lon,
-        p.area, p.floors, p.rooms, p.bathrooms, c.name AS city, d.name AS district, p.description, p.price, p.deleted_at
+        p.area, p.floors, p.rooms, p.bathrooms, c.name AS city, d.name AS district, p.description, p.price, p.deleted_at, p.sold_at, p.sold_price
         FROM properties p
         JOIN users u
             ON u.id = p.seller_id
@@ -177,7 +177,7 @@ export async function search(page, orderBy, orderDirection, city, district, minP
     }
 
 
-    clauses.push("p.deleted_at IS NULL", "p.pending_media=false")
+    clauses.push("p.deleted_at IS NULL", "p.pending_media=false", "p.moderation_status = 'approved'")
 
     const offset = (page - 1) * PAGE_SIZE
 
@@ -185,7 +185,7 @@ export async function search(page, orderBy, orderDirection, city, district, minP
         text: `
     SELECT
       p.id, pt.name AS type, p.area, p.floors, p.rooms, p.bathrooms, p.price, p.condition,
-      c.name AS city, d.name AS district,
+      c.name AS city, d.name AS district, p.sold_at, p.sold_price,
       pm.s3_key || '.' || pm.extension AS media
     FROM properties p
     JOIN cities c
@@ -247,6 +247,8 @@ export async function findPropertiesNearby(lat, lon, radiusMeters, page) {
                 p.rooms,
                 p.bathrooms,
                 p.price,
+                p.sold_at,
+                p.sold_price,
                 ST_Y(p.coordinates) AS lat,
                 ST_X(p.coordinates) AS lon,
                 c.name AS city,
@@ -275,6 +277,7 @@ export async function findPropertiesNearby(lat, lon, radiusMeters, page) {
             WHERE
                 p.deleted_at IS NULL
                 AND p.pending_media = false
+                AND p.moderation_status = 'approved'
                 AND ST_DWithin(
                     p.coordinates::geography,
                     ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography,
@@ -306,7 +309,7 @@ export async function getSellerProperties(sellerId) {
     const query = {
         name: 'get-seller-properties',
         text: `SELECT p.id, pt.name AS type, p.area, p.rooms, p.bathrooms, p.price, p.condition,
-                    c.name AS city, d.name AS district, p.description, p.created_at,
+                    c.name AS city, d.name AS district, p.description, p.created_at, p.sold_at, p.sold_price, p.moderation_status, p.rejection_reason,
                     (SELECT s3_key FROM property_media pm WHERE pm.property_id = p.id ORDER BY pm.uploaded_at ASC LIMIT 1) AS thumbnail
              FROM properties p
              JOIN cities c ON c.id = p.city_id

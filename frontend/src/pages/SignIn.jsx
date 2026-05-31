@@ -43,7 +43,7 @@ export default function SignIn({ onNavigate, onLogin }) {
         text: response.data?.message || "Welcome back! You are now signed in.",
       });
 
-      setTimeout(() => { onLogin(); }, 1250);
+      setTimeout(() => { onLogin(role); }, 1250);
     } catch (error) {
       const serverMsg = error.response?.data?.message || error.response?.data?.error;
       setMsg({

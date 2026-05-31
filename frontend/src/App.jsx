@@ -7,6 +7,7 @@ import FavouriteProperties from "./pages/FavouriteProperties";
 import SearchResults from "./pages/SearchResults";
 import PropertyDetails from "./pages/PropertyDetails";
 import Inbox from "./pages/Inbox";
+import AdminDashboard from "./pages/AdminDashboard";
 import ChatBot from "./components/ChatBot";
 import { api } from "./components/Axios";
 import "./App.css";
@@ -23,6 +24,9 @@ export default function App() {
   );
   const [isLoggedIn, setIsLoggedIn] = useState(
     () => localStorage.getItem("isLoggedIn") === "true"
+  );
+  const [userRole, setUserRole] = useState(
+    () => localStorage.getItem("userRole") ?? null
   );
   const [currentUser, setCurrentUser] = useState({ id: 0 });
   const [searchFilters, setSearchFilters] = useState(() => {
@@ -55,6 +59,23 @@ export default function App() {
   useEffect(() => {
     sessionStorage.setItem("isSellerView", String(isSellerView));
   }, [isSellerView]);
+
+  // Update document title based on current page
+  useEffect(() => {
+    const titles = {
+      home: "3akarati | Home",
+      signin: "Sign In | 3akarati",
+      signup: "Sign Up | 3akarati",
+      profile: "Profile | 3akarati",
+      favourite: "Favorites | 3akarati",
+      search: "Search | 3akarati",
+      propertyDetails: "Property Details | 3akarati",
+      inbox: "Messages | 3akarati",
+      admin: "Admin Dashboard | 3akarati",
+    };
+    document.title = titles[page] || "3akarati";
+  }, [page]);
+
   const [profileTab, setProfileTab] = useState(null);
 
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
@@ -68,7 +89,7 @@ export default function App() {
     const fetchUser = async () => {
       try {
         const { data } = await api.get("/user/me");
-        setCurrentUser({ id: data.id, name: data.full_name });
+        setCurrentUser({ id: data.id, name: data.full_name, role: data.role });
       } catch (err) {
         console.error("Failed to fetch current user:", err);
       }
@@ -81,12 +102,14 @@ export default function App() {
     localStorage.removeItem("token");
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("isSeller");
+    localStorage.removeItem("userRole");
     sessionStorage.removeItem("page");
     sessionStorage.removeItem("previousPage");
     sessionStorage.removeItem("searchFilters");
     sessionStorage.removeItem("selectedPropertyId");
     sessionStorage.removeItem("isSellerView");
     setIsLoggedIn(false);
+    setUserRole(null);
     setPage("home");
   }, []);
 
@@ -96,20 +119,28 @@ export default function App() {
     return () => window.removeEventListener("auth:logout", clearAuthState);
   }, [clearAuthState]);
 
-  const handleLogin = () => {
+  const handleLogin = (role) => {
     setIsLoggedIn(true);
+    setUserRole(role);
     localStorage.setItem("isLoggedIn", "true");
-    setPage("home");
+    localStorage.setItem("userRole", role);
+    if (role === "admin") {
+      setPage("admin");
+    } else {
+      setPage("home");
+    }
   };
 
   const handleLogout = async () => {
     try {
       await api.post("/auth/logout");
     } catch (err) {
-      // Log error but always proceed with local logout
       console.error("Logout API error:", err.response?.data?.message ?? err.message);
     } finally {
-      clearAuthState();
+      // Small timeout to ensure state updates don't collide
+      setTimeout(() => {
+        clearAuthState();
+      }, 100);
     }
   };
 
@@ -163,6 +194,7 @@ const handleNavigate = (target, data = {}) => {
           theme={theme}
           toggleTheme={toggleTheme}
           isLoggedIn={isLoggedIn}
+          currentUser={currentUser}
           onLogout={handleLogout}
           onSearch={handleSearch}
         />
@@ -179,6 +211,7 @@ const handleNavigate = (target, data = {}) => {
           onNavigate={handleNavigate}
           theme={theme}
           isLoggedIn={isLoggedIn}
+          currentUser={currentUser}
           onLogout={handleLogout}
           initialTab={profileTab}
         />
@@ -189,6 +222,7 @@ const handleNavigate = (target, data = {}) => {
           theme={theme}
           toggleTheme={toggleTheme} 
           isLoggedIn={isLoggedIn}
+          currentUser={currentUser}
           onLogout={handleLogout}
         />
       )}
@@ -197,6 +231,7 @@ const handleNavigate = (target, data = {}) => {
           onNavigate={handleNavigate}
           theme={theme}
           isLoggedIn={isLoggedIn}
+          currentUser={currentUser}
           onLogout={handleLogout}
           initialFilters={searchFilters}
 
@@ -216,7 +251,10 @@ const handleNavigate = (target, data = {}) => {
     {page === "inbox" && (
         <Inbox currentUser={currentUser} onNavigate={handleNavigate} />
       )}
-      <ChatBot onNavigate={handleNavigate} />
+      {page === "admin" && (
+        <AdminDashboard onLogout={handleLogout} onNavigate={handleNavigate} currentUser={currentUser} />
+      )}
+      {page !== "admin" && <ChatBot onNavigate={handleNavigate} />}
       
     </div>
   );

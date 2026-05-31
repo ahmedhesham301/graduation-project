@@ -1,0 +1,105 @@
+.admin-contacts {
+    padding: 0;
+}
+
+.contacts-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2.5rem;
+}
+
+.contacts-header h2 {
+    font-size: 1.85rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    margin: 0;
+    color: #fff;
+}
+
+.contacts-count {
+    color: var(--admin-text-muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.contacts-filters {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    align-items: flex-end;
+    background: var(--admin-card-bg);
+    padding: 1.5rem;
+    border-radius: 16px;
+    border: 1px solid var(--admin-border);
+}
+
+.contacts-filters label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: var(--admin-text-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.contacts-filters input[type="date"] {
+    padding: 0.75rem;
+    background: var(--admin-bg);
+    border: 1px solid var(--admin-border);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 0.9rem;
+}
+
+.filter-btn, .clear-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 0.9rem;
+    border: none;
+    transition: all 0.2s;
+}
+
+.filter-btn { background: var(--admin-primary); color: #fff; }
+.clear-btn { background: rgba(255, 255, 255, 0.05); color: var(--admin-text-muted); border: 1px solid var(--admin-border); }
+
+.contacts-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--admin-card-bg);
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid var(--admin-border);
+}
+
+.contacts-table th, .contacts-table td {
+    padding: 1.25rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--admin-border);
+}
+
+.contacts-table th {
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--admin-text-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.method-badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.method-badge.phone { background: rgba(16, 185, 129, 0.1); color: var(--admin-success); }
+.method-badge.email { background: rgba(59, 130, 246, 0.1); color: var(--admin-primary); }
+.method-badge.whatsapp { background: rgba(37, 211, 102, 0.1); color: #25d366; }
+.method-badge.chat { background: rgba(167, 139, 250, 0.1); color: #a78bfa; }

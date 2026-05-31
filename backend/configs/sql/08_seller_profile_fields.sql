@@ -1,0 +1,6 @@
+ALTER TABLE seller_profile ADD COLUMN IF NOT EXISTS rejection_reason TEXT;
+ALTER TABLE seller_profile ADD COLUMN IF NOT EXISTS business_name VARCHAR;
+ALTER TABLE seller_profile ADD COLUMN IF NOT EXISTS business_type VARCHAR;
+ALTER TABLE seller_profile ADD COLUMN IF NOT EXISTS national_id VARCHAR;
+ALTER TABLE seller_profile ADD COLUMN IF NOT EXISTS submitted_at TIMESTAMPTZ;
+ALTER TABLE seller_profile ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ;

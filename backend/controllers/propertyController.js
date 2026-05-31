@@ -172,7 +172,7 @@ export async function getPropertyTypes(req, res) {
 export async function getPropertyTourHandler(req, res) {
     try {
         const tour = await getVirtualTour(req.params.propertyId)
-        if (!tour) return res.status(404).send()
+        if (!tour) return res.status(200).json(null)
         return res.status(200).json(tour)
     } catch (error) {
         console.error(error)

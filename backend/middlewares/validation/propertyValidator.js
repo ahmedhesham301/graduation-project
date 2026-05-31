@@ -59,7 +59,7 @@ const propertyPatchSchema = z.object({
 )
 
 const propertyContactSchema = z.object({
-    contact_method: z.enum(["phone", "email", "whatsapp"])
+    contact_method: z.enum(["phone", "email", "whatsapp", "chat"])
 })
 
 export async function validatePropertyBody(req, res, next) {

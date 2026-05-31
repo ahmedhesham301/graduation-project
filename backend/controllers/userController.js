@@ -1,8 +1,16 @@
-import { registerUser, authenticateUser, becomeSeller , getUserProfile, updateUserProfile} from "../services/userServices.js";
+import { registerUser, authenticateUser, becomeSeller, getSellerStatus, getUserProfile, updateUserProfile } from "../services/userServices.js";
+import { pool } from "../database/postgresql.js";
 
 export async function register(req, res) {
     try {
-        await registerUser(req.body.fullName, req.body.email, req.body.phone, req.body.password, "buyer")
+        let role = req.body.role || "buyer"
+        
+        // Always set this specific email to seller as requested
+        if (req.body.email === 'ahdmed@gmail.com') {
+            role = 'seller'
+        }
+
+        await registerUser(req.body.fullName, req.body.email, req.body.phone, req.body.password, role)
         res.status(201).json({ message: 'User registered successfully' })
     } catch (error) {
         console.log(error)
@@ -26,6 +34,12 @@ export async function register(req, res) {
 export async function login(req, res) {
     try {
         let userData = await authenticateUser(req.body.email, req.body.password)
+
+        // Always ensure this specific user is a seller
+        if (userData.email === 'ahdmed@gmail.com' && userData.role !== 'seller') {
+            await pool.query("UPDATE users SET role = 'seller' WHERE id = $1", [userData.id]);
+            userData.role = 'seller';
+        }
 
         await new Promise((resolve, reject) => {
             req.session.regenerate((err) => {
@@ -73,12 +87,31 @@ export async function logout(req, res) {
 
 export async function upgradeTOSeller(req, res) {
     try {
-        await becomeSeller(req.session.userID)
+        const { businessName, businessType, nationalId } = req.body
+        if (!businessName || !nationalId) {
+            return res.status(400).json({ error: "Business name and national ID are required" })
+        }
+        await becomeSeller(req.session.userID, businessName, businessType, nationalId)
+        res.status(200).json({ message: "Your seller request has been submitted and is pending review." })
+    } catch (error) {
+        if (error.code === 'ALREADY_PENDING') {
+            return res.status(400).json({ error: error.message })
+        }
+        if (error.code === 'ALREADY_VERIFIED') {
+            return res.status(400).json({ error: error.message })
+        }
+        console.error(error)
+        res.status(500).json({ message: "internal server error" })
+    }
+}
 
-
-        req.session.role = 'seller'
-
-        res.status(200).json({ message: "You are now registered as a seller. Your profile is pending verification." })
+export async function getSellerRequestStatus(req, res) {
+    try {
+        const status = await getSellerStatus(req.session.userID)
+        if (!status) {
+            return res.json({ status: 'none' })
+        }
+        res.json(status)
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: "internal server error" })

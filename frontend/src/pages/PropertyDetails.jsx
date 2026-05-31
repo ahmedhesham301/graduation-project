@@ -111,6 +111,12 @@ export default function PropertyDetails({
   const [tourLoading, setTourLoading] = useState(false);
   const [showVR, setShowVR] = useState(true);
 
+  /* ── Offer state ── */
+  const [showOfferModal, setShowOfferModal] = useState(false);
+  const [offerPrice, setOfferPrice] = useState("");
+  const [isOfferPending, setIsOfferPending] = useState(false);
+  const [offerLoading, setOfferLoading] = useState(false);
+
   const openLightbox = (index) => { setLightboxIndex(index); setLightboxOpen(true); };
   const closeLightbox = () => setLightboxOpen(false);
 
@@ -129,15 +135,18 @@ export default function PropertyDetails({
   /* ── Fetch property by ID ── */
   useEffect(() => {
     if (!propertyId) return;
+    
+    // If we already have this property loaded, don't show full page loader again
+    const isNewProperty = property?.id !== Number(propertyId);
+    
     const fetchProperty = async () => {
       try {
-        setLoading(true);
+        if (isNewProperty) {
+          setLoading(true);
+          setProperty(null);
+        }
         setError(null);
-        const isSeller = currentUser?.role === "seller";
-        const endpoint = isSeller
-          ? `/seller/properties/${propertyId}`
-          : `/properties/${propertyId}`;
-        const res = await api.get(endpoint);
+        const res = await api.get(`/properties/${propertyId}`);
         setProperty(res.data);
       } catch (err) {
         setError("Failed to load property details. Please try again.");
@@ -146,7 +155,7 @@ export default function PropertyDetails({
       }
     };
     fetchProperty();
-  }, [propertyId]);
+  }, [propertyId, currentUser?.id]);
 
   /* ── Fetch & unzip VR tour after property loads ── */
   useEffect(() => {
@@ -158,11 +167,19 @@ export default function PropertyDetails({
       setTourLoading(true);
       try {
         const res = await api.get(`/properties/${propertyId}/tour`);
+        if (!res.data) {
+          setShowVR(false);
+          return;
+        }
+
         const zipFilename = typeof res.data === "string"
           ? res.data.replace(/^"|"$/g, "").trim()
           : String(res.data).trim();
 
-        if (!zipFilename) return;
+        if (!zipFilename || zipFilename === "null") {
+          setShowVR(false);
+          return;
+        }
 
         const base = BUCKET_url.replace(/\/+$/, "");
         const zipRes = await fetch(`${base}/media/${propertyId}/${zipFilename}`);
@@ -342,6 +359,34 @@ export default function PropertyDetails({
     setFavLoading(false);
   };
 
+  useEffect(() => {
+    if (!isLoggedIn || !propertyId || !currentUser?.id || currentUser.id === property?.seller_id) return;
+    const checkOffer = async () => {
+      try {
+        const res = await api.get("/user/offers");
+        const hasOffer = res.data.some(o => o.property_id === Number(propertyId) && o.status === "pending");
+        setIsOfferPending(hasOffer);
+      } catch (_) {}
+    };
+    checkOffer();
+  }, [isLoggedIn, propertyId, currentUser, property?.seller_id]);
+
+  const handleMakeOffer = async (e) => {
+    e.preventDefault();
+    if (!offerPrice || isNaN(offerPrice)) return;
+    setOfferLoading(true);
+    try {
+      await api.post(`/properties/${propertyId}/offers`, { offer_price: Number(offerPrice) });
+      setIsOfferPending(true);
+      setShowOfferModal(false);
+      alert("Offer submitted successfully!");
+    } catch (err) {
+      alert(err.response?.data?.error || "Failed to submit offer");
+    } finally {
+      setOfferLoading(false);
+    }
+  };
+
   /* ── Media helpers ── */
   const mediaList = Array.isArray(property?.media) ? property.media : [];
   const imgUrl = (filename) =>
@@ -378,6 +423,7 @@ export default function PropertyDetails({
           theme={theme}
           toggleTheme={toggleTheme}
           isLoggedIn={isLoggedIn}
+          currentUser={currentUser}
         />
         <div className="pd-loader">
           <div className="pd-spinner" />
@@ -394,13 +440,14 @@ export default function PropertyDetails({
           theme={theme}
           toggleTheme={toggleTheme}
           isLoggedIn={isLoggedIn}
+          currentUser={currentUser}
         />
-          {/* <div className="pd-error">
-            <p>{error || "Property not found."}</p>
-            <button className="pd-back-btn" onClick={() => onNavigate("home")}>
-              ← Back to Home
-            </button>
-          </div> */}
+        <div className="pd-error">
+          <p>{error || "Property not found."}</p>
+          <button className="pd-back-btn" onClick={() => onNavigate("home")}>
+            ← Back to Home
+          </button>
+        </div>
       </div>
     );
 
@@ -411,6 +458,7 @@ export default function PropertyDetails({
         theme={theme}
         toggleTheme={toggleTheme}
         isLoggedIn={isLoggedIn}
+        currentUser={currentUser}
       />
 
       <div className="pd-container">
@@ -547,8 +595,11 @@ export default function PropertyDetails({
               <div className="pd-price">
                 <span className="pd-price-label">EGP</span>
                 <span className="pd-price-val">
-                  {Number(property.price).toLocaleString()}
+                  {Number(property.sold_price || property.price).toLocaleString()}
                 </span>
+                {property.sold_at && (
+                  <span className="pd-sold-badge">SOLD</span>
+                )}
               </div>
               <button
                 className={`pd-fav-btn ${isFav ? "active" : ""}`}
@@ -630,7 +681,7 @@ export default function PropertyDetails({
             {/* Description */}
             <div className="pd-section">
               <h2 className="pd-section-title">
-                {property.type} for {property.available ? "Sale" : "Rent"} in{" "}
+                {property.type} {property.sold_at ? "Sold" : "for Sale"} in{" "}
                 {property.district}, {property.city}
               </h2>
               <p className="pd-description">{property.description}</p>
@@ -649,7 +700,7 @@ export default function PropertyDetails({
                   { label: "Bathrooms",  value: property.bathrooms },
                   { label: "Floor",      value: property.floors ?? "—" },
                   { label: "Condition",  value: property.condition ?? "—" },
-                  { label: "Status",     value: property.available ? "Available" : "Unavailable" },
+                  { label: "Status",     value: property.sold_at ? "Sold" : (property.available ? "Available" : "Unavailable") },
                 ].map(({ label, value }) => (
                   <div className="pd-detail-row" key={label}>
                     <span className="pd-detail-label">{label}</span>
@@ -740,6 +791,21 @@ export default function PropertyDetails({
                 </a>
               </div>
 
+              {isLoggedIn && currentUser?.id !== property?.seller_id && property?.available && (
+                <div className="pd-offer-section">
+                  <button
+                    className={`pd-offer-btn ${isOfferPending ? "pending" : ""}`}
+                    onClick={() => !isOfferPending && setShowOfferModal(true)}
+                    disabled={isOfferPending}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+                    </svg>
+                    {isOfferPending ? "Offer Pending" : "Make an Offer"}
+                  </button>
+                </div>
+              )}
+
               {property.seller_email && (
                 <p className="pd-seller-email">{property.seller_email}</p>
               )}
@@ -760,7 +826,45 @@ export default function PropertyDetails({
         </div>
       </div>
 
-            {/* ── Lightbox ── */}
+      {/* ── Offer Modal ── */}
+      {showOfferModal && (
+        <div className="pd-modal-overlay" onClick={() => setShowOfferModal(false)}>
+          <div className="pd-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="pd-modal-header">
+              <h3>Make an Offer</h3>
+              <button className="pd-modal-close" onClick={() => setShowOfferModal(false)}>&times;</button>
+            </div>
+            <form onSubmit={handleMakeOffer} className="pd-modal-body">
+              <p>Suggest a purchase price for this property.</p>
+              <div className="pd-modal-field">
+                <label>Offer Price (EGP)</label>
+                <div className="pd-modal-input-wrap">
+                  <input
+                    type="number"
+                    value={offerPrice}
+                    onChange={(e) => setOfferPrice(e.target.value)}
+                    placeholder={`e.g. ${property.price}`}
+                    required
+                    min="1"
+                  />
+                  <span>EGP</span>
+                </div>
+              </div>
+              <div className="pd-modal-info">
+                <p><strong>Listing Price:</strong> EGP {Number(property.price).toLocaleString()}</p>
+              </div>
+              <div className="pd-modal-footer">
+                <button type="button" className="pd-btn-cancel" onClick={() => setShowOfferModal(false)}>Cancel</button>
+                <button type="submit" className="pd-btn-submit" disabled={offerLoading}>
+                  {offerLoading ? "Submitting..." : "Submit Offer"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Lightbox ── */}
       {lightboxOpen && mediaList.length > 0 && (
         <div className="pd-lightbox" onClick={closeLightbox}>
           {/* Close button */}

@@ -73,6 +73,21 @@
   border-radius: 4px; letter-spacing: 0.5px;
 }
 
+.fp-sold-badge {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #e53935;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(229, 57, 53, 0.4);
+  z-index: 2;
+}
+
 .fp-card-info {
   flex: 1; padding: 16px 18px;
   display: flex; flex-direction: column; gap: 8px; min-width: 0;

@@ -26,6 +26,12 @@ export default function PropertyChat({ propertyId, sellerId, currentUser = { id:
           `/chat/${propertyId}/${currentUser.id}/${sellerId}`
         );
         setMessages(Array.isArray(data?.messages) ? data.messages : []);
+        
+        // Record this as a contact event for analytics
+        if (currentUser.id !== sellerId) {
+          api.post(`/properties/${propertyId}/contact`, { contact_method: 'chat' })
+            .catch(err => console.warn('Failed to record chat contact lead:', err));
+        }
       } catch (e) {
         console.error('Failed to fetch chat history', e);
         setMessages([]);

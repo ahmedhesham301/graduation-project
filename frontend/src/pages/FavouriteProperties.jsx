@@ -17,7 +17,7 @@ const RECOMMENDED = [
 ];
 
 
-export default function FavouriteProperties({ onNavigate, theme, toggleTheme, isLoggedIn }) {
+export default function FavouriteProperties({ onNavigate, theme, toggleTheme, isLoggedIn, currentUser }) {
   const [allProperties, setAllProperties] = useState([]); // all data from API
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE); // how many to show
   const [loading, setLoading] = useState(true);
@@ -60,6 +60,7 @@ export default function FavouriteProperties({ onNavigate, theme, toggleTheme, is
 
   return (
     <div className="fp-page">
+      <Navbar onNavigate={onNavigate} theme={theme} toggleTheme={toggleTheme} isLoggedIn={isLoggedIn} currentUser={currentUser} />
 
       <div className="fp-body">
 
@@ -71,6 +72,9 @@ export default function FavouriteProperties({ onNavigate, theme, toggleTheme, is
             <div className="fp-card" key={p.property_id} onClick={() => {onNavigate("propertyDetails", { id: p.property_id , from: "favourite" });}} style={{ cursor: "pointer" }}>
               <div className="fp-card-img-wrap">
                 <img src={p.media  ? `${BUCKET_url}/media/${p.property_id}/${p.media}` : "https://via.placeholder.com/400"} alt={p.type} className="fp-card-img" />
+                {p.sold_at && (
+                  <span className="fp-sold-badge">SOLD</span>
+                )}
                 {p.tag && <span className="fp-tag">{p.tag}</span>}
               </div>
               <div className="fp-card-info">

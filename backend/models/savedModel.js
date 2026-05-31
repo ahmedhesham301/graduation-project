@@ -30,6 +30,8 @@ export async function getSavedProperties(userId) {
                 d.name AS district,
                 p.description,
                 p.price,
+                p.sold_at,
+                p.sold_price,
                 pm.s3_key || '.' || pm.extension AS media
                FROM saved s
                JOIN properties p ON p.id = s.property_id

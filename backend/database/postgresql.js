@@ -1,11 +1,10 @@
 import { Pool } from "pg"
 import fs from "fs";
 let poolConfig = {
-    user: process.env.PGUSER,
-    password: process.env.PGPASSWORD,
-    database: process.env.PGDATABASE,
-    host: process.env.PGHOST,
-    // ssl,
+    user: process.env.PGUSER || 'postgres',
+    password: String(process.env.PGPASSWORD || '1234'),
+    database: process.env.PGDATABASE || 'postgres',
+    host: '127.0.0.1', // Use 127.0.0.1 directly for Windows stability
 }
 if (process.env.ENV === "prod") {
     poolConfig = {
@@ -17,14 +16,27 @@ export const pool = new Pool(poolConfig)
 
 export async function initDB() {
     try {
+        if (!process.env.PGPASSWORD) {
+            console.warn("WARNING: PGPASSWORD is not set in environment variables!");
+        }
         await pool.query("SELECT now()")
-
     } catch (error) {
-        console.error("error", error)
-        process.exit(1)
+        console.error("Database connection failed:", error.message);
+        console.error("Connection details:", {
+            user: process.env.PGUSER,
+            host: process.env.PGHOST,
+            database: process.env.PGDATABASE,
+            port: 5432
+        });
+        if (process.env.NODE_ENV !== 'test') {
+            process.exit(1);
+        }
+        throw error;
     }
     pool.on("error", (error) => {
-        console.error("PostgreSQL pool error")
-        process.exit(1)
+        console.error("PostgreSQL pool error:", error.message);
+        if (process.env.NODE_ENV !== 'test') {
+            process.exit(1);
+        }
     })
 }

@@ -40,36 +40,48 @@ export async function findById(id) {
 }
 
 
-export async function upgradeToSeller(userId) {
-    const client = await pool.connect()
-    try {
-        await client.query('BEGIN')
-
-        await client.query(
-            'UPDATE users SET role = $1 WHERE id = $2',
-            ['seller', userId]
+export async function upgradeToSeller(userId, businessName, businessType, nationalId) {
+    const existing = await pool.query(
+        'SELECT id, status FROM seller_profile WHERE user_id = $1',
+        [userId]
+    )
+    if (existing.rows.length > 0) {
+        const status = existing.rows[0].status
+        if (status === 'pending') {
+            const err = new Error("Your seller request is already pending review")
+            err.code = 'ALREADY_PENDING'
+            throw err
+        }
+        if (status === 'verified') {
+            const err = new Error("You are already a verified seller")
+            err.code = 'ALREADY_VERIFIED'
+            throw err
+        }
+        // If rejected, allow resubmission
+        await pool.query(
+            `UPDATE seller_profile SET status = 'pending', business_name = $1, business_type = $2, national_id = $3, submitted_at = NOW(), rejection_reason = NULL, reviewed_at = NULL WHERE user_id = $4`,
+            [businessName, businessType, nationalId, userId]
         )
-
-        await client.query(
-            `INSERT INTO seller_profile (user_id, status)
-             VALUES ($1, 'unverified')
-             ON CONFLICT (user_id) DO NOTHING`,
-            [userId]
+    } else {
+        await pool.query(
+            `INSERT INTO seller_profile (user_id, status, business_name, business_type, national_id, submitted_at)
+             VALUES ($1, 'pending', $2, $3, $4, NOW())`,
+            [userId, businessName, businessType, nationalId]
         )
-
-        await client.query('COMMIT')
-
-    } catch (error) {
-        await client.query('ROLLBACK')
-        throw error
-    } finally {
-        client.release()
     }
+}
+
+export async function getSellerProfileByUserId(userId) {
+    const result = await pool.query(
+        'SELECT status, business_name, business_type, national_id, rejection_reason, submitted_at, reviewed_at FROM seller_profile WHERE user_id = $1',
+        [userId]
+    )
+    return result.rows[0] || null
 }
 export async function findUserById(id) {
     const query = {
         name: 'find-user-profile-by-id',
-        text: `SELECT id, full_name, email, phone FROM users WHERE id = $1`,
+        text: `SELECT id, full_name, email, phone, role FROM users WHERE id = $1`,
         values: [id]
     }
     const { rows } = await pool.query(query)

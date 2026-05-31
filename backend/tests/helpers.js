@@ -31,3 +31,36 @@ export function generateUser() {
         phone: `+201${String(ts).slice(-9)}`
     };
 }
+
+export async function createSellerAgent() {
+    const agent = await createAgent();
+    const user = generateUser();
+    await agent.post('/api/auth/register').send(user);
+    await agent.post('/api/auth/login').send({ email: user.email, password: user.password });
+
+    // Submit seller application
+    await agent.post('/api/user/become-seller').send({
+        businessName: 'Test Business',
+        businessType: 'Agency',
+        nationalId: '29901011234567'
+    });
+
+    // Admin approves
+    const adminAgent = await createAgent();
+    await adminAgent.post('/api/auth/login').send({
+        email: 'admin@3akarati.com',
+        password: 'Admin123!'
+    });
+
+    // Get user ID from admin users list
+    const usersRes = await adminAgent.get(`/api/admin/users?search=${user.email}`);
+    const userId = usersRes.body.users[0]?.id;
+    if (userId) {
+        await adminAgent.post(`/api/admin/seller-requests/${userId}/approve`);
+    }
+
+    // Re-login to refresh session role
+    await agent.post('/api/auth/login').send({ email: user.email, password: user.password });
+
+    return { agent, user };
+}

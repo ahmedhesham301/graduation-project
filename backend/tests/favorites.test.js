@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { createAgent, createRequest, generateUser } from './helpers.js';
+import { createAgent, createRequest, generateUser, createSellerAgent } from './helpers.js';
 
 describe('Favorites Module', () => {
     let agent;
@@ -7,14 +7,8 @@ describe('Favorites Module', () => {
 
     beforeAll(async () => {
         // Create a seller and a property
-        const sellerAgent = await createAgent();
-        const sellerUser = generateUser();
-        await sellerAgent.post('/api/auth/register').send(sellerUser);
-        await sellerAgent.post('/api/auth/login').send({
-            email: sellerUser.email,
-            password: sellerUser.password
-        });
-        await sellerAgent.post('/api/user/become-seller');
+        const seller = await createSellerAgent();
+        const sellerAgent = seller.agent;
 
         const propRes = await sellerAgent.post('/api/properties').send({
             type: 'apartment',

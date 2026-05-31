@@ -10,13 +10,14 @@ export async function getPropertyById(propertyId) {
     const propertyRecord = await findPropertyById(propertyId, false)
     if (!propertyRecord) return null;
 
-    const { deleted_at: deletedAt, ...propertyRecordWithoutDeleted_at } = propertyRecord
+    const { deleted_at: deletedAt, sold_at: soldAt, ...propertyData } = propertyRecord
 
-    const isAvailable = !deletedAt
+    const isAvailable = !deletedAt && !soldAt
 
     return {
-        ...propertyRecordWithoutDeleted_at,
-        available: isAvailable
+        ...propertyData,
+        available: isAvailable,
+        sold_at: soldAt
     }
 }
 

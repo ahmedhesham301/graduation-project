@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt"
-import { save, findByEmail, upgradeToSeller , findUserById, updateUser  } from "../models/userModel.js";
+import { save, findByEmail, upgradeToSeller, getSellerProfileByUserId, findUserById, updateUser } from "../models/userModel.js";
 
 export async function registerUser(fullName, email, phone, password, role) {
     const passwordHash = await bcrypt.hash(password, 10);
@@ -24,8 +24,12 @@ export async function authenticateUser(email, password) {
     throw err
 }
 
-export async function becomeSeller(userId) {
-    await upgradeToSeller(userId)
+export async function becomeSeller(userId, businessName, businessType, nationalId) {
+    await upgradeToSeller(userId, businessName, businessType, nationalId)
+}
+
+export async function getSellerStatus(userId) {
+    return await getSellerProfileByUserId(userId)
 }
 export async function getUserProfile(userId) {
     return await findUserById(userId)

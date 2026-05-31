@@ -1,19 +1,12 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { createAgent, createRequest, generateUser } from './helpers.js';
+import { createAgent, createRequest, generateUser, createSellerAgent } from './helpers.js';
 
 describe('Analytics Module', () => {
     let sellerAgent;
 
     beforeAll(async () => {
-        sellerAgent = await createAgent();
-        const sellerUser = generateUser();
-
-        await sellerAgent.post('/api/auth/register').send(sellerUser);
-        await sellerAgent.post('/api/auth/login').send({
-            email: sellerUser.email,
-            password: sellerUser.password
-        });
-        await sellerAgent.post('/api/user/become-seller');
+        const seller = await createSellerAgent();
+        sellerAgent = seller.agent;
     });
 
     describe('GET /api/seller/analytics', () => {

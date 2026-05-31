@@ -113,6 +113,21 @@
   flex-shrink: 0;
 }
 
+.mp-sold-badge {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  background: #e53935;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(229, 57, 53, 0.4);
+}
+
 .mp-card-img-ph {
   width: 100%;
   height: 120px;
@@ -139,6 +154,31 @@
   font-weight: 700;
   color: #111827;
   margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mp-status-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 99px;
+  text-transform: uppercase;
+}
+
+.mp-status-badge.pending { background: #fef3c7; color: #92400e; }
+.mp-status-badge.approved { background: #d1fae5; color: #065f46; }
+.mp-status-badge.rejected { background: #fee2e2; color: #991b1b; }
+
+.mp-rejection-note {
+  background: #fff1f2;
+  border-left: 4px solid #f43f5e;
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: #9f1239;
+  border-radius: 4px;
 }
 
 .mp-card-type {

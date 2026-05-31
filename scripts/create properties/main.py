@@ -44,6 +44,7 @@ registerData = {
     "email": "ahdmed@gmail.com",
     "phone": "+201091599588",
     "password": "123456789",
+    "role": "seller"
 }
 
 base_session.post(f"{api_host}/auth/register", json=registerData)

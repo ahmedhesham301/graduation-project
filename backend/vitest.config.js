@@ -8,7 +8,12 @@ export default defineConfig({
         setupFiles: ['./tests/setup.js'],
         fileParallelism: false,
         env: {
-            NODE_ENV: 'test'
+            NODE_ENV: 'test',
+            PGHOST: 'localhost',
+            PGUSER: 'postgres',
+            PGPASSWORD: '1234',
+            PGDATABASE: 'postgres',
+            PGPORT: '5432'
         },
         reporters: ['default', 'html'],
         outputFile: {

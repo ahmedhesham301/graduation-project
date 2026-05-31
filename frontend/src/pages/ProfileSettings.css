@@ -304,7 +304,7 @@
   transition: background 0.2s;
 }
 
-.ps-seller-btn.loading {
+.ps-seller-btn:disabled {
   background: #93c5fd;
   cursor: not-allowed;
 }
@@ -318,8 +318,97 @@
   padding: 0.5rem 0.85rem;
 
   font-size: 0.8rem;
-  max-width: 220px;
+  max-width: 320px;
   text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.ps-seller-status {
+  background: var(--card, #f9fafb);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  max-width: 360px;
+  border: 1px solid var(--border, #e5e7eb);
+}
+
+.ps-seller-status.pending {
+  border-left: 4px solid #f59e0b;
+}
+
+.ps-seller-status.rejected {
+  border-left: 4px solid #dc2626;
+}
+
+.ps-seller-status strong {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: 0.95rem;
+}
+
+.ps-seller-status p {
+  font-size: 0.85rem;
+  color: var(--text-muted, #6b7280);
+  margin: 0.2rem 0;
+}
+
+.ps-seller-reason {
+  color: #dc2626 !important;
+  font-style: italic;
+}
+
+.ps-seller-submitted {
+  font-size: 0.8rem !important;
+  color: #9ca3af !important;
+}
+
+.ps-seller-form {
+  background: var(--card, #f9fafb);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 12px;
+  padding: 1.25rem;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ps-seller-form h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
+}
+
+.ps-seller-form input {
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: var(--bg, #fff);
+  color: var(--text, #111);
+}
+
+.ps-seller-form input:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.ps-seller-form-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.ps-seller-cancel {
+  padding: 0.6rem 1rem;
+  background: transparent;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--text, #111);
+}
+
+.ps-seller-cancel:hover {
+  background: var(--border, #e5e7eb);
 }
 
 @media (max-width: 768px) {

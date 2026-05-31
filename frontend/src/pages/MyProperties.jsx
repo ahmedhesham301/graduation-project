@@ -267,6 +267,7 @@ export default function MyProperties({ onBack, onNavigate }) {
                         onError={(e) => { e.target.style.display = 'none'; }}
                       />
                     ))}
+                    {property.sold_at && <span className="mp-sold-badge">SOLD</span>}
                   </div>
                 ) : property.thumbnail ? (
                   <div className="mp-photos-grid">
@@ -276,6 +277,7 @@ export default function MyProperties({ onBack, onNavigate }) {
                       className="mp-photo"
                       onError={(e) => { e.target.style.display = 'none'; }}
                     />
+                    {property.sold_at && <span className="mp-sold-badge">SOLD</span>}
                   </div>
                 ) : (
                   <div className="mp-card-img-ph"><IconHome /></div>
@@ -440,7 +442,12 @@ export default function MyProperties({ onBack, onNavigate }) {
                   <>
                     <div className="mp-card-top">
                       <div>
-                        <div className="mp-card-price">{formatPrice(property.price)}</div>
+                        <div className="mp-card-price">
+                          {formatPrice(property.price)}
+                          <span className={`mp-status-badge ${property.moderation_status}`}>
+                            {property.moderation_status}
+                          </span>
+                        </div>
                         <div className="mp-card-type">{property.type}</div>
                       </div>
                       <div className="mp-card-actions">
@@ -452,6 +459,11 @@ export default function MyProperties({ onBack, onNavigate }) {
                         </button>
                       </div>
                     </div>
+                    {property.moderation_status === 'rejected' && property.rejection_reason && (
+                      <div className="mp-rejection-note">
+                        <strong>Reason:</strong> {property.rejection_reason}
+                      </div>
+                    )}
 
                     <div className="mp-card-location">
                       <IconPin /> {property.district}, {property.city}

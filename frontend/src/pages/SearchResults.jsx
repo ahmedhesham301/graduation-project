@@ -13,7 +13,7 @@ function formatPrice(n) {
 }
 
 export default function SearchResults({
-  onNavigate, theme, toggleTheme, isLoggedIn,
+  onNavigate, theme, toggleTheme, isLoggedIn, currentUser,
   initialFilters = {},
 }) {
   /* ── Property types from API ── */
@@ -239,7 +239,7 @@ export default function SearchResults({
 
   return (
     <div className="sr-page">
-      <Navbar onNavigate={onNavigate} theme={theme} toggleTheme={toggleTheme} isLoggedIn={isLoggedIn} hideThemeToggle={true} />
+      <Navbar onNavigate={onNavigate} theme={theme} toggleTheme={toggleTheme} isLoggedIn={isLoggedIn} currentUser={currentUser} hideThemeToggle={true} />
 
       {/* Mobile filter toggle */}
       <div className="sr-mobile-bar">
@@ -493,6 +493,9 @@ export default function SearchResults({
                         }}
                       />
                       <span className="sr-type-badge">{p.type}</span>
+                      {p.sold_at && (
+                        <span className="sr-sold-badge">SOLD</span>
+                      )}
                       <button className={`sr-fav-btn ${favs.includes(p.id) ? "active" : ""}`}
                         onClick={(e) => {e.stopPropagation(); toggleFav(p.id);}}>
                         <svg width="16" height="16" viewBox="0 0 24 24"

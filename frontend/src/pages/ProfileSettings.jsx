@@ -4,6 +4,7 @@ import FavouriteProperties from "./FavouriteProperties";
 import SellerDashboard from "./sellerDashboard";
 import ChatHistory from "./ChatHistory";
 import MyProperties from "./MyProperties";
+import PropertyOffers from "./PropertyOffers";
 import "./ProfileSettings.css";
 import { api } from "../components/Axios";
 
@@ -83,9 +84,14 @@ const IconBuilding = () => (
     <path d="M14 8h.01M10 8h.01M14 12h.01M10 12h.01" />
   </svg>
 );
+const IconDollarSign = () => (
+  <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+  </svg>
+);
 
 /* ── Main Component ── */
-export default function ProfileSettings({ onNavigate, onLogout, initialTab }) {
+export default function ProfileSettings({ onNavigate, onLogout, initialTab, currentUser }) {
   const [activeNav, setActiveNav]         = useState(initialTab || "edit");
   const [editMode, setEditMode]           = useState(false);
   const [menuOpen, setMenuOpen]           = useState(false);
@@ -94,6 +100,7 @@ export default function ProfileSettings({ onNavigate, onLogout, initialTab }) {
   const [isSeller, setIsSeller]           = useState(localStorage.getItem("isSeller") === "true");
   const [sellerLoading, setSellerLoading] = useState(false);
   const [sellerError, setSellerError]     = useState(null);
+  const [userRole, setUserRole]           = useState("buyer");
 
   useEffect(() => {
     if (initialTab) setActiveNav(initialTab);
@@ -115,9 +122,9 @@ export default function ProfileSettings({ onNavigate, onLogout, initialTab }) {
         };
         setFormData(mapped);
         setSavedData(mapped);
+        setUserRole(data.role);
 
-        const sellerFromApi = data.isSeller ?? data.is_seller ?? data.role === "seller";
-        if (sellerFromApi) {
+        if (data.role === "seller") {
           setIsSeller(true);
           localStorage.setItem("isSeller", "true");
         }
@@ -136,6 +143,10 @@ export default function ProfileSettings({ onNavigate, onLogout, initialTab }) {
   const navItems = [
     { id: "edit",      label: "Edit profile", Icon: IconEditPen },
     { id: "favourite", label: "Favourite",    Icon: IconHeart },
+    { id: "offers",    label: "My Offers",    Icon: IconDollarSign },
+    ...(currentUser?.role === "admin" ? [
+      { id: "admin", label: "Admin Panel", Icon: IconDashboard },
+    ] : []),
     ...(isSeller ? [
       { id: "dashboard", label: "Dashboard", Icon: IconDashboard },
       { id: "addproperty", label: "Add Property", Icon: IconPlusCircle },
@@ -169,15 +180,36 @@ export default function ProfileSettings({ onNavigate, onLogout, initialTab }) {
   };
 
   /* ── Become a seller ── */
+  const [sellerForm, setSellerForm] = useState({ businessName: "", businessType: "", nationalId: "" });
+  const [sellerStatus, setSellerStatus] = useState(null);
+  const [showSellerForm, setShowSellerForm] = useState(false);
+
+  useEffect(() => {
+    if (isSeller) return;
+    const fetchStatus = async () => {
+      try {
+        const { data } = await api.get("/user/seller-status");
+        setSellerStatus(data);
+      } catch (err) {
+        console.error("Failed to fetch seller status:", err);
+      }
+    };
+    fetchStatus();
+  }, [isSeller]);
+
   const handleBecomeSeller = async () => {
+    if (!sellerForm.businessName || !sellerForm.nationalId) {
+      setSellerError("Business name and national ID are required");
+      return;
+    }
     setSellerLoading(true);
     setSellerError(null);
     try {
-      await api.post("/user/become-seller");
-      setIsSeller(true);
-      localStorage.setItem("isSeller", "true");
+      await api.post("/user/become-seller", sellerForm);
+      setSellerStatus({ status: 'pending', business_name: sellerForm.businessName, submitted_at: new Date().toISOString() });
+      setShowSellerForm(false);
     } catch (err) {
-      setSellerError(err.response?.data?.message ?? "Request failed. Please try again.");
+      setSellerError(err.response?.data?.error ?? "Request failed. Please try again.");
     } finally {
       setSellerLoading(false);
     }
@@ -207,7 +239,14 @@ export default function ProfileSettings({ onNavigate, onLogout, initialTab }) {
             <button
               key={id}
               className={`ps-nav-item${activeNav === id ? " active" : ""}`}
-              onClick={() => { setActiveNav(id); setMenuOpen(false); }}
+              onClick={() => {
+                if (id === "admin") {
+                  onNavigate("admin");
+                } else {
+                  setActiveNav(id);
+                }
+                setMenuOpen(false);
+              }}
             >
               <Icon /> {label}
             </button>
@@ -328,18 +367,64 @@ export default function ProfileSettings({ onNavigate, onLogout, initialTab }) {
                   </div>
                 </div>
               </div> 
-              {/* ── Become a Seller FAB ── */}
+              {/* ── Become a Seller Section ── */}
               {!isSeller && (
-                <div className="ps-seller-fab">                  
-                {sellerError && (
-                  <div className="ps-seller-error">                      
-                  {sellerError}
+                <div className="ps-seller-fab">
+                  {sellerStatus?.status === 'pending' && (
+                    <div className="ps-seller-status pending">
+                      <strong>Seller Request Pending</strong>
+                      <p>Your application is under review. We'll notify you once it's processed.</p>
+                      <p className="ps-seller-submitted">Submitted: {new Date(sellerStatus.submitted_at).toLocaleDateString()}</p>
                     </div>
                   )}
-                  <button onClick={handleBecomeSeller} disabled={sellerLoading} className={`ps-seller-btn ${sellerLoading ? "loading" : ""}`}>
-                    <IconStorefront />
-                    {sellerLoading ? "Processing…" : "Become a Seller"}
-                  </button>
+                  {sellerStatus?.status === 'rejected' && (
+                    <div className="ps-seller-status rejected">
+                      <strong>Seller Request Rejected</strong>
+                      <p className="ps-seller-reason">Reason: {sellerStatus.rejection_reason}</p>
+                      <button onClick={() => setShowSellerForm(true)} className="ps-seller-btn">
+                        <IconStorefront />
+                        Reapply
+                      </button>
+                    </div>
+                  )}
+                  {(!sellerStatus || sellerStatus.status === 'none') && !showSellerForm && (
+                    <button onClick={() => setShowSellerForm(true)} className="ps-seller-btn">
+                      <IconStorefront />
+                      Become a Seller
+                    </button>
+                  )}
+                  {showSellerForm && (
+                    <div className="ps-seller-form">
+                      <h3>Seller Application</h3>
+                      {sellerError && <div className="ps-seller-error">{sellerError}</div>}
+                      <input
+                        type="text"
+                        placeholder="Business Name *"
+                        value={sellerForm.businessName}
+                        onChange={(e) => setSellerForm({ ...sellerForm, businessName: e.target.value })}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Business Type (e.g. Real Estate Agency)"
+                        value={sellerForm.businessType}
+                        onChange={(e) => setSellerForm({ ...sellerForm, businessType: e.target.value })}
+                      />
+                      <input
+                        type="text"
+                        placeholder="National ID *"
+                        value={sellerForm.nationalId}
+                        onChange={(e) => setSellerForm({ ...sellerForm, nationalId: e.target.value })}
+                      />
+                      <div className="ps-seller-form-actions">
+                        <button onClick={handleBecomeSeller} disabled={sellerLoading} className="ps-seller-btn">
+                          {sellerLoading ? "Submitting…" : "Submit Application"}
+                        </button>
+                        <button onClick={() => { setShowSellerForm(false); setSellerError(null); }} className="ps-seller-cancel">
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </>
@@ -349,6 +434,14 @@ export default function ProfileSettings({ onNavigate, onLogout, initialTab }) {
           <FavouriteProperties
           onBack={() => setActiveNav("edit")}
           onNavigate={onNavigate}/>
+          )}
+
+          {activeNav === "offers" && (
+            <PropertyOffers 
+              onBack={() => setActiveNav("edit")} 
+              onNavigate={onNavigate} 
+              userRole={userRole}
+            />
           )}
 
 

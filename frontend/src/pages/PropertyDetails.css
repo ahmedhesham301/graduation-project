@@ -168,6 +168,18 @@
   letter-spacing: -0.5px;
 }
 
+.pd-sold-badge {
+  background: #e53935;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 6px;
+  margin-left: 12px;
+  vertical-align: middle;
+  box-shadow: 0 4px 12px rgba(229, 57, 53, 0.2);
+}
+
 /* Fav button */
 .pd-fav-btn {
   background: #fff;
@@ -921,3 +933,171 @@
     height: 14px;
   }
 }
+
+/* ── Offer Feature ── */
+.pd-offer-section {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.pd-offer-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  background: #1a8cca;
+  color: #fff;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(26, 140, 202, 0.25);
+}
+.pd-offer-btn:hover { background: #1572a5; transform: translateY(-1px); }
+.pd-offer-btn.pending {
+  background: #f5f6fa;
+  color: #888;
+  border: 1.5px solid #dde3ec;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.theme-dark .pd-offer-btn.pending {
+  background: #162032;
+  border-color: #1e3048;
+  color: #6a8aaa;
+}
+
+/* Modal */
+.pd-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: pd-fade-in 0.2s ease;
+}
+
+.pd-modal-content {
+  background: #fff;
+  width: 100%;
+  max-width: 440px;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+  overflow: hidden;
+  animation: pd-modal-slide 0.25s ease;
+}
+
+.theme-dark .pd-modal-content {
+  background: #162032;
+  color: #e8edf5;
+}
+
+@keyframes pd-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pd-modal-slide { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.pd-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid #f0f2f7;
+}
+.theme-dark .pd-modal-header { border-bottom-color: #1e3048; }
+.pd-modal-header h3 { margin: 0; font-size: 1.1rem; color: var(--text); }
+
+.pd-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #999;
+  cursor: pointer;
+}
+
+.pd-modal-body {
+  padding: 22px;
+}
+.pd-modal-body p { font-size: 0.9rem; color: #666; margin-bottom: 20px; }
+.theme-dark .pd-modal-body p { color: #8fa8c0; }
+
+.pd-modal-field {
+  margin-bottom: 20px;
+}
+.pd-modal-field label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 8px;
+}
+.theme-dark .pd-modal-field label { color: #c8d8e8; }
+
+.pd-modal-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.pd-modal-input-wrap input {
+  width: 100%;
+  padding: 12px 14px;
+  padding-right: 50px;
+  border: 1.5px solid #dde3ec;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.pd-modal-input-wrap input:focus { border-color: #1a8cca; }
+.theme-dark .pd-modal-input-wrap input {
+  background: #0d1b2a;
+  border-color: #1e3048;
+}
+
+.pd-modal-input-wrap span {
+  position: absolute;
+  right: 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #999;
+}
+
+.pd-modal-info {
+  background: #f8f9fc;
+  padding: 12px 14px;
+  border-radius: 10px;
+  margin-bottom: 24px;
+}
+.theme-dark .pd-modal-info { background: #0d1b2a; }
+.pd-modal-info p { margin: 0; font-size: 0.85rem; color: #444; }
+.theme-dark .pd-modal-info p { color: #8fa8c0; }
+
+.pd-modal-footer {
+  display: flex;
+  gap: 12px;
+}
+.pd-modal-footer button {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+.pd-btn-cancel { background: #f0f2f7; color: #666; }
+.pd-btn-cancel:hover { background: #e6e9f2; }
+.theme-dark .pd-btn-cancel { background: #1e3048; color: #c8d8e8; }
+
+.pd-btn-submit { background: #1a8cca; color: #fff; }
+.pd-btn-submit:hover { background: #1572a5; }
+.pd-btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }

@@ -17,7 +17,7 @@ const POPULAR = {
   ],
 };
 
-export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, onSearch }) {
+export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, currentUser, onSearch }) {
   const [favs, setFavs]             = useState([]);
   const [popularTab, setPopularTab] = useState("sale");
   const [showRow2, setShowRow2]     = useState(false);
@@ -170,7 +170,7 @@ export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, o
 
   return (
     <div className="home">
-      <Navbar onNavigate={onNavigate} theme={theme} toggleTheme={toggleTheme} isLoggedIn={isLoggedIn} />
+      <Navbar onNavigate={onNavigate} theme={theme} toggleTheme={toggleTheme} isLoggedIn={isLoggedIn} currentUser={currentUser} />
 
       {/* ── HERO ── */}
       <section className="hero">
@@ -348,6 +348,9 @@ export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, o
                 <div className="prop-img" style={{backgroundImage: `url(${BUCKET_url}/media/${p.id}/${p.media})`, backgroundSize: "cover", backgroundPosition: "center"}}>
                   <div className="prop-img-overlay" />
                   <span className="prop-type-badge">{p.type}</span>
+                  {p.sold_at && (
+                    <span className="prop-sold-badge">SOLD</span>
+                  )}
                   <button className={`fav-btn ${favs.includes(p.id) ? "active" : ""}`}   onClick={(e) => {e.stopPropagation();toggleFav(p.id);}}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill={favs.includes(p.id) ? "#ff4d6d" : "none"} stroke={favs.includes(p.id) ? "#ff4d6d" : "#fff"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />

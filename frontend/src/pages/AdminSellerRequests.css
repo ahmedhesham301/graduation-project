@@ -1,0 +1,171 @@
+.admin-seller-requests {
+    padding: 0;
+}
+
+.admin-seller-requests h2 {
+    font-size: 1.85rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    margin: 0 0 2.5rem 0;
+    color: #fff;
+}
+
+.requests-tabs {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 2.5rem;
+    padding: 4px;
+    background: var(--admin-card-bg);
+    border-radius: 12px;
+    width: fit-content;
+}
+
+.requests-tabs .tab {
+    padding: 0.6rem 1.25rem;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: var(--admin-text-muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.requests-tabs .tab:hover {
+    color: #fff;
+}
+
+.requests-tabs .tab.active {
+    background: var(--admin-primary);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.requests-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.request-card {
+    background: var(--admin-card-bg);
+    border-radius: 20px;
+    padding: 1.75rem;
+    border: 1px solid var(--admin-border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+.request-card:hover {
+    border-color: var(--admin-primary);
+    transform: translateX(4px);
+}
+
+.request-card.pending { border-left: 6px solid var(--admin-warning); }
+.request-card.verified { border-left: 6px solid var(--admin-success); }
+.request-card.rejected { border-left: 6px solid var(--admin-danger); }
+
+.request-info {
+    flex: 1;
+    min-width: 300px;
+}
+
+.request-name {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.request-detail {
+    font-size: 0.95rem;
+    color: var(--admin-text-muted);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rejection-reason {
+    color: var(--admin-danger);
+    font-weight: 600;
+    margin-top: 1rem;
+    padding: 12px;
+    background: rgba(239, 68, 68, 0.05);
+    border-radius: 10px;
+    font-size: 0.9rem;
+}
+
+.status-tag {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.request-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.approve-btn, .reject-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+    border: none;
+}
+
+.approve-btn {
+    background: var(--admin-success);
+    color: #fff;
+}
+
+.approve-btn:hover {
+    background: #059669;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.reject-btn {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--admin-danger);
+}
+
+.reject-btn:hover {
+    background: var(--admin-danger);
+    color: #fff;
+}
+
+.reject-form {
+    width: 100%;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--admin-border);
+}
+
+.reject-form textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 1rem;
+    background: var(--admin-bg);
+    border: 1px solid var(--admin-border);
+    border-radius: 12px;
+    color: #fff;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+.reject-form-actions {
+    display: flex;
+    gap: 12px;
+}
