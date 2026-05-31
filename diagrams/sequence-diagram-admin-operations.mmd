@@ -1,0 +1,56 @@
+sequenceDiagram
+    participant A as Admin
+    participant F as React Frontend
+    participant API as Node.js Backend
+    participant DB as PostgreSQL
+
+    Note over A,DB: Admin Dashboard Operations
+
+    %% Login
+    A->>F: Enters admin credentials
+    F->>API: POST /api/auth/login
+    API->>DB: SELECT * FROM users WHERE email='admin@3akarati.com'
+    DB-->>API: User with role='admin'
+    API->>API: Create session, set cookie
+    API-->>F: 200 {role: "admin"}
+    F-->>A: Redirects to Admin Dashboard
+
+    %% Dashboard Stats
+    F->>API: GET /api/admin/stats
+    API->>DB: COUNT users, properties, contacts
+    DB-->>API: {total_users, total_properties, ...}
+    API-->>F: Dashboard KPIs
+    F-->>A: Displays stat cards
+
+    %% User Management
+    A->>F: Navigates to Users tab
+    F->>API: GET /api/admin/users?page=1
+    API->>DB: SELECT * FROM users LIMIT 10 OFFSET 0
+    DB-->>API: Users array + total count
+    API-->>F: Paginated user list
+    F-->>A: Displays user table
+
+    %% Role Change
+    A->>F: Changes user role to 'seller'
+    F->>API: PATCH /api/admin/users/:id/role
+    API->>DB: UPDATE users SET role='seller'
+    API->>DB: INSERT INTO admin_activity_log
+    DB-->>API: Updated user
+    API-->>F: 200 {role: "seller"}
+    F-->>A: Shows updated role
+
+    %% Property Moderation
+    A->>F: Views property details
+    F->>API: GET /api/admin/properties/:id
+    API->>DB: SELECT property + media + contacts
+    DB-->>API: Full property data
+    API-->>F: Property details
+    F-->>A: Shows property modal
+
+    A->>F: Clicks "Reject" with reason
+    F->>API: POST /api/admin/properties/:id/reject
+    API->>DB: UPDATE properties SET moderation_status='rejected'
+    API->>DB: INSERT INTO admin_activity_log
+    DB-->>API: OK
+    API-->>F: 200 {message: "rejected"}
+    F-->>A: Property marked as rejected

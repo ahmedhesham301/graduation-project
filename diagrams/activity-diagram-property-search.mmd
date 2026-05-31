@@ -1,0 +1,25 @@
+stateDiagram-v2
+    [*] --> EnterSearchCriteria: Buyer opens search page
+
+    EnterSearchCriteria --> ApplyFilters: Selects city, district, price range, type
+    ApplyFilters --> SendRequest: Clicks Search
+
+    SendRequest --> BackendValidation: GET /api/properties?filters
+    BackendValidation --> BuildQuery: Parameters validated
+
+    BuildQuery --> ExecuteSpatialQuery: SQL with PostGIS + JOINs
+    ExecuteSpatialQuery --> ReturnResults: PostgreSQL returns rows
+
+    ReturnResults --> CheckResults: Backend sends JSON response
+
+    state HasResults <<choice>>
+    CheckResults --> HasResults
+
+    HasResults --> DisplayProperties: Results found
+    HasResults --> ShowEmpty: No results
+
+    DisplayProperties --> FetchImages: Frontend requests S3 media
+    FetchImages --> RenderCards: Images loaded
+    RenderCards --> [*]: Properties displayed on map + cards
+
+    ShowEmpty --> [*]: "No properties found" message

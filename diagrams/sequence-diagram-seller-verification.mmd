@@ -1,0 +1,52 @@
+sequenceDiagram
+    participant B as Buyer
+    participant F as React Frontend
+    participant API as Node.js Backend
+    participant DB as PostgreSQL
+    participant A as Admin
+
+    Note over B,A: Seller Verification Workflow
+
+    %% Buyer applies
+    B->>F: Clicks "Become a Seller"
+    F->>F: Shows application form
+    B->>F: Fills business name, type, national ID
+    F->>API: POST /api/user/become-seller
+    API->>API: Validates required fields
+    API->>DB: INSERT INTO seller_profile (status='pending')
+    DB-->>API: OK
+    API-->>F: 200 {status: "pending"}
+    F-->>B: Shows "Application Pending"
+
+    %% Admin reviews
+    A->>F: Opens Admin Dashboard
+    F->>API: GET /api/admin/notifications
+    API->>DB: SELECT COUNT(*) WHERE status='pending'
+    DB-->>API: {pendingSellers: 1}
+    API-->>F: Badge count = 1
+    F-->>A: Shows notification badge
+
+    A->>F: Clicks "Seller Requests"
+    F->>API: GET /api/admin/seller-requests
+    API->>DB: SELECT * FROM seller_profile WHERE status='pending'
+    DB-->>API: [application data]
+    API-->>F: Pending applications list
+    F-->>A: Displays applications
+
+    %% Admin approves
+    A->>F: Clicks "Approve"
+    F->>API: POST /api/admin/seller-requests/:id/approve
+    API->>DB: UPDATE seller_profile SET status='verified'
+    API->>DB: UPDATE users SET role='seller'
+    API->>DB: INSERT INTO admin_activity_log
+    DB-->>API: OK
+    API-->>F: 200 {message: "approved"}
+    F-->>A: Shows success
+
+    %% Buyer sees result
+    B->>F: Refreshes profile
+    F->>API: GET /api/user/me
+    API->>DB: SELECT role FROM users
+    DB-->>API: {role: "seller"}
+    API-->>F: {role: "seller"}
+    F-->>B: Shows seller features (Add Property, Analytics)

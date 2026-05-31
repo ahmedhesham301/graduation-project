@@ -1,0 +1,202 @@
+classDiagram
+    class User {
+        +int id
+        +string full_name
+        +string email
+        +string phone
+        +string password_hash
+        +enum role [buyer, seller, admin]
+        +datetime created_at
+        +register()
+        +login()
+        +logout()
+        +updateProfile()
+        +applyForSeller()
+    }
+
+    class SellerProfile {
+        +int id
+        +int user_id
+        +enum status [unverified, pending, verified, rejected, banned]
+        +string business_name
+        +string business_type
+        +string national_id
+        +string rejection_reason
+        +datetime submitted_at
+        +datetime reviewed_at
+        +submitApplication()
+        +getStatus()
+    }
+
+    class Property {
+        +int id
+        +int seller_id
+        +int type_id
+        +geometry coordinates
+        +int area
+        +int floors
+        +int rooms
+        +int bathrooms
+        +int city_id
+        +int district_id
+        +string description
+        +bigint price
+        +bool pending_media
+        +enum condition
+        +enum moderation_status
+        +string rejection_reason
+        +datetime deleted_at
+        +datetime sold_at
+        +bigint sold_price
+        +datetime created_at
+        +create()
+        +update()
+        +delete()
+        +search()
+        +getNearby()
+        +markSold()
+    }
+
+    class PropertyMedia {
+        +int id
+        +int property_id
+        +uuid s3_key
+        +enum extension [jpeg, jpg, png, webp, zip]
+        +datetime created_at
+        +datetime uploaded_at
+        +generatePresignedUrl()
+        +confirmUpload()
+    }
+
+    class PropertyType {
+        +int id
+        +string name
+    }
+
+    class Feature {
+        +int id
+        +string name
+    }
+
+    class PropertyFeature {
+        +int id
+        +int property_id
+        +int feature_id
+    }
+
+    class City {
+        +int id
+        +string name
+    }
+
+    class District {
+        +int id
+        +int city_id
+        +string name
+    }
+
+    class Saved {
+        +int id
+        +int user_id
+        +int property_id
+        +save()
+        +remove()
+        +listByUser()
+    }
+
+    class PropertyView {
+        +int id
+        +int property_id
+        +int user_id
+        +string viewer_session_id
+        +datetime viewed_at
+        +trackView()
+    }
+
+    class PropertyContactEvent {
+        +int id
+        +int property_id
+        +int user_id
+        +string contact_session_id
+        +enum contact_method [phone, email, whatsapp, chat]
+        +datetime contacted_at
+        +logContact()
+    }
+
+    class PropertyPriceHistory {
+        +int id
+        +int property_id
+        +bigint old_price
+        +bigint new_price
+        +datetime changed_at
+    }
+
+    class PurchaseOffer {
+        +int id
+        +int property_id
+        +int buyer_id
+        +bigint offer_price
+        +bigint counter_price
+        +enum status [pending, accepted, rejected, cancelled, countered, completed]
+        +datetime created_at
+        +datetime updated_at
+        +submitOffer()
+        +accept()
+        +reject()
+        +counter()
+    }
+
+    class ChatMessage {
+        +int id
+        +int sender_id
+        +int receiver_id
+        +int property_id
+        +string content
+        +datetime created_at
+        +send()
+        +getInbox()
+        +getConversation()
+    }
+
+    class AdminActivityLog {
+        +int id
+        +int admin_id
+        +string action
+        +string target_type
+        +int target_id
+        +string details
+        +datetime created_at
+        +logAction()
+    }
+
+    class SiteSettings {
+        +string key
+        +string value
+        +datetime updated_at
+        +get()
+        +update()
+    }
+
+    %% Relationships
+    User "1" --> "0..1" SellerProfile : has
+    User "1" --> "*" Property : lists
+    User "1" --> "*" Saved : saves
+    User "1" --> "*" PropertyView : views
+    User "1" --> "*" PropertyContactEvent : contacts
+    User "1" --> "*" PurchaseOffer : makes
+    User "1" --> "*" ChatMessage : sends
+    User "1" --> "*" AdminActivityLog : performs
+
+    Property "1" --> "*" PropertyMedia : has
+    Property "1" --> "*" PropertyFeature : has
+    Property "*" --> "1" PropertyType : categorized by
+    Property "*" --> "1" City : located in
+    Property "*" --> "1" District : located in
+    Property "1" --> "*" PropertyPriceHistory : tracks
+    Property "1" --> "*" PropertyView : receives
+    Property "1" --> "*" PropertyContactEvent : receives
+    Property "1" --> "*" PurchaseOffer : receives
+    Property "1" --> "*" ChatMessage : about
+
+    PropertyFeature "*" --> "1" Feature : references
+    District "*" --> "1" City : belongs to

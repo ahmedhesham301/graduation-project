@@ -1,0 +1,31 @@
+graph TB
+    %% External Entities
+    Buyer([Buyer])
+    Seller([Seller])
+    Admin([Admin])
+    S3[(Amazon S3<br/>Object Storage)]
+    Gemini[Google Gemini<br/>AI API]
+    SMTP[Email Service]
+
+    %% System Boundary
+    subgraph "3akarati Real Estate Platform"
+        System[3akarati System]
+    end
+
+    %% Buyer Interactions
+    Buyer -->|"Register/Login<br/>Search Properties<br/>Save Favorites<br/>Contact Seller<br/>Submit Offer<br/>Chat"| System
+    System -->|"Property Listings<br/>Search Results<br/>Favorites List<br/>Chat Messages<br/>Offer Status"| Buyer
+
+    %% Seller Interactions
+    Seller -->|"Apply for Verification<br/>Add/Edit/Delete Property<br/>Upload Media<br/>View Analytics<br/>Chat<br/>Accept/Reject Offers"| System
+    System -->|"Verification Status<br/>Property Stats<br/>Contact Events<br/>Performance Data<br/>Chat Messages"| Seller
+
+    %% Admin Interactions
+    Admin -->|"Manage Users<br/>Approve/Reject Sellers<br/>Moderate Properties<br/>View Reports<br/>Update Settings"| System
+    System -->|"Dashboard Stats<br/>User List<br/>Seller Requests<br/>Activity Log<br/>Analytics Reports"| Admin
+
+    %% External Systems
+    System -->|"Upload/Retrieve Media"| S3
+    S3 -->|"Property Images<br/>Virtual Tours"| System
+    System -->|"User Query"| Gemini
+    Gemini -->|"AI Response"| System

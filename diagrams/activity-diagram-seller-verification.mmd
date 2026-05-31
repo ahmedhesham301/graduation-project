@@ -1,0 +1,28 @@
+stateDiagram-v2
+    [*] --> BuyerLoggedIn: User logs in as Buyer
+
+    BuyerLoggedIn --> ClickBecomeSeller: Clicks "Become a Seller"
+    ClickBecomeSeller --> FillApplicationForm: Application form displayed
+
+    FillApplicationForm --> ValidateInput: Submits form
+    ValidateInput --> ShowError: Validation fails
+    ShowError --> FillApplicationForm: User corrects input
+
+    ValidateInput --> SubmitApplication: Validation passes
+    SubmitApplication --> PendingStatus: Status = "pending"
+
+    PendingStatus --> AdminReviews: Admin opens Seller Requests
+
+    state AdminDecision <<choice>>
+    AdminReviews --> AdminDecision: Admin reviews application
+
+    AdminDecision --> Approved: Approve
+    AdminDecision --> Rejected: Reject (with reason)
+
+    Approved --> RoleUpdated: User role changed to "seller"
+    RoleUpdated --> SellerFeatures: Seller sees Add Property, Dashboard, Analytics
+
+    Rejected --> ShowRejection: User sees rejection reason
+    ShowRejection --> FillApplicationForm: User can reapply
+
+    SellerFeatures --> [*]

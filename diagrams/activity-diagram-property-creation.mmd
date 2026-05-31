@@ -1,0 +1,33 @@
+stateDiagram-v2
+    [*] --> SellerLoggedIn: Seller accesses platform
+
+    SellerLoggedIn --> FillPropertyForm: Clicks "Add Property"
+    FillPropertyForm --> SelectMedia: Fills type, area, rooms, price, location, description
+
+    SelectMedia --> SubmitForm: Selects images/media files
+    SubmitForm --> BackendValidation: POST /api/properties
+
+    state ValidationResult <<choice>>
+    BackendValidation --> ValidationResult
+
+    ValidationResult --> ShowErrors: Validation fails
+    ShowErrors --> FillPropertyForm: User corrects input
+
+    ValidationResult --> CreateRecord: Validation passes
+    CreateRecord --> GeneratePresignedURLs: Property saved in DB (pending_media=true)
+    GeneratePresignedURLs --> ReturnURLs: S3 presigned URLs generated
+
+    ReturnURLs --> DirectUpload: Frontend receives URLs
+    DirectUpload --> UploadToS3: PUT files directly to S3
+
+    state UploadResult <<choice>>
+    UploadToS3 --> UploadResult
+
+    UploadResult --> ConfirmUpload: Upload successful
+    UploadResult --> RetryUpload: Upload failed
+    RetryUpload --> DirectUpload: Retry
+
+    ConfirmUpload --> UpdateDB: PUT /api/properties/:id/media
+    UpdateDB --> PropertyActive: pending_media = false, uploaded_at set
+
+    PropertyActive --> [*]: Property visible in search results

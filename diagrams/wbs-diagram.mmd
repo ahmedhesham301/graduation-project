@@ -1,0 +1,58 @@
+graph TD
+    A["3akarati Real Estate Platform"] --> B["1. Analysis & Design"]
+    A --> C["2. Development"]
+    A --> D["3. Infrastructure & DevOps"]
+    A --> E["4. Testing & QA"]
+    A --> F["5. Documentation"]
+
+    %% Phase 1
+    B --> B1["1.1 Requirements Gathering"]
+    B --> B2["1.2 Database Schema Design"]
+    B --> B3["1.3 API Endpoint Design"]
+    B --> B4["1.4 UI/UX Design (Figma)"]
+    B --> B5["1.5 Architecture Design"]
+    B --> B6["1.6 Security Assessment"]
+
+    %% Phase 2
+    C --> C1["2.1 Frontend (React.js)"]
+    C --> C2["2.2 Backend (Node.js/Express)"]
+    C --> C3["2.3 Database (PostgreSQL/PostGIS)"]
+    C --> C4["2.4 AI Chatbot (Gemini)"]
+    C --> C5["2.5 ML Price Prediction"]
+
+    C1 --> C1a["Auth Pages"]
+    C1 --> C1b["Property Pages"]
+    C1 --> C1c["Admin Dashboard"]
+    C1 --> C1d["Seller Dashboard"]
+    C1 --> C1e["Chat Interface"]
+
+    C2 --> C2a["Auth Module"]
+    C2 --> C2b["Property Module"]
+    C2 --> C2c["Admin Module"]
+    C2 --> C2d["Analytics Module"]
+    C2 --> C2e["Chat Module"]
+    C2 --> C2f["Offers Module"]
+
+    C3 --> C3a["Schema & Migrations"]
+    C3 --> C3b["Spatial Indexing"]
+    C3 --> C3c["Seed Data"]
+
+    %% Phase 3
+    D --> D1["3.1 Docker Containerization"]
+    D --> D2["3.2 Terraform IaC (AWS)"]
+    D --> D3["3.3 CI/CD (GitHub Actions)"]
+    D --> D4["3.4 Nginx Reverse Proxy"]
+    D --> D5["3.5 S3 Media Storage"]
+    D --> D6["3.6 EKS Orchestration"]
+
+    %% Phase 4
+    E --> E1["4.1 Unit Testing"]
+    E --> E2["4.2 Integration Testing (56 tests)"]
+    E --> E3["4.3 System Testing"]
+    E --> E4["4.4 UAT"]
+    E --> E5["4.5 Bug Fixing"]
+
+    %% Phase 5
+    F --> F1["5.1 Project Document"]
+    F --> F2["5.2 Presentation"]
+    F --> F3["5.3 Code Documentation"]
