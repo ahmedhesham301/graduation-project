@@ -4,7 +4,7 @@ let poolConfig = {
     user: process.env.PGUSER || 'postgres',
     password: String(process.env.PGPASSWORD || '1234'),
     database: process.env.PGDATABASE || 'postgres',
-    host: '127.0.0.1', // Use 127.0.0.1 directly for Windows stability
+    host: process.env.PGHOST || '127.0.0.1',
 }
 if (process.env.ENV === "prod") {
     poolConfig = {
