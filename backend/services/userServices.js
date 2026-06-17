@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt"
 import crypto from "crypto";
-import { save, findByEmail, upgradeToSeller, getSellerProfileByUserId, findUserById, updateUser } from "../models/userModel.js";
+import { save, findByEmail, upgradeToSeller, getSellerProfileByUserId, findUserById, updateUser, incrementFailedAttempts, resetFailedAttempts } from "../models/userModel.js";
 
 export async function registerUser(fullName, email, phone, password, role) {
     const passwordHash = await bcrypt.hash(password, 10);
@@ -16,11 +16,29 @@ export async function authenticateUser(email, password) {
         throw err
     }
 
+    // Check lockout status
+    if (userData.lockoutUntil && new Date(userData.lockoutUntil) > new Date()) {
+        const remainingMinutes = Math.ceil((new Date(userData.lockoutUntil) - new Date()) / (60 * 1000));
+        let err = new Error(`Account is locked. Please try again in ${remainingMinutes} minute(s).`);
+        err.code = 'LOCKED_OUT';
+        throw err;
+    }
+
     if (await bcrypt.compare(password, userData.passwordHash)) {
+        await resetFailedAttempts(userData.id);
         return userData
     }
 
-    let err = new Error("wrong password");
+    // Wrong password - increment failed attempts
+    const { attempts, lockoutUntil } = await incrementFailedAttempts(userData.id, userData.failedLoginAttempts);
+
+    if (lockoutUntil) {
+        let err = new Error("Too many failed attempts. Your account has been locked for 15 minutes.");
+        err.code = 'LOCKED_OUT';
+        throw err;
+    }
+
+    let err = new Error(`Invalid password. Attempts remaining: ${5 - attempts}`);
     err.code = 'WRONG_PASSWORD'
     throw err
 }

@@ -6,7 +6,7 @@ import {
     listProperties, updateProperty, removeProperty, getReports, 
     getSellerRequests, approveSeller, rejectSeller, getPropertyDetail, 
     getContacts, getAdminActivityLog, getNotifications, listSoldProperties,
-    getSettings, updateSettings, approveProperty, rejectProperty, approveAllProperties
+    getSettings, updateSettings, approveProperty, rejectProperty, approveAllProperties, getAdminSecurityLogs
 } from "../controllers/adminController.js"
 
 const router = Router()
@@ -16,6 +16,7 @@ router.get("/admin/recent", isAuthenticated, isAdmin, getRecent)
 router.get("/admin/reports", isAuthenticated, isAdmin, getReports)
 router.get("/admin/notifications", isAuthenticated, isAdmin, getNotifications)
 router.get("/admin/activity-log", isAuthenticated, isAdmin, getAdminActivityLog)
+router.get("/admin/security-logs", isAuthenticated, isAdmin, getAdminSecurityLogs)
 router.get("/admin/contacts", isAuthenticated, isAdmin, getContacts)
 router.get("/admin/sold-properties", isAuthenticated, isAdmin, listSoldProperties)
 

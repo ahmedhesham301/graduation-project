@@ -78,7 +78,7 @@ describe('Authentication Module', () => {
                 });
 
             expect(res.status).toBe(400);
-            expect(res.body.error).toBe('Invalid password');
+            expect(res.body.error).toContain('Invalid password');
         });
 
         it('TC-AUTH-07: should reject login with non-existent email', async () => {

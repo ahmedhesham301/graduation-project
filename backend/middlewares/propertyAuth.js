@@ -1,6 +1,7 @@
 
 import { findById } from "../models/userModel.js"
 import { findPropertyById } from "../models/propertyModel.js"
+import { logSecurityEvent } from "../services/auditLogger.js"
 
 export async function isSellerVerified(req, res, next) {
     try {
@@ -29,6 +30,13 @@ export async function isPropertyOwner(req, res, next) {
             next()
         }
         else {
+            await logSecurityEvent({
+                userId: req.session.userID,
+                eventType: "unauthorized_property_access",
+                ipAddress: req.ip,
+                userAgent: req.headers['user-agent'],
+                details: { propertyId: req.params.propertyId, action: req.method }
+            });
             return res.status(404).send()
         }
 

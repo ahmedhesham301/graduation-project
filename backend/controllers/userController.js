@@ -1,6 +1,7 @@
 import { OAuth2Client } from "google-auth-library";
 import { registerUser, authenticateUser, becomeSeller, getSellerStatus, getUserProfile, updateUserProfile, loginOrRegisterGoogleUser } from "../services/userServices.js";
 import { pool } from "../database/postgresql.js";
+import { logSecurityEvent } from "../services/auditLogger.js";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -68,13 +69,32 @@ export async function login(req, res) {
             })
         })
 
+        await logSecurityEvent({
+            userId: userData.id,
+            eventType: "successful_login",
+            email: userData.email,
+            ipAddress: req.ip,
+            userAgent: req.headers['user-agent']
+        });
+
         res.status(200).json({ message: "login successful", name: userData.name, role: userData.role, userId: userData.id })
     } catch (error) {
+        await logSecurityEvent({
+            eventType: "failed_login",
+            email: req.body.email,
+            ipAddress: req.ip,
+            userAgent: req.headers['user-agent'],
+            details: { reason: error.code || error.message }
+        });
+
         if (error.code == "EMAIL_NOT_FOUND") {
             res.status(400).json({ error: 'Email not found' })
         }
+        else if (error.code == "LOCKED_OUT") {
+            res.status(403).json({ error: error.message })
+        }
         else if (error.code == "WRONG_PASSWORD") {
-            res.status(400).json({ error: 'Invalid password' })
+            res.status(400).json({ error: error.message })
         }
         else {
             res.status(500).json({ message: "internal server error" })
@@ -219,6 +239,15 @@ export async function googleLogin(req, res) {
             });
         });
 
+        await logSecurityEvent({
+            userId: userData.id,
+            eventType: "google_login",
+            email: userData.email,
+            ipAddress: req.ip,
+            userAgent: req.headers['user-agent'],
+            details: { isNewUser: userCheck.rows.length === 0 }
+        });
+
         res.status(200).json({ 
             message: "login successful", 
             name: userData.name, 
@@ -228,6 +257,12 @@ export async function googleLogin(req, res) {
         });
 
     } catch (error) {
+        await logSecurityEvent({
+            eventType: "failed_google_login",
+            ipAddress: req.ip,
+            userAgent: req.headers['user-agent'],
+            details: { error: error.message }
+        });
         console.error("Google authentication error:", error);
         res.status(401).json({ error: "Invalid Google token or authentication failed" });
     }

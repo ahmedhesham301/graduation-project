@@ -10,7 +10,7 @@ import {
     getMonthlySalesTrend, getMonthlyViewsTrend, getSoldPropertiesList,
     getSiteSettings, updateSiteSetting, approvePropertyListing, rejectPropertyListing, approveAllPropertyListings,
     getLeadMethodDistribution, getTopPerformingProperties, getOfferStatusDistribution,
-    getAvgTimeToSell, getSellerLeaderboard
+    getAvgTimeToSell, getSellerLeaderboard, getSecurityLogs
 } from "../models/adminModel.js"
 
 export async function getStats(req, res) {
@@ -306,5 +306,16 @@ export async function approveAllProperties(req, res) {
     } catch (err) {
         console.error("Admin approve all properties error:", err)
         res.status(500).json({ error: "Failed to approve all properties" })
+    }
+}
+
+export async function getAdminSecurityLogs(req, res) {
+    try {
+        const { page = 1 } = req.query
+        const result = await getSecurityLogs(Number(page))
+        res.json(result)
+    } catch (err) {
+        console.error("Admin security logs error:", err)
+        res.status(500).json({ error: "Failed to load security logs" })
     }
 }

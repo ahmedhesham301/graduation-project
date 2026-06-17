@@ -114,6 +114,11 @@ describe('Admin Dashboard Module', () => {
             const checkRes = await adminAgent.get('/api/admin/settings');
             expect(checkRes.body.site_name).toBe('Test Platform');
             expect(checkRes.body.maintenance_mode).toBe('true');
+
+            // Reset site settings to prevent test database pollution
+            await adminAgent.patch('/api/admin/settings').send({
+                settings: { site_name: '3akarati', maintenance_mode: 'false' }
+            });
         });
     });
 

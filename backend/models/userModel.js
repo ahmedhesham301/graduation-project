@@ -26,8 +26,30 @@ export async function findByEmail(email) {
         passwordHash: result.rows[0].password_hash,
         role: result.rows[0].role,
         phone: result.rows[0].phone,
-        createdAt: result.rows[0].created_at
+        createdAt: result.rows[0].created_at,
+        failedLoginAttempts: result.rows[0].failed_login_attempts || 0,
+        lockoutUntil: result.rows[0].lockout_until || null
     }
+}
+
+export async function incrementFailedAttempts(userId, currentFailedAttempts) {
+    const attempts = currentFailedAttempts + 1;
+    let lockoutUntil = null;
+    if (attempts >= 5) {
+        lockoutUntil = new Date(Date.now() + 15 * 60 * 1000); // Lock for 15 mins
+    }
+    await pool.query(
+        "UPDATE users SET failed_login_attempts = $1, lockout_until = $2 WHERE id = $3",
+        [attempts, lockoutUntil, userId]
+    );
+    return { attempts, lockoutUntil };
+}
+
+export async function resetFailedAttempts(userId) {
+    await pool.query(
+        "UPDATE users SET failed_login_attempts = 0, lockout_until = NULL WHERE id = $1",
+        [userId]
+    );
 }
 export async function findById(id) {
     const query = {

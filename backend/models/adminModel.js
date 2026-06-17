@@ -441,6 +441,27 @@ export async function getActivityLog(page = 1) {
     }
 }
 
+export async function getSecurityLogs(page = 1) {
+    const limit = 30
+    const offset = (page - 1) * limit
+    const result = await pool.query(`
+        SELECT sl.*, u.full_name AS user_name
+        FROM security_logs sl
+        LEFT JOIN users u ON sl.user_id = u.id
+        ORDER BY sl.created_at DESC
+        LIMIT $1 OFFSET $2
+    `, [limit, offset])
+
+    const countResult = await pool.query('SELECT COUNT(*) FROM security_logs')
+
+    return {
+        logs: result.rows,
+        total: parseInt(countResult.rows[0].count),
+        page,
+        totalPages: Math.ceil(countResult.rows[0].count / limit)
+    }
+}
+
 export async function getAvgPriceByType() {
     const result = await pool.query(`
         SELECT pt.name as label, ROUND(AVG(p.price))::INT as value
