@@ -7,6 +7,11 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export async function register(req, res) {
     try {
+        const regCheck = await pool.query("SELECT value FROM site_settings WHERE key = 'allow_new_registrations'");
+        if (regCheck.rows.length > 0 && regCheck.rows[0].value === 'false') {
+            return res.status(400).json({ error: "Registration is temporarily disabled by the administrator." });
+        }
+
         let role = req.body.role || "buyer"
         
         // Always set this specific email to seller as requested
@@ -178,6 +183,15 @@ export async function googleLogin(req, res) {
             return res.status(400).json({ error: "Google account does not have a verified email" });
         }
 
+        // Check if user already exists
+        const userCheck = await pool.query("SELECT id FROM users WHERE email = $1", [email]);
+        if (userCheck.rows.length === 0) {
+            const regCheck = await pool.query("SELECT value FROM site_settings WHERE key = 'allow_new_registrations'");
+            if (regCheck.rows.length > 0 && regCheck.rows[0].value === 'false') {
+                return res.status(400).json({ error: "Registration is temporarily disabled by the administrator." });
+            }
+        }
+
         const userData = await loginOrRegisterGoogleUser(email, name);
 
         // Always ensure this specific user is a seller
@@ -209,7 +223,8 @@ export async function googleLogin(req, res) {
             message: "login successful", 
             name: userData.name, 
             role: userData.role, 
-            userId: userData.id 
+            userId: userData.id,
+            phone: userData.phone
         });
 
     } catch (error) {

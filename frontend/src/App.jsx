@@ -10,9 +10,11 @@ import Inbox from "./pages/Inbox";
 import AdminDashboard from "./pages/AdminDashboard";
 import ChatBot from "./components/ChatBot";
 import { api } from "./components/Axios";
+import MaintenanceScreen from "./components/MaintenanceScreen";
 import "./App.css";
 
 export default function App() {
+  const [isMaintenance, setIsMaintenance] = useState(false);
   const [page, setPage] = useState(
     () => sessionStorage.getItem("page") ?? "home"
   );
@@ -119,6 +121,15 @@ export default function App() {
     return () => window.removeEventListener("auth:logout", clearAuthState);
   }, [clearAuthState]);
 
+  // Listen for maintenance mode activation
+  useEffect(() => {
+    const handleMaintenance = () => {
+      setIsMaintenance(true);
+    };
+    window.addEventListener("system:maintenance", handleMaintenance);
+    return () => window.removeEventListener("system:maintenance", handleMaintenance);
+  }, []);
+
   const handleLogin = (role) => {
     setIsLoggedIn(true);
     setUserRole(role);
@@ -186,6 +197,15 @@ const handleNavigate = (target, data = {}) => {
     }
   }
 };
+
+  if (isMaintenance) {
+    return (
+      <div className={`app theme-${theme}`}>
+        <MaintenanceScreen onRetrySuccess={() => setIsMaintenance(false)} />
+      </div>
+    );
+  }
+
   return (
     <div className={`app theme-${theme}`}>
       {page === "home" && (

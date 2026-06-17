@@ -4,6 +4,7 @@ import { initDB } from "./database/postgresql.js";
 import { initRedis } from "./database/redis.js";
 import { initRateLimiters } from "./middlewares/rateLimiter.js";
 import { sessionMiddleware } from "./middlewares/session.js";
+import { maintenanceMode } from "./middlewares/maintenance.js";
 import authRouter from "./routes/authRouter.js";
 import propertyRouter from "./routes/propertyRouter.js";
 import savedRouter from "./routes/savedRouter.js";
@@ -37,6 +38,7 @@ export async function createApp() {
         credentials: true
     }));
     app.use(sessionMiddleware);
+    app.use(maintenanceMode);
 
     app.use('/api/health', healthCheck);
     app.use('/api', authRouter);

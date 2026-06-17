@@ -179,6 +179,23 @@ export async function search(page, orderBy, orderDirection, city, district, minP
 
     clauses.push("p.deleted_at IS NULL", "p.pending_media=false", "p.moderation_status = 'approved'")
 
+    let limit = PAGE_SIZE;
+    try {
+        const limitCheck = await pool.query("SELECT value FROM site_settings WHERE key = 'featured_properties_limit'");
+        if (limitCheck.rows.length > 0) {
+            const parsed = parseInt(limitCheck.rows[0].value, 10);
+            if (!isNaN(parsed) && parsed > 0) {
+                // If it's a page 1 search for Cairo properties with no other filter parameters, apply the featured limit
+                const isHomepageFeatured = (Number(page) === 1 && city?.toLowerCase() === 'cairo' && Object.keys(filters).length === 0 && !minPrice && !maxPrice && !district);
+                if (isHomepageFeatured) {
+                    limit = parsed;
+                }
+            }
+        }
+    } catch (err) {
+        console.error("Error reading featured_properties_limit:", err);
+    }
+
     const offset = (page - 1) * PAGE_SIZE
 
     const query = {
@@ -205,7 +222,7 @@ export async function search(page, orderBy, orderDirection, city, district, minP
     WHERE ${clauses.join(" AND ")}
     ${order ?? ""}
     OFFSET ${offset}
-    LIMIT ${PAGE_SIZE};
+    LIMIT ${limit};
   `,
         values
     };

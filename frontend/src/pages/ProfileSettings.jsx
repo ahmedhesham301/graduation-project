@@ -89,6 +89,11 @@ const IconDollarSign = () => (
     <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
   </svg>
 );
+const IconClose = () => (
+  <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
 
 /* ── Main Component ── */
 export default function ProfileSettings({ onNavigate, onLogout, initialTab, currentUser }) {
@@ -151,7 +156,9 @@ export default function ProfileSettings({ onNavigate, onLogout, initialTab, curr
       { id: "dashboard", label: "Dashboard", Icon: IconDashboard },
       { id: "addproperty", label: "Add Property", Icon: IconPlusCircle },
       { id: "myproperties", label: "My Properties", Icon: IconBuilding },
-    ] : []),
+    ] : [
+      { id: "becomeseller", label: "Become a Seller", Icon: IconStorefront }
+    ]),
     { id: "chat",      label: "My Chats",    Icon: IconChat },
     { id: "help",      label: "Help",         Icon: IconHelp },
   ];
@@ -367,66 +374,6 @@ export default function ProfileSettings({ onNavigate, onLogout, initialTab, curr
                   </div>
                 </div>
               </div> 
-              {/* ── Become a Seller Section ── */}
-              {!isSeller && (
-                <div className="ps-seller-fab">
-                  {sellerStatus?.status === 'pending' && (
-                    <div className="ps-seller-status pending">
-                      <strong>Seller Request Pending</strong>
-                      <p>Your application is under review. We'll notify you once it's processed.</p>
-                      <p className="ps-seller-submitted">Submitted: {new Date(sellerStatus.submitted_at).toLocaleDateString()}</p>
-                    </div>
-                  )}
-                  {sellerStatus?.status === 'rejected' && (
-                    <div className="ps-seller-status rejected">
-                      <strong>Seller Request Rejected</strong>
-                      <p className="ps-seller-reason">Reason: {sellerStatus.rejection_reason}</p>
-                      <button onClick={() => setShowSellerForm(true)} className="ps-seller-btn">
-                        <IconStorefront />
-                        Reapply
-                      </button>
-                    </div>
-                  )}
-                  {(!sellerStatus || sellerStatus.status === 'none') && !showSellerForm && (
-                    <button onClick={() => setShowSellerForm(true)} className="ps-seller-btn">
-                      <IconStorefront />
-                      Become a Seller
-                    </button>
-                  )}
-                  {showSellerForm && (
-                    <div className="ps-seller-form">
-                      <h3>Seller Application</h3>
-                      {sellerError && <div className="ps-seller-error">{sellerError}</div>}
-                      <input
-                        type="text"
-                        placeholder="Business Name *"
-                        value={sellerForm.businessName}
-                        onChange={(e) => setSellerForm({ ...sellerForm, businessName: e.target.value })}
-                      />
-                      <input
-                        type="text"
-                        placeholder="Business Type (e.g. Real Estate Agency)"
-                        value={sellerForm.businessType}
-                        onChange={(e) => setSellerForm({ ...sellerForm, businessType: e.target.value })}
-                      />
-                      <input
-                        type="text"
-                        placeholder="National ID *"
-                        value={sellerForm.nationalId}
-                        onChange={(e) => setSellerForm({ ...sellerForm, nationalId: e.target.value })}
-                      />
-                      <div className="ps-seller-form-actions">
-                        <button onClick={handleBecomeSeller} disabled={sellerLoading} className="ps-seller-btn">
-                          {sellerLoading ? "Submitting…" : "Submit Application"}
-                        </button>
-                        <button onClick={() => { setShowSellerForm(false); setSellerError(null); }} className="ps-seller-cancel">
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
             </>
           )}
 
@@ -434,6 +381,91 @@ export default function ProfileSettings({ onNavigate, onLogout, initialTab, curr
           <FavouriteProperties
           onBack={() => setActiveNav("edit")}
           onNavigate={onNavigate}/>
+          )}
+
+          {activeNav === "becomeseller" && (
+            <div className="ps-becomeseller-container">
+              <div className="ps-section-title" style={{ fontSize: "20px", marginBottom: "6px" }}>Become a Verified Seller</div>
+              <p className="ps-welcome-date" style={{ fontSize: "14px", marginBottom: "28px" }}>
+                Apply to unlock professional features and start listing properties.
+              </p>
+              
+              <div className="ps-seller-timeline">
+                <div className={`timeline-step ${!sellerStatus || sellerStatus.status === 'none' || showSellerForm ? 'active' : 'completed'}`}>
+                  <div className="step-num">1</div>
+                  <div className="step-label">Submit Application</div>
+                </div>
+                <div className={`timeline-step ${sellerStatus?.status === 'pending' ? 'active' : sellerStatus?.status === 'verified' ? 'completed' : ''}`}>
+                  <div className="step-num">2</div>
+                  <div className="step-label">Admin Review</div>
+                </div>
+                <div className={`timeline-step ${sellerStatus?.status === 'verified' ? 'active' : ''}`}>
+                  <div className="step-num">3</div>
+                  <div className="step-label">Start Selling</div>
+                </div>
+              </div>
+
+              {sellerStatus?.status === 'pending' ? (
+                <div className="seller-status-page pending">
+                  <div className="status-icon-wrap">
+                    <svg className="animate-spin" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <circle cx="12" cy="12" r="10" strokeDasharray="32" strokeDashoffset="8" />
+                    </svg>
+                  </div>
+                  <h3>Application Under Review</h3>
+                  <p>We are reviewing your application for <strong>{sellerStatus.business_name || sellerStatus.businessName}</strong>.</p>
+                  <p className="ps-seller-submitted" style={{ marginTop: "8px" }}>Submitted on {new Date(sellerStatus.submitted_at).toLocaleDateString()}</p>
+                </div>
+              ) : sellerStatus?.status === 'rejected' && !showSellerForm ? (
+                <div className="seller-status-page rejected">
+                  <div className="status-icon-wrap error">
+                    <IconClose />
+                  </div>
+                  <h3>Application Rejected</h3>
+                  <p className="rejection-reason">Reason: "{sellerStatus.rejection_reason}"</p>
+                  <button onClick={() => setShowSellerForm(true)} className="ps-edit-btn" style={{ marginTop: "16px" }}>Reapply</button>
+                </div>
+              ) : (
+                <form className="ps-seller-full-form" onSubmit={(e) => { e.preventDefault(); handleBecomeSeller(); }} style={{ display: "flex", flexDirection: "column", gap: "20px", maxWidth: "500px", marginTop: "20px" }}>
+                  {sellerError && <div className="ps-seller-error">{sellerError}</div>}
+                  <div className="ps-field-group">
+                    <label className="ps-field-label">Business Name *</label>
+                    <input
+                      type="text"
+                      className="ps-field-input"
+                      placeholder="e.g. Luxury Homes Agency"
+                      value={sellerForm.businessName}
+                      onChange={(e) => setSellerForm({ ...sellerForm, businessName: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="ps-field-group">
+                    <label className="ps-field-label">Business Type</label>
+                    <input
+                      type="text"
+                      className="ps-field-input"
+                      placeholder="e.g. Real Estate Agency, Independent Seller"
+                      value={sellerForm.businessType}
+                      onChange={(e) => setSellerForm({ ...sellerForm, businessType: e.target.value })}
+                    />
+                  </div>
+                  <div className="ps-field-group">
+                    <label className="ps-field-label">National ID / Registration Number *</label>
+                    <input
+                      type="text"
+                      className="ps-field-input"
+                      placeholder="Enter your 14-digit national ID"
+                      value={sellerForm.nationalId}
+                      onChange={(e) => setSellerForm({ ...sellerForm, nationalId: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <button type="submit" disabled={sellerLoading} className="ps-edit-btn" style={{ alignSelf: "flex-start", marginTop: "10px" }}>
+                    {sellerLoading ? "Submitting Application…" : "Submit Application"}
+                  </button>
+                </form>
+              )}
+            </div>
           )}
 
           {activeNav === "offers" && (

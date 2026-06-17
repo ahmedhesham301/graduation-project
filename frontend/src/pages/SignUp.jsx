@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import Logo from "../components/Logo";
 import InputField from "../components/InputField";
@@ -9,10 +9,32 @@ import { API_BASE } from "../components/vars";
 import { api } from "../components/Axios";
 
 export default function SignUp({ onNavigate, onLogin }) {
-
+  const [googleNeedsPhone, setGoogleNeedsPhone] = useState(false);
+  const [googlePhone, setGooglePhone] = useState("");
+  const [googleRole, setGoogleRole] = useState(null);
+  const [googleError, setGoogleError] = useState("");
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [checkingReg, setCheckingReg] = useState(true);
+  const [regAllowed, setRegAllowed] = useState(true);
   const [form, setForm] = useState({ name: "", email: "", phone: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState({ type: "", text: "" });
+
+  useEffect(() => {
+    const checkRegistrationStatus = async () => {
+      try {
+        const { data } = await api.get("/health");
+        if (data && data.allowRegistrations === false) {
+          setRegAllowed(false);
+        }
+      } catch (err) {
+        console.error("Failed to check registration status:", err);
+      } finally {
+        setCheckingReg(false);
+      }
+    };
+    checkRegistrationStatus();
+  }, []);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -75,10 +97,17 @@ export default function SignUp({ onNavigate, onLogin }) {
     setMsg({ type: "", text: "" });
     try {
       const response = await api.post("/auth/google-login", { credential });
-      const { token, isSeller, is_seller, role, userId } = response.data;
+      const { token, isSeller, is_seller, role, userId, phone } = response.data;
       if (token) localStorage.setItem("token", token);
       if (userId) localStorage.setItem("userId", String(userId));
       localStorage.setItem("isSeller", String(isSeller ?? is_seller ?? role === "seller" ?? false));
+
+      if (!phone) {
+        setGoogleRole(role);
+        setGoogleNeedsPhone(true);
+        setLoading(false);
+        return;
+      }
 
       setMsg({
         type: "ok",
@@ -100,6 +129,109 @@ export default function SignUp({ onNavigate, onLogin }) {
       setLoading(false);
     }
   };
+
+  const handleGooglePhoneSubmit = async (e) => {
+    e.preventDefault();
+    if (!googlePhone) {
+      setGoogleError("Phone number is required.");
+      return;
+    }
+    if (!/^01[0125][0-9]{8}$/.test(googlePhone)) {
+      setGoogleError("Please enter a valid Egyptian phone number.");
+      return;
+    }
+
+    setGoogleLoading(true);
+    setGoogleError("");
+    try {
+      await api.patch("/user/me", { phone: "+20" + googlePhone });
+      setMsg({ type: "ok", text: "Profile completed! Reconnecting..." });
+      setTimeout(() => {
+        if (onLogin) {
+          onLogin(googleRole);
+        } else {
+          onNavigate("signin");
+        }
+      }, 1000);
+    } catch (err) {
+      console.error(err);
+      setGoogleError(err.response?.data?.error || "Failed to update phone number. Please try again.");
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  if (googleNeedsPhone) {
+    return (
+      <div className="auth-page">
+        <BackButton onClick={() => onNavigate("home")} />
+        <div className="card">
+          <Logo />
+          <h1 className="heading" style={{ fontSize: "28px", marginTop: "10px" }}>One Last Step</h1>
+          <p className="tagline">Please enter your phone number to complete your Google registration.</p>
+          
+          {googleError && <div className="msg err">{googleError}</div>}
+          
+          <form onSubmit={handleGooglePhoneSubmit} className="auth-form">
+            <InputField
+              label="Phone number"
+              type="tel"
+              name="phone"
+              placeholder="01xxxxxxxxx"
+              value={googlePhone}
+              onChange={(e) => {
+                let num = e.target.value.replace(/\D/g, "");
+                if (num.length > 11) num = num.slice(0, 11);
+                setGooglePhone(num);
+                setGoogleError("");
+              }}
+              icon="phone"
+            />
+            <button type="submit" className="btn-primary" disabled={googleLoading}>
+              {googleLoading ? "Completing registration…" : "Complete Registration"}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  if (checkingReg) {
+    return (
+      <div className="auth-page">
+        <BackButton onClick={() => onNavigate("home")} />
+        <div className="card" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "280px" }}>
+          <p style={{ color: "var(--soft)", fontSize: "14px" }}>Loading details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!regAllowed) {
+    return (
+      <div className="auth-page">
+        <BackButton onClick={() => onNavigate("home")} />
+        <div className="card">
+          <Logo />
+          <div className="reg-closed-container">
+            <div className="reg-closed-icon-wrap">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </div>
+            <h1 className="heading" style={{ fontSize: "28px", textAlign: "center", margin: "10px 0 4px" }}>Registrations Paused</h1>
+            <p className="tagline" style={{ textAlign: "center", marginBottom: "12px", lineHeight: "1.5" }}>
+              New signups are temporarily disabled by the administrator. Please check back later.
+            </p>
+            <button className="btn-primary" onClick={() => onNavigate("signin")} style={{ marginTop: "12px" }}>
+              Sign In to Existing Account
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-page">

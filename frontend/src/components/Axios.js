@@ -21,6 +21,9 @@ api.interceptors.response.use(
       localStorage.removeItem("isSeller");
       window.dispatchEvent(new Event("auth:logout"));
     }
+    if (error.response?.status === 503 && error.response?.data?.maintenance === true) {
+      window.dispatchEvent(new CustomEvent("system:maintenance", { detail: true }));
+    }
     return Promise.reject(error);
   }
 );

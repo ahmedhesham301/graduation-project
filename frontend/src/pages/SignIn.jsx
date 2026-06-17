@@ -7,6 +7,11 @@ import "./Auth.css";
 import { api } from "../components/Axios";
 
 export default function SignIn({ onNavigate, onLogin }) {
+  const [googleNeedsPhone, setGoogleNeedsPhone] = useState(false);
+  const [googlePhone, setGooglePhone] = useState("");
+  const [googleRole, setGoogleRole] = useState(null);
+  const [googleError, setGoogleError] = useState("");
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState({ type: "", text: "" });
@@ -60,10 +65,17 @@ export default function SignIn({ onNavigate, onLogin }) {
     setMsg({ type: "", text: "" });
     try {
       const response = await api.post("/auth/google-login", { credential });
-      const { token, isSeller, is_seller, role, userId } = response.data;
+      const { token, isSeller, is_seller, role, userId, phone } = response.data;
       if (token) localStorage.setItem("token", token);
       if (userId) localStorage.setItem("userId", String(userId));
       localStorage.setItem("isSeller", String(isSeller ?? is_seller ?? role === "seller" ?? false));
+
+      if (!phone) {
+        setGoogleRole(role);
+        setGoogleNeedsPhone(true);
+        setLoading(false);
+        return;
+      }
 
       setMsg({
         type: "ok",
@@ -81,6 +93,68 @@ export default function SignIn({ onNavigate, onLogin }) {
       setLoading(false);
     }
   };
+
+  const handleGooglePhoneSubmit = async (e) => {
+    e.preventDefault();
+    if (!googlePhone) {
+      setGoogleError("Phone number is required.");
+      return;
+    }
+    if (!/^01[0125][0-9]{8}$/.test(googlePhone)) {
+      setGoogleError("Please enter a valid Egyptian phone number.");
+      return;
+    }
+
+    setGoogleLoading(true);
+    setGoogleError("");
+    try {
+      await api.patch("/user/me", { phone: "+20" + googlePhone });
+      setMsg({ type: "ok", text: "Profile completed! Signing in..." });
+      setTimeout(() => {
+        onLogin(googleRole);
+      }, 1000);
+    } catch (err) {
+      console.error(err);
+      setGoogleError(err.response?.data?.error || "Failed to update phone number. Please try again.");
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  if (googleNeedsPhone) {
+    return (
+      <div className="auth-page">
+        <BackButton onClick={() => onNavigate("home")} />
+        <div className="card">
+          <Logo />
+          <h1 className="heading" style={{ fontSize: "28px", marginTop: "10px" }}>One Last Step</h1>
+          <p className="tagline">Please enter your phone number to complete your Google sign-in.</p>
+          
+          {googleError && <div className="msg err">{googleError}</div>}
+          
+          <form onSubmit={handleGooglePhoneSubmit} className="auth-form">
+            <InputField
+              label="Phone number"
+              type="tel"
+              name="phone"
+              placeholder="01xxxxxxxxx"
+              value={googlePhone}
+              onChange={(e) => {
+                let num = e.target.value.replace(/\D/g, "");
+                if (num.length > 11) num = num.slice(0, 11);
+                setGooglePhone(num);
+                setGoogleError("");
+              }}
+              icon="phone"
+            />
+            <button type="submit" className="btn-primary" disabled={googleLoading}>
+              {googleLoading ? "Completing sign-in…" : "Complete Sign In"}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-page">

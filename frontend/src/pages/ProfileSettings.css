@@ -417,3 +417,171 @@
     right: 6rem;
   }
 }
+
+/* ── Become a Seller Full Page ── */
+.ps-becomeseller-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding-top: 10px;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.ps-seller-timeline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  margin-bottom: 40px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.ps-seller-timeline::before {
+  content: '';
+  position: absolute;
+  top: 20px; /* middle of step-num */
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--border);
+  z-index: 1;
+}
+
+.timeline-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  text-align: center;
+}
+
+.step-num {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 2px solid var(--border);
+  color: var(--soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
+}
+
+.step-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--soft);
+  transition: all 0.3s ease;
+}
+
+/* Active State */
+.timeline-step.active .step-num {
+  background: var(--bg);
+  border-color: #1a8cca;
+  color: #1a8cca;
+  box-shadow: 0 0 0 4px rgba(26, 140, 202, 0.15);
+}
+
+.timeline-step.active .step-label {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* Completed State */
+.timeline-step.completed .step-num {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: #fff;
+}
+
+.timeline-step.completed .step-label {
+  color: #16a34a;
+}
+
+/* Seller Status Page styling */
+.seller-status-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+  border-radius: 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  max-width: 500px;
+  margin: 20px auto 0 auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.seller-status-page.pending {
+  border-top: 4px solid #f59e0b;
+}
+
+.seller-status-page.rejected {
+  border-top: 4px solid #dc2626;
+}
+
+.status-icon-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.status-icon-wrap.error {
+  background: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
+}
+
+.seller-status-page h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+
+.seller-status-page p {
+  font-size: 14px;
+  color: var(--soft);
+  line-height: 1.6;
+  margin: 4px 0;
+}
+
+.seller-status-page .rejection-reason {
+  color: #dc2626;
+  font-style: italic;
+  background: rgba(220, 38, 38, 0.05);
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px dashed rgba(220, 38, 38, 0.2);
+  margin-top: 12px;
+  font-size: 13px;
+  max-width: 100%;
+}
+
+.animate-spin {
+  animation: spin 1.2s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

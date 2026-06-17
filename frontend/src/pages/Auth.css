@@ -40,6 +40,44 @@
 .link { color:var(--blue2); font-weight:600; cursor:pointer; }
 .link:hover { text-decoration:underline; }
 
+/* ── Registrations Closed ── */
+.reg-closed-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  padding: 10px 0;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.reg-closed-icon-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(26, 140, 202, 0.08);
+  color: #1a8cca;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  box-shadow: 0 4px 14px rgba(26, 140, 202, 0.1);
+}
+
+.reg-closed-icon-wrap svg {
+  animation: pulseLock 2.5s ease-in-out infinite;
+}
+
+@keyframes pulseLock {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width:480px) {
   .auth-page { padding:70px 12px 32px; align-items:flex-start; padding-top:100px; }
