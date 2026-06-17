@@ -54,3 +54,11 @@ sequenceDiagram
     DB-->>API: OK
     API-->>F: 200 {message: "rejected"}
     F-->>A: Property marked as rejected
+
+    %% Security Logs
+    A->>F: Navigates to Security Logs tab
+    F->>API: GET /api/admin/security-logs?page=1
+    API->>DB: SELECT * FROM security_logs ORDER BY created_at DESC LIMIT 10 OFFSET 0
+    DB-->>API: Security logs array + total count
+    API-->>F: Paginated security logs
+    F-->>A: Displays security logs table with IP, action, OS, and browser details

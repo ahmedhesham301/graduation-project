@@ -15,9 +15,10 @@ Table 12: Favorites Module Test Cases (TC-FAV-01 to TC-FAV-06) .................
 Table 13: Analytics Module Test Cases (TC-ANA-01 to TC-ANA-05) ................. XX
 Table 14: Admin Dashboard Module Test Cases (TC-ADM-01 to TC-ADM-18) ........... XX
 Table 15: Chat Module Test Cases (TC-CHAT-03 to TC-CHAT-05) .................... XX
-Table 16: Test Execution Key Metrics ............................................ XX
-Table 17: Bug Reports (BUG-01 to BUG-09) ....................................... XX
-Table 18: Testing Best Practices Applied ........................................ XX
+Table 16: Security & Integrity Module Test Cases (TC-SEC-01 to TC-SEC-08) ........... XX
+Table 17: Test Execution Key Metrics ............................................ XX
+Table 18: Bug Reports (BUG-01 to BUG-09) ....................................... XX
+Table 19: Testing Best Practices Applied ........................................ XX
 
 Note: Replace XX with actual page numbers after inserting Chapter 5 into the Word document.
 Use Word's "Insert Table of Figures" feature with label "Table" to auto-generate this.

@@ -243,14 +243,13 @@ Benefits:
 
 | Layer | Protection |
 |-------|-----------|
-| Authentication | Session-based with secure cookies, bcrypt hashing |
-| Authorization | Role-based access control (buyer/seller/admin) |
-| API | Input validation, rate limiting, parameterized queries |
-| Network | VPC segmentation, private subnets for DB |
-| Infrastructure | Bastion host, NAT gateway, security groups |
-| Media | Presigned URLs (time-limited access) |
-| Transport | HTTPS/TLS termination at load balancer |
-| Admin | Activity logging, all actions auditable |
+| Authentication | Session-based with secure cookies, bcrypt hashing, account lockout (5 failed attempts) |
+| Authorization | Role-based access control (buyer/seller/admin), security logs access control |
+| Integrity | Double-Submit CSRF Cookie pattern, strong password complexity checks |
+| API & Auditing | Input validation, rate limiting, security logs (logins, lockouts, validation failures) |
+| Network & Infra | VPC segmentation, private subnets for DB, Bastion host, NAT gateway, security groups |
+| Media & Transport | Presigned S3 URLs (time-limited), HTTPS/TLS termination at load balancer |
+| Admin UI | Security logs & admin activity dashboard tabs |
 
 ---
 
@@ -260,14 +259,15 @@ Testing approach: Integration tests against real PostgreSQL (no mocks)
 
 | Metric | Value |
 |--------|-------|
-| Test Files | 7 |
-| Total Tests | 56 |
+| Test Files | 8 |
+| Total Tests | 64 |
 | Pass Rate | 100% |
-| Duration | ~19 seconds |
+| Duration | ~20 seconds |
 
 Modules tested:
 - Authentication (9) | Users (8) | Properties (10)
 - Favorites (6) | Analytics (5) | Admin (15) | Chat (3)
+- Security & Integrity (8)
 
 Tools: Vitest + Supertest + Real PostgreSQL
 
@@ -275,18 +275,18 @@ Tools: Vitest + Supertest + Real PostgreSQL
 
 ## Slide 18: Test Results
 
-[INSERT: Screenshot of test terminal output showing 56/56 passed]
+[INSERT: Screenshot of test terminal output showing 64/64 passed]
 
 Key findings during testing:
-- 9 bugs discovered and fixed
-- Critical: Session regeneration bug (would lose user sessions)
-- Critical: Route conflict in Express 5 (/properties/mine vs /:id)
-- All bugs resolved before deployment
+- 9 bugs discovered and fixed during initial integration tests
+- Validated new security layer: Account lockout, password strength, CSRF, and security logs access control
+- Critical session regeneration and route conflicts resolved
+- All security vulnerabilities and bugs fixed before deployment
 
 Testing validated:
 - Full middleware chain execution
 - Real SQL constraint enforcement
-- Session persistence across requests
+- Session persistence & security
 - Role-based access control
 
 ---
@@ -326,8 +326,9 @@ Achievements:
 - Full-stack real estate platform with geospatial capabilities
 - Automated cloud infrastructure (Terraform + EKS)
 - CI/CD pipeline for zero-downtime deployments
-- 56 automated tests with 100% pass rate
-- Role-based access with seller verification workflow
+- 64 automated tests with 100% pass rate
+- Enforced password complexity, account lockout, CSRF, and security auditing
+- Role-based access with seller verification workflow & admin security log UI
 - Direct-to-S3 media handling for scalability
 - AI chatbot + ML price prediction
 
