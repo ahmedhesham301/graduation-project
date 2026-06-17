@@ -5,7 +5,6 @@ import { initRedis } from "./database/redis.js";
 import { initRateLimiters } from "./middlewares/rateLimiter.js";
 import { sessionMiddleware } from "./middlewares/session.js";
 import { maintenanceMode } from "./middlewares/maintenance.js";
-import { csrfProtection } from "./middlewares/csrf.js";
 import authRouter from "./routes/authRouter.js";
 import propertyRouter from "./routes/propertyRouter.js";
 import savedRouter from "./routes/savedRouter.js";
@@ -40,7 +39,6 @@ export async function createApp() {
     }));
     app.use(sessionMiddleware);
     app.use(maintenanceMode);
-    app.use(csrfProtection);
 
     app.use('/api/health', healthCheck);
     app.use('/api', authRouter);
