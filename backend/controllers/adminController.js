@@ -8,7 +8,7 @@ import {
     getPropertyMedia, getContactEvents, logAdminAction, getActivityLog, 
     getPendingSellerCount, getAvgPriceByType, getPropertyConditionDist, 
     getMonthlySalesTrend, getMonthlyViewsTrend, getSoldPropertiesList,
-    getSiteSettings, updateSiteSetting, approvePropertyListing, rejectPropertyListing,
+    getSiteSettings, updateSiteSetting, approvePropertyListing, rejectPropertyListing, approveAllPropertyListings,
     getLeadMethodDistribution, getTopPerformingProperties, getOfferStatusDistribution,
     getAvgTimeToSell, getSellerLeaderboard
 } from "../models/adminModel.js"
@@ -295,5 +295,16 @@ export async function rejectProperty(req, res) {
     } catch (err) {
         console.error("Admin reject property error:", err)
         res.status(500).json({ error: "Failed to reject property" })
+    }
+}
+
+export async function approveAllProperties(req, res) {
+    try {
+        await approveAllPropertyListings()
+        await logAdminAction(req.session.userID, 'approve_all_properties', 'property', null)
+        res.json({ message: "All pending properties approved successfully" })
+    } catch (err) {
+        console.error("Admin approve all properties error:", err)
+        res.status(500).json({ error: "Failed to approve all properties" })
     }
 }

@@ -181,6 +181,12 @@ export async function approvePropertyListing(id) {
     )
 }
 
+export async function approveAllPropertyListings() {
+    await pool.query(
+        `UPDATE properties SET moderation_status = 'approved', rejection_reason = NULL WHERE moderation_status = 'pending'`
+    )
+}
+
 export async function rejectPropertyListing(id, reason) {
     await pool.query(
         `UPDATE properties SET moderation_status = 'rejected', rejection_reason = $1 WHERE id = $2`,

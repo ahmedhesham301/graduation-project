@@ -273,6 +273,26 @@
     color: #fff;
 }
 
+.approve-all-btn {
+    background: var(--admin-success);
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.approve-all-btn:hover {
+    background: #059669;
+}
+
+.approve-all-btn:active {
+    transform: scale(0.98);
+}
+
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }

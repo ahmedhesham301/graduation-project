@@ -6,7 +6,7 @@ import {
     listProperties, updateProperty, removeProperty, getReports, 
     getSellerRequests, approveSeller, rejectSeller, getPropertyDetail, 
     getContacts, getAdminActivityLog, getNotifications, listSoldProperties,
-    getSettings, updateSettings, approveProperty, rejectProperty
+    getSettings, updateSettings, approveProperty, rejectProperty, approveAllProperties
 } from "../controllers/adminController.js"
 
 const router = Router()
@@ -35,6 +35,7 @@ router.get("/admin/properties", isAuthenticated, isAdmin, listProperties)
 router.get("/admin/properties/:id", isAuthenticated, isAdmin, getPropertyDetail)
 router.patch("/admin/properties/:id", isAuthenticated, isAdmin, updateProperty)
 router.delete("/admin/properties/:id", isAuthenticated, isAdmin, removeProperty)
+router.post("/admin/properties/approve-all", isAuthenticated, isAdmin, approveAllProperties)
 router.post("/admin/properties/:id/approve", isAuthenticated, isAdmin, approveProperty)
 router.post("/admin/properties/:id/reject", isAuthenticated, isAdmin, rejectProperty)
 

@@ -86,6 +86,17 @@ export default function AdminProperties() {
         }
     };
 
+    const handleApproveAll = async () => {
+        if (!confirm("Are you sure you want to approve all pending properties? This will approve all listings awaiting review.")) return;
+        try {
+            await api.post("/admin/properties/approve-all");
+            fetchProperties();
+        } catch (err) {
+            alert(err.response?.data?.error || "Failed to approve all properties");
+        }
+    };
+
+
     const handleReject = async (e) => {
         e.preventDefault();
         if (!rejectionReason) return;
@@ -143,7 +154,12 @@ export default function AdminProperties() {
                     <h2>Property Moderation</h2>
                     <p>Review and manage property listings on the platform.</p>
                 </div>
-                <span className="properties-count">{total} properties found</span>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <button className="approve-all-btn" onClick={handleApproveAll}>
+                        Approve All Pending
+                    </button>
+                    <span className="properties-count">{total} properties found</span>
+                </div>
             </div>
 
             <div className="properties-filters">
