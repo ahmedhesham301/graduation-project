@@ -37,7 +37,8 @@ backend/
 │   ├── favorites.test.js     # Favorites module tests (6 tests)
 │   ├── analytics.test.js     # Analytics module tests (5 tests)
 │   ├── admin.test.js         # Admin dashboard & management tests (15 tests)
-│   └── chat.test.js          # Chat module tests (3 tests)
+│   ├── chat.test.js          # Chat module tests (3 tests)
+│   └── security.test.js      # Security protections & lockout tests (8 tests)
 ├── vitest.config.js          # Test configuration
 └── package.json              # Test scripts
 ```
@@ -53,7 +54,8 @@ backend/
 | Chat | chat.test.js | 3 | Inbox, Messages, Authorization |
 | Admin Dashboard | admin.test.js | 15 | Stats, Users, Properties, Reports, Contacts, Activity Log, Notifications, Seller Requests |
 | Analytics (Seller) | analytics.test.js | 5 | Seller dashboard, Market trends, Performance, Authorization |
-| **Total** | **7 files** | **56** | **Full system coverage** |
+| Security & Integrity | security.test.js | 8 | Account lockout, Password complexity, CSRF protection, security logs access control |
+| **Total** | **8 files** | **64** | **Full system coverage** |
 
 ### 5.1.5 What Each Test File Does
 
@@ -70,6 +72,8 @@ backend/
 **admin.test.js** — Tests all admin panel API endpoints. Logs in as the seeded admin user (`admin@3akarati.com`) and verifies: dashboard stats, recent data, user management (list/search/filter/role change), property listing, contact events with date filtering, activity log, notifications count, seller requests, and system settings.
 
 **chat.test.js** — Tests the messaging system's authorization. Verifies that authenticated users can access their inbox and that unauthenticated users are blocked from both inbox and message endpoints.
+
+**security.test.js** — Tests security-related mechanisms. Verifies account lockout policies (blocking login after 5 consecutive failed attempts, recording the lockout event, resetting on successful login), checks password strength requirements, verifies CSRF cookie/token issuance, and ensures only admin users can access the security logs endpoint.
 
 ### 5.1.6 How Tests Interact with the Real System
 
@@ -263,6 +267,19 @@ npx vite preview --outDir test-report
 | TC-CHAT-04 | Reject inbox without auth | Not logged in | GET /chat/inbox | 401 Unauthorized | ✅ Pass |
 | TC-CHAT-05 | Reject messages without auth | Not logged in | GET /chat/messages/:id | 401 Unauthorized | ✅ Pass |
 
+### 5.3.8 Security & Integrity Module (8 Tests)
+
+| TC-ID | Test Case | Precondition | Input | Expected Output | Status |
+|-------|-----------|--------------|-------|-----------------|--------|
+| TC-SEC-01 | Password complexity enforcement | None | Password without uppercase/number/special char | 400 Bad Request | ✅ Pass |
+| TC-SEC-02 | Account lockout trigger | User registered | 5 consecutive failed login attempts | 400 Bad Request, account locked | ✅ Pass |
+| TC-SEC-03 | Lockout block on login | Account locked | Valid credentials while locked | 400 Bad Request, locked message | ✅ Pass |
+| TC-SEC-04 | Lockout reset on successful login | User registered | Failed logins < 5, then successful login | 200 OK, failed attempts reset | ✅ Pass |
+| TC-SEC-05 | CSRF cookie & token issuance | None | GET /auth/csrf-token | 200 OK, token returned, cookie set | ✅ Pass |
+| TC-SEC-06 | Security logs admin access | Admin logged in | GET /admin/security-logs | 200 OK, paginated logs returned | ✅ Pass |
+| TC-SEC-07 | Security logs non-admin access | Buyer logged in | GET /admin/security-logs | 403 Forbidden | ✅ Pass |
+| TC-SEC-08 | Security logs unauthenticated access | Not logged in | GET /admin/security-logs | 401 Unauthorized | ✅ Pass |
+
 ---
 
 ## 5.4 Test Scenarios
@@ -328,6 +345,14 @@ npx vite preview --outDir test-report
 | 2 | Admin sees badge on "Seller Requests" | Red badge with count |
 | 3 | Admin approves request | Badge count decreases |
 
+### Scenario 7: Account Lockout and Security Audit Logs
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| 1 | Attacker submits 5 incorrect login attempts | 400 Bad Request on each; account is locked, lockout recorded |
+| 2 | Attacker submits 6th login with correct credentials | 400 Bad Request, message "Account is temporarily locked" |
+| 3 | Admin logs in and opens the Security Logs tab | Admin sees lockout and failed login attempts in the audit trail |
+
 ---
 
 ## 5.5 Test Execution Results
@@ -343,23 +368,24 @@ npx vite preview --outDir test-report
  ✓ tests/property.test.js (10 tests) 709ms
  ✓ tests/auth.test.js (9 tests) 660ms
  ✓ tests/admin.test.js (15 tests) 567ms
+ ✓ tests/security.test.js (8 tests) 420ms
  ✓ tests/chat.test.js (3 tests) 317ms
 
- Test Files  7 passed (7)
-      Tests  56 passed (56)
-   Duration  19.25s
+ Test Files  8 passed (8)
+      Tests  64 passed (64)
+   Duration  20.15s
 ```
 
 ### 5.5.2 Key Metrics
 
 | Metric | Value |
 |--------|-------|
-| Total Test Files | 7 |
-| Total Test Cases | 56 |
-| Passed | 56 |
+| Total Test Files | 8 |
+| Total Test Cases | 64 |
+| Passed | 64 |
 | Failed | 0 |
 | Skipped | 0 |
-| Total Duration | ~19 seconds |
+| Total Duration | ~20 seconds |
 | Import Time | ~12 seconds |
 | Test Execution Time | ~5 seconds |
 
@@ -403,4 +429,4 @@ All 9 bugs were identified during the integration testing phase and resolved bef
 
 ## 5.8 Conclusion
 
-The testing suite provides comprehensive coverage of all system modules with 56 automated integration tests. Testing against a real PostgreSQL database (not mocks) uncovered critical bugs including session management issues and route conflicts that would have been missed by unit tests alone. The admin dashboard, seller verification workflow, and property management system are all validated end-to-end through automated tests that simulate real user interactions.
+The testing suite provides comprehensive coverage of all system modules with 64 automated integration tests. Testing against a real PostgreSQL database (not mocks) uncovered critical bugs including session management issues and route conflicts that would have been missed by unit tests alone. The admin dashboard, seller verification workflow, and property management system are all validated end-to-end through automated tests that simulate real user interactions.
