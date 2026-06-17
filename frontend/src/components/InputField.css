@@ -5,3 +5,23 @@
 .input-ico { display: flex; align-items: center; justify-content: center; width: 42px; height: 46px; flex-shrink: 0; color: var(--muted); border-right: 1px solid var(--border); transition: color 0.3s, border-color 0.3s; }
 .input-wrap input { flex: 1; padding: 13px 14px; background: transparent; border: none; color: var(--text); font-family: var(--font-body); font-size: 14px; outline: none; min-width: 0; transition: color 0.3s; }
 .input-wrap input::placeholder { color: var(--muted); }
+
+.input-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 46px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s;
+  flex-shrink: 0;
+  border-left: 1px solid var(--border);
+}
+.input-toggle:hover {
+  color: var(--text);
+}
+
