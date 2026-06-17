@@ -82,7 +82,7 @@ Distributed across 3 AWS Availability Zones for fault tolerance.
 | Frontend | React.js, HTML5, CSS3 |
 | Backend | Node.js, Express.js |
 | Database | PostgreSQL + PostGIS |
-| Auth | Session-based (express-session) |
+| Auth | Session-based (express-session), Google OAuth 2.0 |
 | File Storage | Amazon S3 (presigned URLs) |
 | AI | Google Gemini (Chatbot) |
 | ML | Python (Price Prediction) |
@@ -104,6 +104,7 @@ Distributed across 3 AWS Availability Zones for fault tolerance.
 - Submit purchase offers
 - AI-powered chatbot for property recommendations
 - Become a seller (verification workflow)
+- Google Sign-In / OAuth 2.0 integration
 
 ---
 
@@ -126,7 +127,7 @@ Distributed across 3 AWS Availability Zones for fault tolerance.
 - Dashboard with KPI cards (users, properties, contacts)
 - User management (search, filter, role change, delete)
 - Seller verification (approve/reject with reason)
-- Property moderation (approve/reject listings)
+- Property moderation (approve/reject listings, bulk Approve All Pending)
 - Contact events log with date filtering
 - Activity log (all admin actions tracked)
 - Analytics reports (registrations, listings, top cities)
@@ -336,7 +337,7 @@ The platform demonstrates modern software engineering practices bridging develop
 
 ## Slide 22: Future Work
 
-1. **OAuth 2.0 / SSO** — Login with Google, Apple, Facebook
+1. **SSO Expansion** — Login with Apple, Facebook, and Microsoft IDPs
 2. **360° Virtual Tours** — WebGL-based panoramic property tours
 3. **Load Testing** — JMeter/k6 stress testing on EKS cluster
 4. **Mobile App** — React Native for iOS/Android
