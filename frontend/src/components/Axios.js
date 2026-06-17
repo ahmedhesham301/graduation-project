@@ -9,6 +9,13 @@ export const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
+  
+  // Retrieve CSRF token from cookie and attach to headers
+  const csrfMatch = document.cookie.match(/(^|;)\s*csrf-token\s*=\s*([^;]+)/);
+  if (csrfMatch) {
+    config.headers["X-CSRF-Token"] = decodeURIComponent(csrfMatch[2]);
+  }
+  
   return config;
 }, (error) => Promise.reject(error));
 

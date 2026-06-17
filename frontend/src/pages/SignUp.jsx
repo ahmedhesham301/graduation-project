@@ -53,22 +53,37 @@ export default function SignUp({ onNavigate, onLogin }) {
       setMsg({ type: "err", text: "Password must be between 8 and 72 characters." });
       return;
     }
-      const phone = form.phone.replace("+20", "");
+    if (!/[a-z]/.test(form.password)) {
+      setMsg({ type: "err", text: "Password must contain at least one lowercase letter." });
+      return;
+    }
+    if (!/[A-Z]/.test(form.password)) {
+      setMsg({ type: "err", text: "Password must contain at least one uppercase letter." });
+      return;
+    }
+    if (!/[0-9]/.test(form.password)) {
+      setMsg({ type: "err", text: "Password must contain at least one number." });
+      return;
+    }
+    if (!/[^a-zA-Z0-9]/.test(form.password)) {
+      setMsg({ type: "err", text: "Password must contain at least one special character." });
+      return;
+    }
 
-  if (!/^01[0125][0-9]{8}$/.test(form.phone)) {
-  setMsg({
-    type: "err",
-    text: "Please enter a valid Egyptian phone number.",
-  });
-  return;
-}
-
+    const phone = form.phone.replace("+20", "");
+    if (!/^01[0125][0-9]{8}$/.test(form.phone)) {
+      setMsg({
+        type: "err",
+        text: "Please enter a valid Egyptian phone number.",
+      });
+      return;
+    }
 
     setLoading(true);
     setMsg({ type: "", text: "" });
 
     try {
-      const response = await axios.post(`${API_BASE}/auth/register`, {
+      const response = await api.post("/auth/register", {
         fullName: form.name,
         email: form.email,
         phone: "+2" + form.phone,
@@ -81,8 +96,19 @@ export default function SignUp({ onNavigate, onLogin }) {
       setTimeout(() => onNavigate("signin"), 1000);
 
     } catch (error) {
-      // axios puts the response body in error.response.data
-      const serverMsg = error.response?.data?.message || error.response?.data?.error;
+      let serverMsg = error.response?.data?.message || error.response?.data?.error;
+      
+      // If the backend returned detailed Zod validation messages, collect them
+      if (error.response?.data?.errors) {
+        const details = Object.entries(error.response.data.errors)
+          .map(([field, msgs]) => {
+            const list = Array.isArray(msgs) ? msgs.join(", ") : msgs;
+            return `${field}: ${list}`;
+          })
+          .join(" | ");
+        if (details) serverMsg = details;
+      }
+
       setMsg({
         type: "err",
         text: serverMsg || "Something went wrong. Please try again.",
@@ -251,7 +277,7 @@ export default function SignUp({ onNavigate, onLogin }) {
         setForm({...form,phone: numbersOnly,});
         setMsg({ type: "", text: "" });}}
         icon="phone"/>          
-        <InputField label="Password" type="password" name="password" placeholder="Min. 8, max. 72 characters" value={form.password} onChange={handleChange} icon="lock" />
+        <InputField label="Password" type="password" name="password" placeholder="Min. 8, max. 72 characters" value={form.password} onChange={handleChange} icon="lock" autoComplete="new-password" />
           <button type="submit" className="btn-primary" disabled={loading} style={{ marginTop: "6px" }}>
             {loading ? "Creating account…" : "Create Account"}
           </button>

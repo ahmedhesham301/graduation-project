@@ -16,3 +16,7 @@
 }
 .is-dark  .tt-thumb { left: 28px; }
 .is-light .tt-thumb { left: 3px;  }
+
+.theme-toggle * {
+  pointer-events: none;
+}

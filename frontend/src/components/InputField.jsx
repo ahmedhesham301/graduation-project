@@ -38,12 +38,26 @@ const EyeOffIcon = () => (
 
 const icons = { email: EmailIcon, lock: LockIcon, user: UserIcon, phone: PhoneIcon };
 
-export default function InputField({ label, type, name, placeholder, value, onChange, icon }) {
+export default function InputField({ label, type, name, placeholder, value, onChange, icon, autoComplete }) {
   const [showPassword, setShowPassword] = useState(false);
   const Icon = icons[icon] || EmailIcon;
   
   const isPassword = type === "password";
   const inputType = isPassword ? (showPassword ? "text" : "password") : type;
+
+  // Smart default mapping if autoComplete is not explicitly provided
+  const getDefaultAutoComplete = () => {
+    if (type === "email") return "email";
+    if (type === "password") {
+      const isNew = label.toLowerCase().includes("new") || label.toLowerCase().includes("create") || label.toLowerCase().includes("confirm");
+      return isNew ? "new-password" : "current-password";
+    }
+    if (type === "tel") return "tel";
+    if (name === "name" || name === "fullName") return "name";
+    return "off";
+  };
+
+  const resolvedAutoComplete = autoComplete !== undefined ? autoComplete : getDefaultAutoComplete();
 
   return (
     <div className="field">
@@ -51,7 +65,7 @@ export default function InputField({ label, type, name, placeholder, value, onCh
       <div className="input-wrap">
         <span className="input-ico"><Icon /></span>
         <input type={inputType} name={name} placeholder={placeholder} value={value} onChange={onChange}
-          autoComplete={type === "email" ? "email" : type === "password" ? "current-password" : "name"} />
+          autoComplete={resolvedAutoComplete} />
         {isPassword && (
           <button type="button" className="input-toggle" onClick={() => setShowPassword(!showPassword)} tabIndex="-1" aria-label="Toggle password visibility">
             {showPassword ? <EyeOffIcon /> : <EyeIcon />}

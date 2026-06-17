@@ -10,6 +10,7 @@ import AdminProperties from "./AdminProperties";
 import AdminSellerRequests from "./AdminSellerRequests";
 import AdminContacts from "./AdminContacts";
 import AdminActivityLog from "./AdminActivityLog";
+import AdminSecurityLogs from "./AdminSecurityLogs";
 import AdminSoldProperties from "./AdminSoldProperties";
 import AdminSettings from "./AdminSettings";
 import AdminAnalytics from "./AdminAnalytics";
@@ -73,7 +74,8 @@ export default function AdminDashboard({ onLogout, onNavigate, currentUser }) {
         { id: "sellers", label: "Seller Requests", icon: <UserPlus size={20} />, badge: notifications.pendingSellers },
         { id: "contacts", label: "Contacts", icon: <MessageSquare size={20} /> },
         { id: "activity", label: "Activity Log", icon: <History size={20} /> },
-        { id: "settings", label: "System Settings", icon: <Shield size={20} /> },
+        { id: "security", label: "Security Logs", icon: <Shield size={20} /> },
+        { id: "settings", label: "System Settings", icon: <Settings size={20} /> },
     ];
 
     return (
@@ -295,6 +297,7 @@ export default function AdminDashboard({ onLogout, onNavigate, currentUser }) {
                     {activeTab === "sellers" && <AdminSellerRequests />}
                     {activeTab === "contacts" && <AdminContacts />}
                     {activeTab === "activity" && <AdminActivityLog />}
+                    {activeTab === "security" && <AdminSecurityLogs />}
                     {activeTab === "settings" && <AdminSettings />}
                 </div>
             </main>
