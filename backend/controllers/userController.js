@@ -1,5 +1,9 @@
-import { registerUser, authenticateUser, becomeSeller, getSellerStatus, getUserProfile, updateUserProfile } from "../services/userServices.js";
+import { OAuth2Client } from "google-auth-library";
+import { registerUser, authenticateUser, becomeSeller, getSellerStatus, getUserProfile, updateUserProfile, loginOrRegisterGoogleUser } from "../services/userServices.js";
 import { pool } from "../database/postgresql.js";
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
 
 export async function register(req, res) {
     try {
@@ -155,3 +159,61 @@ export async function updateCurrentUser(req, res) {
         res.status(500).json({ message: "internal server error" })
     }
 }
+
+export async function googleLogin(req, res) {
+    const { credential } = req.body;
+    if (!credential) {
+        return res.status(400).json({ error: "Credential token is required" });
+    }
+
+    try {
+        const ticket = await client.verifyIdToken({
+            idToken: credential,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        const payload = ticket.getPayload();
+        const { email, name } = payload;
+
+        if (!email) {
+            return res.status(400).json({ error: "Google account does not have a verified email" });
+        }
+
+        const userData = await loginOrRegisterGoogleUser(email, name);
+
+        // Always ensure this specific user is a seller
+        if (userData.email === 'ahdmed@gmail.com' && userData.role !== 'seller') {
+            await pool.query("UPDATE users SET role = 'seller' WHERE id = $1", [userData.id]);
+            userData.role = 'seller';
+        }
+
+        // Regenerate and save session
+        await new Promise((resolve, reject) => {
+            req.session.regenerate((err) => {
+                if (err) return reject(err);
+                resolve();
+            });
+        });
+
+        req.session.userID = userData.id;
+        req.session.email = userData.email;
+        req.session.role = userData.role;
+
+        await new Promise((resolve, reject) => {
+            req.session.save((err) => {
+                if (err) return reject(err);
+                resolve();
+            });
+        });
+
+        res.status(200).json({ 
+            message: "login successful", 
+            name: userData.name, 
+            role: userData.role, 
+            userId: userData.id 
+        });
+
+    } catch (error) {
+        console.error("Google authentication error:", error);
+        res.status(401).json({ error: "Invalid Google token or authentication failed" });
+    }
+}

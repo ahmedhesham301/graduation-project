@@ -55,6 +55,33 @@ export default function SignIn({ onNavigate, onLogin }) {
     }
   };
 
+  const handleGoogleSuccess = async (credential) => {
+    setLoading(true);
+    setMsg({ type: "", text: "" });
+    try {
+      const response = await api.post("/auth/google-login", { credential });
+      const { token, isSeller, is_seller, role, userId } = response.data;
+      if (token) localStorage.setItem("token", token);
+      if (userId) localStorage.setItem("userId", String(userId));
+      localStorage.setItem("isSeller", String(isSeller ?? is_seller ?? role === "seller" ?? false));
+
+      setMsg({
+        type: "ok",
+        text: response.data?.message || "Welcome back! You are now signed in with Google.",
+      });
+
+      setTimeout(() => { onLogin(role); }, 1250);
+    } catch (error) {
+      const serverMsg = error.response?.data?.message || error.response?.data?.error;
+      setMsg({
+        type: "err",
+        text: serverMsg || "Google authentication failed. Please try again.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="auth-page">
       <BackButton onClick={() => onNavigate("home")} />
@@ -91,7 +118,7 @@ export default function SignIn({ onNavigate, onLogin }) {
         </form>
 
         <div className="divider"><span>or continue with</span></div>
-        <SocialButtons />
+        <SocialButtons onSuccess={handleGoogleSuccess} />
         <p className="switch-text">
           Don't have an account?{" "}
           <span className="link" onClick={() => onNavigate("signup")}>Sign up</span>

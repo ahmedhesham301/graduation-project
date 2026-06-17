@@ -6,8 +6,10 @@ import SocialButtons from "../components/SocialButtons";
 import BackButton from "../components/BackButton";
 import "./Auth.css";
 import { API_BASE } from "../components/vars";
+import { api } from "../components/Axios";
 
-export default function SignUp({ onNavigate }) {
+export default function SignUp({ onNavigate, onLogin }) {
+
   const [form, setForm] = useState({ name: "", email: "", phone: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState({ type: "", text: "" });
@@ -66,7 +68,38 @@ export default function SignUp({ onNavigate }) {
     } finally {
       setLoading(false);
     }
-  }
+  };
+
+  const handleGoogleSuccess = async (credential) => {
+    setLoading(true);
+    setMsg({ type: "", text: "" });
+    try {
+      const response = await api.post("/auth/google-login", { credential });
+      const { token, isSeller, is_seller, role, userId } = response.data;
+      if (token) localStorage.setItem("token", token);
+      if (userId) localStorage.setItem("userId", String(userId));
+      localStorage.setItem("isSeller", String(isSeller ?? is_seller ?? role === "seller" ?? false));
+
+      setMsg({
+        type: "ok",
+        text: response.data?.message || "Welcome to 3Karati! You are now signed in with Google.",
+      });
+
+      if (onLogin) {
+        setTimeout(() => { onLogin(role); }, 1250);
+      } else {
+        setTimeout(() => { onNavigate("signin"); }, 1250);
+      }
+    } catch (error) {
+      const serverMsg = error.response?.data?.message || error.response?.data?.error;
+      setMsg({
+        type: "err",
+        text: serverMsg || "Google sign-up failed. Please try again.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="auth-page">
@@ -92,7 +125,7 @@ export default function SignUp({ onNavigate }) {
           </button>
         </form>
         <div className="divider"><span>or continue with</span></div>
-        <SocialButtons />
+        <SocialButtons onSuccess={handleGoogleSuccess} />
         <p className="switch-text">
           Already have an account?{" "}
           <span className="link" onClick={() => onNavigate("signin")}>Sign in</span>

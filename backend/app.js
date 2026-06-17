@@ -28,7 +28,9 @@ export async function createApp() {
     }
 
     const app = express();
-    app.use(helmet());
+    app.use(helmet({
+        crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" }
+    }));
     app.use(express.json());
     app.use(cors({
         origin: ["http://localhost:5173"],

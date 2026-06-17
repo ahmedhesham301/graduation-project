@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { register, login, logout, getCurrentUser, updateCurrentUser  } from "../controllers/userController.js";
+import { register, login, logout, getCurrentUser, updateCurrentUser, googleLogin } from "../controllers/userController.js";
 import { validateLoginBody, validateRegisterBody } from "../middlewares/validation/authValidator.js";
 import { isAuthenticated } from "../middlewares/session.js"
 import { authLimiter } from "../middlewares/rateLimiter.js" 
@@ -8,6 +8,7 @@ const router = Router();
 
 router.post('/auth/register', validateRegisterBody, register)
 router.post('/auth/login', authLimiter, validateLoginBody, login)
+router.post('/auth/google-login', googleLogin)
 router.post('/auth/logout', isAuthenticated, logout)
 
-export default router;
+export default router;

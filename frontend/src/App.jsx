@@ -204,7 +204,7 @@ const handleNavigate = (target, data = {}) => {
         <SignIn onNavigate={handleNavigate} theme={theme} onLogin={handleLogin} />
       )}
 
-      {page === "signup" && <SignUp onNavigate={handleNavigate} theme={theme} />}
+      {page === "signup" && <SignUp onNavigate={handleNavigate} theme={theme} onLogin={handleLogin} />}
 
       {page === "profile" && (
         <ProfileSettings

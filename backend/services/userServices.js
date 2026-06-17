@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt"
+import crypto from "crypto";
 import { save, findByEmail, upgradeToSeller, getSellerProfileByUserId, findUserById, updateUser } from "../models/userModel.js";
 
 export async function registerUser(fullName, email, phone, password, role) {
@@ -47,3 +48,20 @@ export async function updateUserProfile(userId, data) {
 
     return await updateUser(userId, fields)
 }
+
+export async function loginOrRegisterGoogleUser(email, fullName) {
+    let user = await findByEmail(email);
+    if (!user) {
+        const randomPassword = crypto.randomBytes(16).toString("hex");
+        const passwordHash = await bcrypt.hash(randomPassword, 10);
+        
+        let role = 'buyer';
+        if (email === 'ahdmed@gmail.com') {
+            role = 'seller';
+        }
+        
+        await save(fullName, email, null, passwordHash, role);
+        user = await findByEmail(email);
+    }
+    return user;
+}
