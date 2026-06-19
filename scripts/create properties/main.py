@@ -43,15 +43,15 @@ registerData = {
     "fullName": "ahmed",
     "email": "ahdmed@gmail.com",
     "phone": "+201091599588",
-    "password": "123456789",
-    "role": "seller"
+    "password": "F4r0uk@123",
+    "role": "seller",
 }
 
 base_session.post(f"{api_host}/auth/register", json=registerData)
 
 resp = base_session.post(
     f"{api_host}/auth/login",
-    json={"email": "ahdmed@gmail.com", "password": "123456789"},
+    json={"email": "ahdmed@gmail.com", "password": "F4r0uk@123"},
 )
 
 base_session.post(f"{api_host}/user/become-seller")
