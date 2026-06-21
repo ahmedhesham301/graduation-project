@@ -134,7 +134,12 @@ export default function Navbar({ onNavigate, theme, toggleTheme, isLoggedIn, cur
               ) : (
                 notifications.map((n) => (
                   <div key={n.id} className={`nav-notif-item ${!n.is_read ? "unread" : ""}`}
-                    onClick={() => {
+                    onClick={async () => {
+                      if (!n.is_read) {
+                        await api.put(`/notifications/${n.id}/read`);
+                        setNotifications((prev) => prev.map((x) => x.id === n.id ? { ...x, is_read: true } : x));
+                        setUnreadCount((c) => Math.max(0, c - 1));
+                      }
                       setShowNotifs(false);
                       onNavigate("profile", { tab: "chat" });
                     }}>
