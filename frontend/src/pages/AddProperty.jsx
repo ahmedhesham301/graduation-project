@@ -130,7 +130,7 @@ function MapPicker({ lat, lon, onPick }) {
   );
 }
 
-export default function AddProperty({ onBack }) {
+export default function AddProperty({ onBack, onNavigate }) {
   const [form, setForm] = useState({
     propertyType: "apartment",
     condition: "fully finished",

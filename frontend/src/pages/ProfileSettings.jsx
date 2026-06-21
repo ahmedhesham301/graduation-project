@@ -299,7 +299,7 @@ export default function ProfileSettings({ onNavigate, onLogout, initialTab, curr
           )}
 
           {activeNav === "addproperty" && (
-            <AddProperty onBack={() => setActiveNav("edit")} />
+            <AddProperty onBack={() => setActiveNav("edit")} onNavigate={onNavigate} />
           )}
 
           {activeNav === "edit" && (
