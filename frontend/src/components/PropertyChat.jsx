@@ -13,6 +13,9 @@ export default function PropertyChat({ propertyId, sellerId, currentUser = { id:
   const bottomRef = useRef(null);
   const isLoggedIn = currentUser.id !== 0;
 
+  // Don't render if seller is viewing their own property
+  if (asSeller) return null;
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
