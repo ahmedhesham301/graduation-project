@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { api } from "../components/Axios";
-import { CreditCard, Landmark, Coins, ChevronLeft, CheckCircle2 } from "lucide-react";
+import { CreditCard, Landmark, ChevronLeft, CheckCircle2 } from "lucide-react";
 import "./Checkout.css";
 
 export default function Checkout({ offer, onBack, onComplete }) {
@@ -76,15 +76,6 @@ export default function Checkout({ offer, onBack, onComplete }) {
                             <div className="method-info">
                                 <span className="method-name">Bank Transfer</span>
                                 <span className="method-desc">Direct transfer from your bank account</span>
-                            </div>
-                        </label>
-
-                        <label className={`method-card ${method === "crypto" ? "active" : ""}`}>
-                            <input type="radio" name="method" value="crypto" checked={method === "crypto"} onChange={() => setMethod("crypto")} />
-                            <Coins size={24} />
-                            <div className="method-info">
-                                <span className="method-name">Crypto</span>
-                                <span className="method-desc">Pay with BTC, ETH or USDT</span>
                             </div>
                         </label>
 
