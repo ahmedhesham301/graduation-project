@@ -289,6 +289,19 @@
     color: #fff;
 }
 
+.view-icon {
+    background: transparent;
+    border: none;
+    color: var(--admin-primary);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    transition: background 0.2s;
+}
+.view-icon:hover { background: rgba(59,130,246,0.15); }
+
 .approve-all-btn {
     background: var(--admin-success);
     color: #fff;

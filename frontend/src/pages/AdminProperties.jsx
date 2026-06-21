@@ -233,6 +233,12 @@ export default function AdminProperties({ onNavigate }) {
                                 </td>
                                 <td>
                                     <div className="action-buttons" onClick={(e) => e.stopPropagation()}>
+                                        <button className="view-icon" title="View Property" onClick={() => onNavigate("propertyDetails", { propertyId: prop.id, id: prop.id, fromPage: "admin" })}>
+                                            <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                                <circle cx="12" cy="12" r="3"/>
+                                            </svg>
+                                        </button>
                                         {prop.moderation_status === 'pending' && (
                                             <>
                                                 <button className="approve-icon" title="Approve" onClick={() => handleApprove(prop.id)}>
