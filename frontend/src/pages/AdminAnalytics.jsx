@@ -129,7 +129,7 @@ export default function AdminAnalytics() {
                             <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
                             <XAxis dataKey="month" stroke="#9ca3af" fontSize={12} />
                             <YAxis stroke="#9ca3af" fontSize={12} />
-                            <Tooltip contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #374151", borderRadius: "12px" }} />
+                            <Tooltip contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #374151", borderRadius: "12px", color: "#e5e7eb" }} labelStyle={{ color: "#e5e7eb" }} />
                             <Legend verticalAlign="top" height={36}/>
                             <Area type="monotone" dataKey="users" name="New Users" stroke="#3b82f6" fillOpacity={1} fill="url(#colorUsers)" strokeWidth={3} />
                             <Area type="monotone" dataKey="listings" name="New Listings" stroke="#10b981" fill="none" strokeWidth={3} />
@@ -150,8 +150,8 @@ export default function AdminAnalytics() {
                             >
                                 {data.leadMethods.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
                             </Pie>
-                            <Tooltip contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #374151", borderRadius: "12px" }} />
-                            <Legend />
+                            <Tooltip contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #374151", borderRadius: "12px", color: "#e5e7eb" }} labelStyle={{ color: "#e5e7eb" }} />
+                            <Legend wrapperStyle={{ color: "#d1d5db" }} />
                         </PieChart>
                     </ResponsiveContainer>
                 ), !data.leadMethods || data.leadMethods.length === 0)}
@@ -162,7 +162,7 @@ export default function AdminAnalytics() {
                             <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
                             <XAxis dataKey="label" stroke="#9ca3af" fontSize={11} />
                             <YAxis stroke="#9ca3af" fontSize={12} unit=" days" />
-                            <Tooltip contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #374151", borderRadius: "12px" }} />
+                            <Tooltip contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #374151", borderRadius: "12px", color: "#e5e7eb" }} labelStyle={{ color: "#e5e7eb" }} />
                             <Bar dataKey="value" name="Days" fill="#10b981" radius={[4, 4, 0, 0]} barSize={40} />
                         </BarChart>
                     </ResponsiveContainer>
@@ -213,8 +213,8 @@ export default function AdminAnalytics() {
             >
                 {data.offerStatuses.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[(index + 4) % COLORS.length]} />)}
             </Pie>
-            <Tooltip contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #374151", borderRadius: "12px" }} />
-            <Legend />
+            <Tooltip contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #374151", borderRadius: "12px", color: "#e5e7eb" }} labelStyle={{ color: "#e5e7eb" }} />
+            <Legend wrapperStyle={{ color: "#d1d5db" }} />
         </PieChart>
     </ResponsiveContainer>
 ), !data.offerStatuses || data.offerStatuses.length === 0)}
@@ -226,7 +226,7 @@ export default function AdminAnalytics() {
                             <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
                             <XAxis dataKey="month" stroke="#9ca3af" fontSize={12} />
                             <YAxis stroke="#9ca3af" fontSize={12} />
-                            <Tooltip contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #374151", borderRadius: "12px" }} />
+                            <Tooltip contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #374151", borderRadius: "12px", color: "#e5e7eb" }} labelStyle={{ color: "#e5e7eb" }} />
                             <Line type="monotone" dataKey="count" name="Views" stroke="#ef4444" strokeWidth={3} dot={{ r: 4, fill: "#ef4444" }} />
                         </LineChart>
                     </ResponsiveContainer>

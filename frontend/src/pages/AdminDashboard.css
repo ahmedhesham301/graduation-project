@@ -486,3 +486,11 @@
     .admin-main { margin-left: 80px; }
     .topbar-search { width: 200px; }
 }
+
+/* ── Recharts dark theme overrides ── */
+.recharts-text, .recharts-cartesian-axis-tick-value { fill: #9ca3af !important; }
+.recharts-legend-item-text { color: #d1d5db !important; }
+.recharts-default-tooltip .recharts-tooltip-label { color: #e5e7eb !important; }
+.recharts-default-tooltip .recharts-tooltip-item { color: #d1d5db !important; }
+.recharts-pie-label-text { fill: #e5e7eb !important; }
+.recharts-cartesian-grid line { stroke: #374151 !important; }

@@ -254,8 +254,8 @@ export default function AdminReports() {
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>
-                            <Tooltip contentStyle={{ background: "#1f2937", border: "1px solid #374151", borderRadius: 12 }} />
-                            <Legend />
+                            <Tooltip contentStyle={{ background: "#1f2937", border: "1px solid #374151", borderRadius: 12, color: "#e5e7eb" }} labelStyle={{ color: "#e5e7eb" }} />
+                            <Legend wrapperStyle={{ color: "#d1d5db" }} />
                         </PieChart>
                     </ResponsiveContainer>
                 </section>
@@ -281,8 +281,8 @@ export default function AdminReports() {
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>
-                            <Tooltip contentStyle={{ background: "#1f2937", border: "1px solid #374151", borderRadius: 12 }} />
-                            <Legend />
+                            <Tooltip contentStyle={{ background: "#1f2937", border: "1px solid #374151", borderRadius: 12, color: "#e5e7eb" }} labelStyle={{ color: "#e5e7eb" }} />
+                            <Legend wrapperStyle={{ color: "#d1d5db" }} />
                         </PieChart>
                     </ResponsiveContainer>
                 </section>
@@ -296,7 +296,7 @@ export default function AdminReports() {
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#374151" />
                             <XAxis dataKey="city" axisLine={false} tickLine={false} />
                             <YAxis axisLine={false} tickLine={false} />
-                            <Tooltip contentStyle={{ background: "#1f2937", border: "1px solid #374151", borderRadius: 12 }} />
+                            <Tooltip contentStyle={{ background: "#1f2937", border: "1px solid #374151", borderRadius: 12, color: "#e5e7eb" }} labelStyle={{ color: "#e5e7eb" }} />
                             <Bar dataKey="count" fill="#3b82f6" radius={[6, 6, 0, 0]} name="Properties" />
                         </BarChart>
                     </ResponsiveContainer>
