@@ -203,6 +203,26 @@ export async function checkoutOffer(req, res) {
             return res.status(404).json({ error: "Offer not found or not in accepted state" });
         }
 
+        // Notify seller
+        try {
+            const buyerName = await getUserName(buyerId);
+            const propTitle = await getPropertyTitle(finalized.property_id);
+            const { rows } = await pool.query(
+                'SELECT p.seller_id FROM purchase_offers po JOIN properties p ON p.id = po.property_id WHERE po.id = $1',
+                [offerId]
+            );
+            if (rows[0]?.seller_id) {
+                await createNotification(
+                    rows[0].seller_id,
+                    'purchase_completed',
+                    `${buyerName} completed the purchase of "${propTitle}"`,
+                    `Final amount: EGP ${Number(finalized.final_amount || finalized.counter_price || finalized.offer_price).toLocaleString()}`,
+                    Number(finalized.property_id),
+                    buyerId
+                );
+            }
+        } catch (_) {}
+
         res.status(200).json(finalized);
     } catch (err) {
         console.error(err);
