@@ -130,7 +130,7 @@ function MapPicker({ lat, lon, onPick }) {
   );
 }
 
-export default function AddProperty({ onBack, onNavigate }) {
+export default function AddProperty({ onBack, onNavigate, draftId }) {
   const [form, setForm] = useState({
     propertyType: "apartment",
     condition: "fully finished",
@@ -163,6 +163,34 @@ export default function AddProperty({ onBack, onNavigate }) {
   const [placeErr, setPlaceErr]             = useState("");
   const [selectedPlace, setSelectedPlace]   = useState("");
   const placeDebounceRef = useRef(null);
+
+  // Load draft data if editing an existing draft
+  useEffect(() => {
+    if (!draftId) return;
+    const loadDraft = async () => {
+      try {
+        const { data } = await api.get(`/properties/${draftId}`);
+        setForm({
+          propertyType: data.type || "apartment",
+          condition: data.condition || "fully finished",
+          lat: data.lat || "",
+          lon: data.lon || "",
+          price: data.price || "",
+          yearBuilt: "",
+          rooms: data.rooms || "",
+          bathrooms: data.bathrooms || "",
+          floor: data.floors || "",
+          City: data.city || "",
+          district: data.district || "",
+          area: data.area || "",
+          description: data.description || "",
+        });
+      } catch (err) {
+        console.error("Failed to load draft:", err);
+      }
+    };
+    loadDraft();
+  }, [draftId]);
 
   const searchPlaces = (query) => {
     setPlaceQuery(query);
@@ -264,7 +292,11 @@ export default function AddProperty({ onBack, onNavigate }) {
         description: form.description || null,
         condition: form.condition || null,
       };
-      await api.post("/drafts", payload);
+      if (draftId) {
+        await api.put(`/drafts/${draftId}`, payload);
+      } else {
+        await api.post("/drafts", payload);
+      }
       setMsg({ type: "ok", text: "Draft saved! You can continue editing later from My Properties." });
       setTimeout(() => onNavigate("profile", { tab: "myproperties" }), 1500);
     } catch (err) {

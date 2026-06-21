@@ -456,7 +456,7 @@ export default function MyProperties({ onBack, onNavigate }) {
                       </div>
                       <div className="mp-card-actions">
                         {property.is_draft ? (
-                          <button className="mp-btn-edit" onClick={() => onNavigate("profile", { tab: "addproperty" })}>
+                          <button className="mp-btn-edit" onClick={() => onNavigate("profile", { tab: "addproperty", draftId: property.id })}>
                             <IconEdit /> Continue Editing
                           </button>
                         ) : (

@@ -80,6 +80,7 @@ export default function App() {
 
   const [profileTab, setProfileTab] = useState(null);
   const [adminTab, setAdminTab] = useState(null);
+  const [editingDraftId, setEditingDraftId] = useState(null);
 
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
@@ -187,8 +188,11 @@ const handleNavigate = (target, data = {}) => {
 
     if (resolvedTarget === "profile" && data.tab) {
       setProfileTab(data.tab);
+      if (data.draftId) setEditingDraftId(data.draftId);
+      else setEditingDraftId(null);
     } else if (resolvedTarget === "profile") {
       setProfileTab(null);
+      setEditingDraftId(null);
     }
 
     if (resolvedTarget === "admin" && data.tab) {
@@ -239,6 +243,7 @@ const handleNavigate = (target, data = {}) => {
           currentUser={currentUser}
           onLogout={handleLogout}
           initialTab={profileTab}
+          editingDraftId={editingDraftId}
         />
       )}
       {page === "favourite" && (

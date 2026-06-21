@@ -96,7 +96,7 @@ const IconClose = () => (
 );
 
 /* ── Main Component ── */
-export default function ProfileSettings({ onNavigate, onLogout, initialTab, currentUser }) {
+export default function ProfileSettings({ onNavigate, onLogout, initialTab, currentUser, editingDraftId }) {
   const [activeNav, setActiveNav]         = useState(initialTab || "edit");
   const [editMode, setEditMode]           = useState(false);
   const [menuOpen, setMenuOpen]           = useState(false);
@@ -299,7 +299,7 @@ export default function ProfileSettings({ onNavigate, onLogout, initialTab, curr
           )}
 
           {activeNav === "addproperty" && (
-            <AddProperty onBack={() => setActiveNav("edit")} onNavigate={onNavigate} />
+            <AddProperty onBack={() => setActiveNav("edit")} onNavigate={onNavigate} draftId={editingDraftId} />
           )}
 
           {activeNav === "edit" && (
