@@ -3,6 +3,7 @@ import {
     CreateBucketCommand,
     HeadBucketCommand,
     HeadObjectCommand,
+    GetObjectCommand,
     PutPublicAccessBlockCommand,
     PutBucketPolicyCommand,
     PutObjectCommand,
@@ -139,4 +140,12 @@ export async function checkFileExists(key) {
         if (error.name === "NotFound") return false;
         throw error
     }
+}
+
+export async function getObjectStream(key) {
+    const response = await s3.send(new GetObjectCommand({
+        Bucket: process.env.BUCKET_NAME,
+        Key: key,
+    }));
+    return response;
 }

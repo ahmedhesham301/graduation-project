@@ -6,7 +6,8 @@ import {
 } from "../services/propertyServices.js"
 import { search, deletePropertyById, getTypes, getSellerProperties } from "../models/propertyModel.js";
 import { preparePropertyMediaUploads, getMediaUrls, getVirtualTour } from "../services/propertyMediaService.js";
-import { deleteMediaRecord } from "../models/propertyMediaModel.js";
+import { deleteMediaRecord, getTour } from "../models/propertyMediaModel.js";
+import { getObjectStream } from "../s3/s3.js";
 
 
 export async function getPropertyByIdHandler(req, res) {
@@ -177,6 +178,23 @@ export async function getPropertyTourHandler(req, res) {
     } catch (error) {
         console.error(error)
         res.status(500).json({ error: "Internal server error" })
+    }
+}
+
+export async function downloadTourZipHandler(req, res) {
+    try {
+        const tour = await getTour(req.params.propertyId)
+        if (!tour) return res.status(404).json({ error: "No tour found" })
+
+        const key = `media/${req.params.propertyId}/${tour.s3_key}.${tour.extension}`
+        const s3Response = await getObjectStream(key)
+
+        res.setHeader("Content-Type", "application/zip")
+        res.setHeader("Content-Disposition", "inline")
+        s3Response.Body.pipe(res)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ error: "Failed to download tour" })
     }
 }
 

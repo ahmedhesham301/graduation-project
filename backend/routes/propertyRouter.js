@@ -5,6 +5,7 @@ import {
     getPropertyByIdHandler, create,
     update, contactSeller, deleteProperty, searchForProperty,
     getNearby, getPropertyTypes, getPropertyTourHandler,
+    downloadTourZipHandler,
     getMyProperties, deleteMedia, addMedia
 } from "../controllers/propertyController.js"
 import {
@@ -28,6 +29,7 @@ router.get('/properties/types', getPropertyTypes)
 router.get('/my-properties', isAuthenticated, isSellerVerified, getMyProperties)
 router.get("/properties/:propertyId", validatePropertyId, trackPropertyView, getPropertyByIdHandler)
 router.get("/properties/:propertyId/tour", validatePropertyId, getPropertyTourHandler)
+router.get("/properties/:propertyId/tour/download", validatePropertyId, downloadTourZipHandler)
 router.get('/search', validateSearchQuery, searchForProperty)
 
 router.post("/properties", propertyLimiter, isAuthenticated, isSellerVerified, validatePropertyBody, create)
