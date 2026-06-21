@@ -101,7 +101,7 @@ export async function deleteUser(id) {
 export async function getAllProperties(page = 1, search = '', city = '', typeId = null, sortBy = 'created_at', sortOrder = 'DESC', status = '') {
     const limit = 20
     const offset = (page - 1) * limit
-    let where = `WHERE 1=1`
+    let where = `WHERE 1=1 AND p.deleted_at IS NULL`
     const params = []
 
     if (search) {
