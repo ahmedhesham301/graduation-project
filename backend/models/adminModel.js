@@ -90,6 +90,13 @@ export async function updateUserRole(id, role) {
         `UPDATE users SET role = $1 WHERE id = $2 RETURNING id, full_name, email, role`,
         [role, id]
     )
+    // If demoted from seller, reset seller_profile so they can reapply
+    if (role === 'buyer') {
+        await pool.query(
+            `UPDATE seller_profile SET status = 'rejected' WHERE user_id = $1 AND status = 'verified'`,
+            [id]
+        )
+    }
     return result.rows[0] || null
 }
 
