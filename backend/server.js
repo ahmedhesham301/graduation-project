@@ -60,7 +60,7 @@ io.on('connection', (socket) => {
                 const notification = await createNotification(
                     receiverId,
                     'new_message',
-                    `New message from ${senderName}`,
+                    `New message from ${senderName} about "${propertyTitle}"`,
                     content.length > 100 ? content.substring(0, 100) + '...' : content,
                     propertyId,
                     senderId
