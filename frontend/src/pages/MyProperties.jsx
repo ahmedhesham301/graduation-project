@@ -202,7 +202,7 @@ export default function MyProperties({ onBack, onNavigate }) {
       }
 
       // Refresh properties and media
-      const { data: updatedProps } = await api.get('/properties/mine');
+      const { data: updatedProps } = await api.get('/my-properties');
       setProperties(updatedProps);
       fetchMedia(propertyId);
       setEditingProperty(null);

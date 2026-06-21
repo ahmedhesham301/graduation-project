@@ -7,7 +7,7 @@ import {
 import { recordPropertyContact } from "../models/analyticsModel.js"
 
 export async function getPropertyById(propertyId) {
-    const propertyRecord = await findPropertyById(propertyId, false)
+    const propertyRecord = await findPropertyById(propertyId)
     if (!propertyRecord) return null;
 
     const { deleted_at: deletedAt, sold_at: soldAt, ...propertyData } = propertyRecord
