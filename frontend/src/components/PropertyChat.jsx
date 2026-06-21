@@ -148,7 +148,12 @@ export default function PropertyChat({ propertyId, sellerId, currentUser = { id:
                   <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
                 </svg>
               </div>
-              <span className="pc-header-name">{asSeller ? (currentUser.name || 'Buyer') : (sellerName || 'Seller')}</span>
+              <div>
+                <span className="pc-header-name">{asSeller ? (currentUser.name || 'Buyer') : (sellerName || 'Seller')}</span>
+                <button className="pc-header-property" onClick={() => { setIsOpen(false); onNavigate("propertyDetails", { propertyId, id: propertyId, fromPage: "chat" }); }}>
+                  View property →
+                </button>
+              </div>
             </div>
             <div className="pc-header-actions">
               <button className="pc-header-btn" onClick={handleOpenFullScreen} title="Open full chat history">

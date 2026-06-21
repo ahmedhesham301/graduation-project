@@ -90,6 +90,19 @@
   font-size: 15px;
 }
 
+.pc-header-property {
+  display: block;
+  background: none;
+  border: none;
+  padding: 0;
+  color: #1a8cca;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  margin-top: 1px;
+}
+.pc-header-property:hover { text-decoration: underline; }
+
 .pc-header-actions {
   display: flex;
   gap: 8px;

@@ -277,9 +277,9 @@ export default function ChatHistory({ onBack, onNavigate }) {
               </div>
               <div className="ch-chat-info">
                 <div className="ch-chat-name">{selectedChat.otherUserName}</div>
-                <div className="ch-chat-property">
+                <button className="ch-chat-property" onClick={() => onNavigate("propertyDetails", { propertyId: selectedChat.propertyId, id: selectedChat.propertyId, fromPage: "chat" })}>
                   <IconProperty /> {selectedChat.title || 'Property'}
-                </div>
+                </button>
               </div>
             </div>
 

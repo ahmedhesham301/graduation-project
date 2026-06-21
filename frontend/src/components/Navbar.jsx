@@ -141,11 +141,7 @@ export default function Navbar({ onNavigate, theme, toggleTheme, isLoggedIn, cur
                         setUnreadCount((c) => Math.max(0, c - 1));
                       }
                       setShowNotifs(false);
-                      if (n.property_id) {
-                        onNavigate("propertyDetails", { propertyId: n.property_id, id: n.property_id });
-                      } else {
-                        onNavigate("profile", { tab: "chat" });
-                      }
+                      onNavigate("profile", { tab: "chat" });
                     }}>
                     <div className="nav-notif-dot-col">
                       {!n.is_read && <span className="nav-notif-dot" />}
