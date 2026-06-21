@@ -9,6 +9,7 @@ services:
       - 5432:5432
     restart: unless-stopped
     volumes:
+      - postgres_data:/var/lib/postgresql/data
       - ./backend/configs/sql/:/docker-entrypoint-initdb.d/
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
@@ -28,6 +29,8 @@ services:
     environment:
       REDIS_ARGS: "--requirepass 1234"
     restart: unless-stopped
+    volumes:
+      - redis_data:/data
     healthcheck:
       test: ["CMD-SHELL", "redis-cli -a 1234 ping"]
       interval: 10s
@@ -72,9 +75,16 @@ services:
     ports:
       - 9000:9000
       - 9001:9001
+    volumes:
+      - rustfs_data:/data
 
   ml:
     image: ahmedhesham301/3akarati-ml:latest
     restart: unless-stopped
     ports:
       - 5000:5000
+
+volumes:
+  postgres_data:
+  redis_data:
+  rustfs_data:
