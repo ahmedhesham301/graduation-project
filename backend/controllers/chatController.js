@@ -18,6 +18,10 @@ export async function createMessageHandler(req, res) {
         return res.status(400).json({ error: "Missing required fields" })
     }
 
+    if (senderId === receiverId) {
+        return res.status(400).json({ error: "You cannot send a message to yourself" })
+    }
+
     try {
         const message = await createMessage(senderId, receiverId, propertyId, content)
         res.status(201).json({ id: message.id, createdAt: message.createdAt })

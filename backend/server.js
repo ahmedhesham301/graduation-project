@@ -45,6 +45,10 @@ io.on('connection', (socket) => {
     });
 
     socket.on('send_message', async ({ senderId, receiverId, propertyId, content }) => {
+        if (senderId === receiverId) {
+            socket.emit('error_message', { err: 'Cannot send a message to yourself' });
+            return;
+        }
         const roomId = getRoomId(senderId, receiverId, propertyId);
         try {
             const savedMessage = await createMessage(senderId, receiverId, propertyId, content);
