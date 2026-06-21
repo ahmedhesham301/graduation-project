@@ -266,7 +266,7 @@ export default function AddProperty({ onBack, onNavigate }) {
       };
       await api.post("/drafts", payload);
       setMsg({ type: "ok", text: "Draft saved! You can continue editing later from My Properties." });
-      setTimeout(() => onNavigate("myproperties"), 1500);
+      setTimeout(() => onNavigate("profile", { tab: "myproperties" }), 1500);
     } catch (err) {
       setMsg({ type: "err", text: err.response?.data?.error || "Failed to save draft." });
     } finally {
