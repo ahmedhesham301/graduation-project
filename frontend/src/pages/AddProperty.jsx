@@ -248,6 +248,8 @@ export default function AddProperty({ onBack, onNavigate }) {
     setLoading(true);
     setMsg({ type: "", text: "" });
     try {
+      const floorMap = { Ground: 1, "Top floor": 99 };
+      const floorsVal = form.floor ? (floorMap[form.floor] ?? Number(form.floor)) : null;
       const payload = {
         type: form.propertyType || null,
         lat: form.lat ? Number(form.lat) : null,
@@ -255,7 +257,7 @@ export default function AddProperty({ onBack, onNavigate }) {
         price: form.price ? Number(form.price) : null,
         rooms: form.rooms ? Number(form.rooms) : null,
         bathrooms: form.bathrooms ? Number(form.bathrooms) : null,
-        floors: floorsValue || null,
+        floors: floorsVal,
         city: form.City || null,
         district: form.district || null,
         area: form.area ? Number(form.area) : null,
