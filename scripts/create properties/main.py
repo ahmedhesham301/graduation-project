@@ -47,14 +47,27 @@ registerData = {
     "role": "seller",
 }
 
-base_session.post(f"{api_host}/auth/register", json=registerData)
+def set_csrf(session):
+    """Fetch CSRF cookie and set the x-csrf-token header for all future requests."""
+    session.get(f"{api_host}/cities")
+    token = session.cookies.get("csrf-token")
+    if token:
+        session.headers["x-csrf-token"] = token
+    return token
+
+set_csrf(base_session)
+
+resp = base_session.post(f"{api_host}/auth/register", json=registerData)
+print(f"Register: {resp.status_code}")
 
 resp = base_session.post(
     f"{api_host}/auth/login",
     json={"email": "ahdmed@gmail.com", "password": "F4r0uk@123"},
 )
+print(f"Login: {resp.status_code}")
 
-base_session.post(f"{api_host}/user/become-seller")
+resp = base_session.post(f"{api_host}/user/become-seller")
+print(f"Become seller: {resp.status_code}")
 
 # Load cities/districts
 cities = base_session.get(f"{api_host}/cities").json()
@@ -66,16 +79,23 @@ for city in cities:
 
 types = base_session.get(f"{api_host}/properties/types").json()
 
-# Copy auth cookies to all thread sessions
-shared_cookies = base_session.cookies.get_dict()
-
 lock = threading.Lock()
+
+
+def login():
+    """Create a new session and log in, returning an authenticated session."""
+    s = Session()
+    set_csrf(s)
+    s.post(
+        f"{api_host}/auth/login",
+        json={"email": "ahdmed@gmail.com", "password": "F4r0uk@123"},
+    )
+    return s
 
 
 def create_property(index: int):
     try:
-        session = Session()
-        session.cookies.update(shared_cookies)
+        session = login()
 
         media_count = random.randint(1, min(5, len(files)))
         selected_files = random.sample(files, media_count)
