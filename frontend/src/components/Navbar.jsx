@@ -141,7 +141,7 @@ export default function Navbar({ onNavigate, theme, toggleTheme, isLoggedIn, cur
                         setUnreadCount((c) => Math.max(0, c - 1));
                       }
                       setShowNotifs(false);
-                      const offerTypes = ['new_offer', 'offer_accepted', 'offer_rejected', 'offer_countered'];
+                      const offerTypes = ['new_offer', 'offer_accepted', 'offer_rejected', 'offer_countered', 'purchase_completed'];
                       const tab = offerTypes.includes(n.type) ? "offers" : "chat";
                       onNavigate("profile", { tab });
                     }}>
