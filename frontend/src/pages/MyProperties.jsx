@@ -443,17 +443,27 @@ export default function MyProperties({ onBack, onNavigate }) {
                     <div className="mp-card-top">
                       <div>
                         <div className="mp-card-price">
-                          {formatPrice(property.price)}
-                          <span className={`mp-status-badge ${property.moderation_status}`}>
-                            {property.moderation_status}
-                          </span>
+                          {property.price ? formatPrice(property.price) : "No price set"}
+                          {property.is_draft ? (
+                            <span className="mp-status-badge draft">Draft</span>
+                          ) : (
+                            <span className={`mp-status-badge ${property.moderation_status}`}>
+                              {property.moderation_status}
+                            </span>
+                          )}
                         </div>
-                        <div className="mp-card-type">{property.type}</div>
+                        <div className="mp-card-type">{property.type || "Untitled"}</div>
                       </div>
                       <div className="mp-card-actions">
-                        <button className="mp-btn-edit" onClick={() => handleEditStart(property)}>
-                          <IconEdit /> Edit
-                        </button>
+                        {property.is_draft ? (
+                          <button className="mp-btn-edit" onClick={() => onNavigate("profile", { tab: "addproperty" })}>
+                            <IconEdit /> Continue Editing
+                          </button>
+                        ) : (
+                          <button className="mp-btn-edit" onClick={() => handleEditStart(property)}>
+                            <IconEdit /> Edit
+                          </button>
+                        )}
                         <button className="mp-btn-delete" onClick={() => setDeleteConfirm(property.id)}>
                           <IconTrash /> Delete
                         </button>

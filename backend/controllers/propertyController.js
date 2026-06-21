@@ -58,6 +58,40 @@ export async function create(req, res) {
     }
 }
 
+import { createDraftRecord, updateDraftRecord, getDraftById, publishDraft } from "../models/propertyModel.js"
+
+export async function saveDraft(req, res) {
+    try {
+        const { draftId } = req.params;
+        const sellerId = req.session.userID;
+
+        if (draftId) {
+            const updated = await updateDraftRecord(Number(draftId), sellerId, req.body);
+            if (!updated) return res.status(404).json({ error: "Draft not found" });
+            return res.json(updated);
+        }
+
+        const draft = await createDraftRecord(sellerId, req.body);
+        res.status(201).json(draft);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to save draft" });
+    }
+}
+
+export async function publishDraftHandler(req, res) {
+    try {
+        const { draftId } = req.params;
+        const sellerId = req.session.userID;
+        const published = await publishDraft(Number(draftId), sellerId);
+        if (!published) return res.status(404).json({ error: "Draft not found" });
+        res.json(published);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to publish draft" });
+    }
+}
+
 export async function update(req, res) {
     try {
         const property = await updateProperty(req.params.propertyId, req.body)

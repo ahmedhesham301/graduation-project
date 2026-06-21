@@ -243,6 +243,35 @@ export default function AddProperty({ onBack }) {
     }
   };
 
+  // ✅ Save as Draft
+  const handleSaveDraft = async () => {
+    setLoading(true);
+    setMsg({ type: "", text: "" });
+    try {
+      const payload = {
+        type: form.propertyType || null,
+        lat: form.lat ? Number(form.lat) : null,
+        lon: form.lon ? Number(form.lon) : null,
+        price: form.price ? Number(form.price) : null,
+        rooms: form.rooms ? Number(form.rooms) : null,
+        bathrooms: form.bathrooms ? Number(form.bathrooms) : null,
+        floors: floorsValue || null,
+        city: form.City || null,
+        district: form.district || null,
+        area: form.area ? Number(form.area) : null,
+        description: form.description || null,
+        condition: form.condition || null,
+      };
+      await api.post("/drafts", payload);
+      setMsg({ type: "ok", text: "Draft saved! You can continue editing later from My Properties." });
+      setTimeout(() => onNavigate("myproperties"), 1500);
+    } catch (err) {
+      setMsg({ type: "err", text: err.response?.data?.error || "Failed to save draft." });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // ✅ API Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -724,6 +753,9 @@ export default function AddProperty({ onBack }) {
 
           {/* ── Submit ── */}
           <div className="ap-submit-row">
+            <button type="button" className="ap-draft" onClick={handleSaveDraft} disabled={loading}>
+              {loading ? "Saving…" : "Save as Draft"}
+            </button>
             <button type="submit" className="ap-submit" disabled={loading}>
               {loading ? "Submitting…" : "Submit Listing"}
             </button>

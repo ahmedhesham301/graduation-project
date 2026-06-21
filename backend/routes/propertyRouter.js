@@ -6,7 +6,8 @@ import {
     update, contactSeller, deleteProperty, searchForProperty,
     getNearby, getPropertyTypes, getPropertyTourHandler,
     downloadTourZipHandler,
-    getMyProperties, deleteMedia, addMedia
+    getMyProperties, deleteMedia, addMedia,
+    saveDraft, publishDraftHandler
 } from "../controllers/propertyController.js"
 import {
     validatePropertyBody,
@@ -35,6 +36,10 @@ router.get('/search', validateSearchQuery, searchForProperty)
 router.post("/properties", propertyLimiter, isAuthenticated, isSellerVerified, validatePropertyBody, create)
 router.post("/properties/:propertyId/contact", validatePropertyId, validatePropertyContactBody, contactSeller)
 router.post("/properties/:propertyId/media", isAuthenticated, isSellerVerified, validatePropertyId, isPropertyOwner, addMedia)
+
+router.post("/drafts", isAuthenticated, isSellerVerified, saveDraft)
+router.put("/drafts/:draftId", isAuthenticated, isSellerVerified, saveDraft)
+router.post("/drafts/:draftId/publish", isAuthenticated, isSellerVerified, publishDraftHandler)
 
 router.patch("/properties/:propertyId", isAuthenticated, isSellerVerified, validatePropertyId, isPropertyOwner, validatePropertyPatchBody, update)
 
