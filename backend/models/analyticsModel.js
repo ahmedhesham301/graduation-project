@@ -185,15 +185,16 @@ export async function getSellerPropertyAnalyticsStats(sellerId, limit, offset) {
                     p.id,
                     p.price,
                     p.pending_media,
+                    p.is_draft,
                     p.sold_at,
                     p.created_at,
                     pt.name AS type,
                     c.name AS city,
                     d.name AS district
                 FROM properties p
-                JOIN property_types pt ON pt.id = p.type_id
-                JOIN cities c ON c.id = p.city_id
-                JOIN districts d ON d.id = p.district_id
+                LEFT JOIN property_types pt ON pt.id = p.type_id
+                LEFT JOIN cities c ON c.id = p.city_id
+                LEFT JOIN districts d ON d.id = p.district_id
                 WHERE p.seller_id = $1
                 AND p.deleted_at IS NULL
             ),
@@ -435,15 +436,16 @@ export async function getSellerPerformanceStats(sellerId) {
                     p.id,
                     p.price,
                     p.pending_media,
+                    p.is_draft,
                     p.sold_at,
                     p.created_at,
                     pt.name AS type,
                     c.name AS city,
                     d.name AS district
                 FROM properties p
-                JOIN property_types pt ON pt.id = p.type_id
-                JOIN cities c ON c.id = p.city_id
-                JOIN districts d ON d.id = p.district_id
+                LEFT JOIN property_types pt ON pt.id = p.type_id
+                LEFT JOIN cities c ON c.id = p.city_id
+                LEFT JOIN districts d ON d.id = p.district_id
                 WHERE p.seller_id = $1
                 AND p.deleted_at IS NULL
             ),
@@ -467,6 +469,7 @@ export async function getSellerPerformanceStats(sellerId) {
                     sp.district,
                     sp.price,
                     sp.pending_media,
+                    sp.is_draft,
                     sp.sold_at,
                     sp.created_at,
                     ROUND((EXTRACT(EPOCH FROM (now() - sp.created_at)) / 86400)::numeric, 1) AS listing_age_days,
