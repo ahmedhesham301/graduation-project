@@ -32,7 +32,8 @@ export async function getSavedProperties(userId) {
                 p.price,
                 p.sold_at,
                 p.sold_price,
-                pm.s3_key || '.' || pm.extension AS media
+                pm.s3_key || '.' || pm.extension AS media,
+                EXISTS (SELECT 1 FROM property_media WHERE property_id = p.id AND extension = 'zip' AND uploaded_at IS NOT NULL) AS has_360_view
                FROM saved s
                JOIN properties p ON p.id = s.property_id
                JOIN cities c

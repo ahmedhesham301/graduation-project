@@ -348,6 +348,9 @@ export default function HomePage({ onNavigate, theme, toggleTheme, isLoggedIn, c
                 <div className="prop-img" style={{backgroundImage: `url(${BUCKET_url}/media/${p.id}/${p.media})`, backgroundSize: "cover", backgroundPosition: "center"}}>
                   <div className="prop-img-overlay" />
                   <span className="prop-type-badge">{p.type}</span>
+                  {p.has_360_view && (
+                    <span className="prop-360-badge">360°</span>
+                  )}
                   {p.sold_at && (
                     <span className="prop-sold-badge">SOLD</span>
                   )}

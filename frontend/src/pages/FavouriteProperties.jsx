@@ -72,6 +72,9 @@ export default function FavouriteProperties({ onNavigate, theme, toggleTheme, is
             <div className="fp-card" key={p.property_id} onClick={() => {onNavigate("propertyDetails", { id: p.property_id , from: "favourite" });}} style={{ cursor: "pointer" }}>
               <div className="fp-card-img-wrap">
                 <img src={p.media  ? `${BUCKET_url}/media/${p.property_id}/${p.media}` : "https://via.placeholder.com/400"} alt={p.type} className="fp-card-img" />
+                {p.has_360_view && (
+                  <span className="fp-360-badge">360°</span>
+                )}
                 {p.sold_at && (
                   <span className="fp-sold-badge">SOLD</span>
                 )}

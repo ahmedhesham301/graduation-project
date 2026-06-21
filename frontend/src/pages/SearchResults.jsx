@@ -493,6 +493,9 @@ export default function SearchResults({
                         }}
                       />
                       <span className="sr-type-badge">{p.type}</span>
+                      {p.has_360_view && (
+                        <span className="sr-360-badge">360°</span>
+                      )}
                       {p.sold_at && (
                         <span className="sr-sold-badge">SOLD</span>
                       )}

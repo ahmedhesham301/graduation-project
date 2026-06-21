@@ -203,7 +203,8 @@ export async function search(page, orderBy, orderDirection, city, district, minP
     SELECT
       p.id, pt.name AS type, p.area, p.floors, p.rooms, p.bathrooms, p.price, p.condition,
       c.name AS city, d.name AS district, p.sold_at, p.sold_price,
-      pm.s3_key || '.' || pm.extension AS media
+      pm.s3_key || '.' || pm.extension AS media,
+      EXISTS (SELECT 1 FROM property_media WHERE property_id = p.id AND extension = 'zip' AND uploaded_at IS NOT NULL) AS has_360_view
     FROM properties p
     JOIN cities c
       ON c.id = p.city_id
@@ -270,12 +271,12 @@ export async function findPropertiesNearby(lat, lon, radiusMeters, page) {
                 ST_X(p.coordinates) AS lon,
                 c.name AS city,
                 d.name AS district,
-                -- Distance in kilometers rounded to 2 decimal places
                 ROUND((ST_Distance(
                     p.coordinates::geography,
                     ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography
                 ) / 1000)::numeric, 2) AS distance_km,
-                pm.s3_key || '.' || pm.extension AS media
+                pm.s3_key || '.' || pm.extension AS media,
+                EXISTS (SELECT 1 FROM property_media WHERE property_id = p.id AND extension = 'zip' AND uploaded_at IS NOT NULL) AS has_360_view
             FROM properties p
             JOIN cities c
                 ON c.id = p.city_id
