@@ -242,7 +242,7 @@ export async function getSellerPropertyAnalyticsStats(sellerId, limit, offset) {
                 sp.price,
                 CASE
                     WHEN sp.sold_at IS NOT NULL THEN 'sold'
-                    WHEN sp.pending_media = true THEN 'draft'
+                    WHEN sp.is_draft = true THEN 'draft'
                     ELSE 'listed'
                 END AS listing_status,
                 sp.pending_media,
@@ -484,7 +484,7 @@ export async function getSellerPerformanceStats(sellerId) {
                         AND sold_at IS NULL
                     ) AS active_listings,
                     COUNT(*) FILTER (
-                        WHERE pending_media = true
+                        WHERE is_draft = true
                         AND sold_at IS NULL
                     ) AS draft_listings,
                     COUNT(*) FILTER (WHERE sold_at IS NOT NULL) AS sold_listings,
@@ -513,7 +513,7 @@ export async function getSellerPerformanceStats(sellerId) {
                     price,
                     CASE
                         WHEN sold_at IS NOT NULL THEN 'sold'
-                        WHEN pending_media = true THEN 'draft'
+                        WHEN is_draft = true THEN 'draft'
                         ELSE 'listed'
                     END AS listing_status,
                     pending_media,
