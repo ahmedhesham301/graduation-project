@@ -132,6 +132,9 @@ export default function ProfileSettings({ onNavigate, onLogout, initialTab, curr
         if (data.role === "seller") {
           setIsSeller(true);
           localStorage.setItem("isSeller", "true");
+        } else {
+          setIsSeller(false);
+          localStorage.setItem("isSeller", "false");
         }
       } catch (err) {
         console.error(err.response?.data?.message ?? err.message);
