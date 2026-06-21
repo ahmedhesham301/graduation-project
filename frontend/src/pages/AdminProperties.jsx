@@ -5,7 +5,7 @@ import useDebounce from "../hooks/useDebounce";
 import { Check, X, AlertCircle } from "lucide-react";
 import "./AdminProperties.css";
 
-export default function AdminProperties() {
+export default function AdminProperties({ onNavigate }) {
     const [properties, setProperties] = useState([]);
     const [total, setTotal] = useState(0);
     const [page, setPage] = useState(1);
@@ -424,6 +424,7 @@ export default function AdminProperties() {
                                                 </>
                                             )}
                                             <button onClick={() => setIsEditing(true)} className="edit-btn">Edit Details</button>
+                                            <button onClick={() => onNavigate("propertyDetails", { propertyId: selectedProperty.id, id: selectedProperty.id, fromPage: "admin" })} className="view-btn">View Property</button>
                                         </div>
                                     </>
                                 )}

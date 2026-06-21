@@ -273,6 +273,22 @@
     color: #fff;
 }
 
+.edit-btn, .view-btn {
+    background: transparent;
+    border: 1px solid var(--admin-primary);
+    color: var(--admin-primary);
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.edit-btn:hover, .view-btn:hover {
+    background: var(--admin-primary);
+    color: #fff;
+}
+
 .approve-all-btn {
     background: var(--admin-success);
     color: #fff;

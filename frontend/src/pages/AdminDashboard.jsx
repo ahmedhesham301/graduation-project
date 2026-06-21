@@ -292,7 +292,7 @@ export default function AdminDashboard({ onLogout, onNavigate, currentUser }) {
                     {activeTab === "analytics" && <AdminAnalytics />}
                     {activeTab === "reports" && <AdminReports />}
                     {activeTab === "users" && <AdminUsers />}
-                    {activeTab === "properties" && <AdminProperties />}
+                    {activeTab === "properties" && <AdminProperties onNavigate={onNavigate} />}
                     {activeTab === "sold" && <AdminSoldProperties onNavigate={onNavigate} />}
                     {activeTab === "sellers" && <AdminSellerRequests />}
                     {activeTab === "contacts" && <AdminContacts />}
