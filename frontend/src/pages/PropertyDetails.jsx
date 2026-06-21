@@ -14,17 +14,12 @@ function PannellumViewer({ imageUrl }) {
     const onFullChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
     };
-
     document.addEventListener("fullscreenchange", onFullChange);
-
-    return () => {
-      document.removeEventListener("fullscreenchange", onFullChange);
-    };
+    return () => document.removeEventListener("fullscreenchange", onFullChange);
   }, []);
 
   const toggleFullscreen = async () => {
     if (!iframeRef.current) return;
-
     try {
       if (!document.fullscreenElement) {
         await iframeRef.current.requestFullscreen();
@@ -43,32 +38,12 @@ function PannellumViewer({ imageUrl }) {
         onClick={toggleFullscreen}
       >
         {isFullscreen ? (
-          /* X icon */
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         ) : (
-          /* fullscreen icon */
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 3 21 3 21 9" />
             <polyline points="9 21 3 21 3 15" />
             <line x1="21" y1="3" x2="14" y2="10" />
@@ -161,30 +136,20 @@ export default function PropertyDetails({
   useEffect(() => {
     if (!propertyId || !property) return;
 
-    const objectUrls = []; // Track generated URLs for cleanup
+    const objectUrls = [];
 
     const loadTour = async () => {
       setTourLoading(true);
       try {
-        const res = await api.get(`/properties/${propertyId}/tour`);
-        if (!res.data) {
+        const zipRes = await api.get(`/properties/${propertyId}/tour/download`, {
+          responseType: "blob",
+        });
+        const zipBlob = zipRes.data;
+
+        if (!zipBlob || zipBlob.size === 0) {
           setShowVR(false);
           return;
         }
-
-        const zipFilename = typeof res.data === "string"
-          ? res.data.replace(/^"|"$/g, "").trim()
-          : String(res.data).trim();
-
-        if (!zipFilename || zipFilename === "null") {
-          setShowVR(false);
-          return;
-        }
-
-        const base = BUCKET_url.replace(/\/+$/, "");
-        const zipRes = await fetch(`${base}/media/${propertyId}/${zipFilename}`);
-        if (!zipRes.ok) throw new Error("Zip not found");
-        const zipBlob = await zipRes.blob();
 
         const JSZip = (await import("jszip")).default;
         const zip = await JSZip.loadAsync(zipBlob);
@@ -199,7 +164,7 @@ export default function PropertyDetails({
         // 2. Sort files into buckets
         const textAssets = {};
         const dataUriAssets = {};
-        const blobAssets = {}; // For heavy 360 tiles
+        const blobAssets = {};
 
         await Promise.all(
           allFiles.map(async (f) => {
@@ -211,12 +176,10 @@ export default function PropertyDetails({
             if (isText) {
               textAssets[relKey] = await f.async("string");
             } else if (relKey.includes("img/") || relKey.startsWith("img/")) {
-              // Tiny UI icons -> Base64
               const b64 = await f.async("base64");
               const mime = ext === "png" ? "image/png" : "image/jpeg";
               dataUriAssets[relKey] = `data:${mime};base64,${b64}`;
             } else {
-              // Heavy Tiles -> Lightweight Blob URLs
               const mime = ["jpg", "jpeg"].includes(ext) ? "image/jpeg" : "application/octet-stream";
               const fileBlob = await f.async("blob");
               const typedBlob = new Blob([fileBlob], { type: mime });
@@ -233,7 +196,7 @@ export default function PropertyDetails({
         htmlText = htmlText.replace(
           /<script([^>]*?)src=["']([^"']+)["']([^>]*)>[\s\S]*?<\/script>/gi,
           (match, pre, src, post) => {
-            const key = src.replace(/^[./]+/, ""); // strip ./
+            const key = src.replace(/^[./]+/, "");
             return textAssets[key] ? `<script${pre}${post}>${textAssets[key]}</script>` : match;
           }
         );
@@ -266,11 +229,18 @@ export default function PropertyDetails({
         // 6. Build Interceptor for the VR Engine (Marzipano dynamic paths)
         const interceptor = `
           window.__VR_ASSETS__ = ${JSON.stringify(blobAssets)};
-          
+
           function _getAsset(url) {
             if (!url || typeof url !== 'string') return null;
-            for (let key in window.__VR_ASSETS__) {
-              if (url.endsWith(key)) return window.__VR_ASSETS__[key];
+            // Direct match
+            if (window.__VR_ASSETS__[url]) return window.__VR_ASSETS__[url];
+            // Strip leading ./ or / and try again
+            const stripped = url.replace(/^[./]+/, '');
+            if (window.__VR_ASSETS__[stripped]) return window.__VR_ASSETS__[stripped];
+            // endsWith match (longest first)
+            const keys = Object.keys(window.__VR_ASSETS__).sort((a, b) => b.length - a.length);
+            for (const key of keys) {
+              if (url.endsWith(key) || stripped.endsWith(key)) return window.__VR_ASSETS__[key];
             }
             return null;
           }
@@ -290,7 +260,7 @@ export default function PropertyDetails({
           // Intercept XHR / Fetch as fallback
           const _fetch = window.fetch;
           window.fetch = function(req, init) {
-            const url = typeof req === 'string' ? req : req.url;
+            const url = typeof req === 'string' ? req : (req && req.url);
             const asset = _getAsset(url);
             return _fetch(asset || req, init);
           };
@@ -302,10 +272,10 @@ export default function PropertyDetails({
           };
         `;
 
-        // Inject interceptor into <head>
-        htmlText = htmlText.replace("<head>", `<head><script>${interceptor}</script>`);
+        // Inject interceptor into <head> (case-insensitive)
+        htmlText = htmlText.replace(/<head(\s[^>]*)?>/i, `<head$1><script>${interceptor}</script>`);
 
-        // 7. Render Final
+        // 7. Render Final — create a blob URL for the full HTML document
         const htmlBlob = new Blob([htmlText], { type: "text/html" });
         const finalUrl = URL.createObjectURL(htmlBlob);
         objectUrls.push(finalUrl);
@@ -313,9 +283,14 @@ export default function PropertyDetails({
         setTourUrl(finalUrl);
         setShowVR(true);
       } catch (err) {
-        console.warn("VR tour unavailable:", err);
-        setTourUrl(null);
-        setShowVR(false);
+        if (err.response?.status === 404) {
+          setTourUrl(null);
+          setShowVR(false);
+        } else {
+          console.warn("VR tour unavailable:", err);
+          setTourUrl(null);
+          setShowVR(false);
+        }
       } finally {
         setTourLoading(false);
       }
