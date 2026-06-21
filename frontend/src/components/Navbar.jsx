@@ -149,7 +149,7 @@ export default function Navbar({ onNavigate, theme, toggleTheme, isLoggedIn, cur
                       } else if (sellerRequestTypes.includes(n.type)) {
                         onNavigate("admin", { tab: "sellers" });
                       } else if (sellerResultTypes.includes(n.type)) {
-                        onNavigate("profile", { tab: "seller" });
+                        onNavigate("profile", { tab: "becomeseller" });
                       } else {
                         onNavigate("profile", { tab: "chat" });
                       }
