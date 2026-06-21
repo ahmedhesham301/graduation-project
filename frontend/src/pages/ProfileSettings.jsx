@@ -405,7 +405,7 @@ export default function ProfileSettings({ onNavigate, onLogout, initialTab, curr
                 </div>
               </div>
 
-              {sellerStatus?.status === 'verified' ? (
+              {isSeller || sellerStatus?.status === 'verified' ? (
                 <div className="seller-status-page verified">
                   <div className="status-icon-wrap success">
                     <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
