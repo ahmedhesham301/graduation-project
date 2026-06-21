@@ -405,7 +405,19 @@ export default function ProfileSettings({ onNavigate, onLogout, initialTab, curr
                 </div>
               </div>
 
-              {sellerStatus?.status === 'pending' ? (
+              {sellerStatus?.status === 'verified' ? (
+                <div className="seller-status-page verified">
+                  <div className="status-icon-wrap success">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+                      <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                  </div>
+                  <h3>You are already a verified seller</h3>
+                  <p>Your seller account is active. You can list and manage properties from your dashboard.</p>
+                  <button onClick={() => onNavigate("profile", { tab: "dashboard" })} className="ps-edit-btn" style={{ marginTop: "16px" }}>Go to Dashboard</button>
+                </div>
+              ) : sellerStatus?.status === 'pending' ? (
                 <div className="seller-status-page pending">
                   <div className="status-icon-wrap">
                     <svg className="animate-spin" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">

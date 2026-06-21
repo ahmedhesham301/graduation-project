@@ -529,6 +529,10 @@
   border-top: 4px solid #dc2626;
 }
 
+.seller-status-page.verified {
+  border-top: 4px solid #16a34a;
+}
+
 .status-icon-wrap {
   width: 64px;
   height: 64px;
@@ -544,6 +548,11 @@
 .status-icon-wrap.error {
   background: rgba(220, 38, 38, 0.1);
   color: #dc2626;
+}
+
+.status-icon-wrap.success {
+  background: rgba(22, 163, 74, 0.1);
+  color: #16a34a;
 }
 
 .seller-status-page h3 {
