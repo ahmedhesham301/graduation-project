@@ -79,6 +79,7 @@ export default function App() {
   }, [page]);
 
   const [profileTab, setProfileTab] = useState(null);
+  const [adminTab, setAdminTab] = useState(null);
 
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
@@ -190,6 +191,10 @@ const handleNavigate = (target, data = {}) => {
       setProfileTab(null);
     }
 
+    if (resolvedTarget === "admin" && data.tab) {
+      setAdminTab(data.tab);
+    }
+
     // Fallback in case propertyDetails branch wasn't hit
     if (target !== "propertyDetails") {
       if (data.id) setSelectedPropertyId(data.id);
@@ -272,7 +277,7 @@ const handleNavigate = (target, data = {}) => {
         <Inbox currentUser={currentUser} onNavigate={handleNavigate} />
       )}
       {page === "admin" && (
-        <AdminDashboard onLogout={handleLogout} onNavigate={handleNavigate} currentUser={currentUser} />
+        <AdminDashboard onLogout={handleLogout} onNavigate={handleNavigate} currentUser={currentUser} initialTab={adminTab} />
       )}
       {page !== "admin" && <ChatBot onNavigate={handleNavigate} />}
       

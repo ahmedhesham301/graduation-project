@@ -18,8 +18,12 @@ import AdminReports from "./AdminReports";
 import Skeleton from "../components/Skeleton";
 import "./AdminDashboard.css";
 
-export default function AdminDashboard({ onLogout, onNavigate, currentUser }) {
-    const [activeTab, setActiveTab] = useState("overview");
+export default function AdminDashboard({ onLogout, onNavigate, currentUser, initialTab }) {
+    const [activeTab, setActiveTab] = useState(initialTab || "overview");
+
+    useEffect(() => {
+        if (initialTab) setActiveTab(initialTab);
+    }, [initialTab]);
     const [stats, setStats] = useState(null);
     const [recent, setRecent] = useState({ users: [], properties: [] });
     const [loading, setLoading] = useState(true);

@@ -12,6 +12,8 @@ import {
     getLeadMethodDistribution, getTopPerformingProperties, getOfferStatusDistribution,
     getAvgTimeToSell, getSellerLeaderboard, getSecurityLogs
 } from "../models/adminModel.js"
+import { createNotification } from "../models/notificationModel.js"
+import { pool } from "../database/postgresql.js"
 
 export async function getStats(req, res) {
     try {
@@ -170,8 +172,12 @@ export async function getSellerRequests(req, res) {
 
 export async function approveSeller(req, res) {
     try {
-        await approveSellerRequest(req.params.id)
-        await logAdminAction(req.session.userID, 'approve_seller', 'user', Number(req.params.id))
+        const userId = Number(req.params.id)
+        await approveSellerRequest(userId)
+        await logAdminAction(req.session.userID, 'approve_seller', 'user', userId)
+        try {
+            await createNotification(userId, 'seller_approved', 'Your seller application was approved!', 'You can now list properties for sale.', null, req.session.userID)
+        } catch (_) {}
         res.json({ message: "Seller approved" })
     } catch (err) {
         console.error("Admin approve seller error:", err)
@@ -183,8 +189,12 @@ export async function rejectSeller(req, res) {
     try {
         const { reason } = req.body
         if (!reason) return res.status(400).json({ error: "Rejection reason is required" })
-        await rejectSellerRequest(req.params.id, reason)
-        await logAdminAction(req.session.userID, 'reject_seller', 'user', Number(req.params.id), reason)
+        const userId = Number(req.params.id)
+        await rejectSellerRequest(userId, reason)
+        await logAdminAction(req.session.userID, 'reject_seller', 'user', userId, reason)
+        try {
+            await createNotification(userId, 'seller_rejected', 'Your seller application was rejected', reason || 'Your application did not meet the requirements.', null, req.session.userID)
+        } catch (_) {}
         res.json({ message: "Seller rejected" })
     } catch (err) {
         console.error("Admin reject seller error:", err)

@@ -2,6 +2,7 @@ import { OAuth2Client } from "google-auth-library";
 import { registerUser, authenticateUser, becomeSeller, getSellerStatus, getUserProfile, updateUserProfile, loginOrRegisterGoogleUser } from "../services/userServices.js";
 import { pool } from "../database/postgresql.js";
 import { logSecurityEvent } from "../services/auditLogger.js";
+import { createNotification } from "../models/notificationModel.js";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -121,6 +122,17 @@ export async function upgradeTOSeller(req, res) {
             return res.status(400).json({ error: "Business name and national ID are required" })
         }
         await becomeSeller(req.session.userID, businessName, businessType, nationalId)
+
+        // Notify all admins
+        try {
+            const { rows: admins } = await pool.query("SELECT id FROM users WHERE role = 'admin'")
+            const { rows: user } = await pool.query("SELECT full_name FROM users WHERE id = $1", [req.session.userID])
+            const userName = user[0]?.full_name || 'A user'
+            for (const admin of admins) {
+                await createNotification(admin.id, 'seller_request', `${userName} requested to become a seller`, `${userName} (${businessName}) has submitted a seller application.`, null, req.session.userID)
+            }
+        } catch (_) {}
+
         res.status(200).json({ message: "Your seller request has been submitted and is pending review." })
     } catch (error) {
         if (error.code === 'ALREADY_PENDING') {

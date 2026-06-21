@@ -142,8 +142,17 @@ export default function Navbar({ onNavigate, theme, toggleTheme, isLoggedIn, cur
                       }
                       setShowNotifs(false);
                       const offerTypes = ['new_offer', 'offer_accepted', 'offer_rejected', 'offer_countered', 'purchase_completed'];
-                      const tab = offerTypes.includes(n.type) ? "offers" : "chat";
-                      onNavigate("profile", { tab });
+                      const sellerRequestTypes = ['seller_request'];
+                      const sellerResultTypes = ['seller_approved', 'seller_rejected'];
+                      if (offerTypes.includes(n.type)) {
+                        onNavigate("profile", { tab: "offers" });
+                      } else if (sellerRequestTypes.includes(n.type)) {
+                        onNavigate("admin", { tab: "sellers" });
+                      } else if (sellerResultTypes.includes(n.type)) {
+                        onNavigate("profile", { tab: "seller" });
+                      } else {
+                        onNavigate("profile", { tab: "chat" });
+                      }
                     }}>
                     <div className="nav-notif-dot-col">
                       {!n.is_read && <span className="nav-notif-dot" />}
