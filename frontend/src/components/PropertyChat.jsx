@@ -47,7 +47,7 @@ export default function PropertyChat({ propertyId, sellerId, currentUser = { id:
     let socket;
     try {
       socket = io('http://localhost:8080', {
-        transports: ['websocket'],
+        transports: ['polling', 'websocket'],
         withCredentials: true,
         reconnectionAttempts: 3,
       });

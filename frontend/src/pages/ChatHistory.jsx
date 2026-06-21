@@ -135,7 +135,7 @@ export default function ChatHistory({ onBack, onNavigate }) {
     let socket;
     try {
       socket = io('http://localhost:8080', {
-        transports: ['websocket'],
+        transports: ['polling', 'websocket'],
         withCredentials: true,
         reconnectionAttempts: 3,
       });

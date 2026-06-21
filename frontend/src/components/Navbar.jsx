@@ -26,7 +26,7 @@ export default function Navbar({ onNavigate, theme, toggleTheme, isLoggedIn, cur
     let socket;
     try {
       socket = io("http://localhost:8080", {
-        transports: ["websocket"],
+        transports: ["polling", "websocket"],
         withCredentials: true,
         reconnectionAttempts: 3,
       });
@@ -37,6 +37,7 @@ export default function Navbar({ onNavigate, theme, toggleTheme, isLoggedIn, cur
         setUnreadCount((c) => c + 1);
         setNotifications((prev) => [notif, ...prev]);
       });
+      socket.on("connect_error", () => {});
     }
 
     return () => {
@@ -135,7 +136,7 @@ export default function Navbar({ onNavigate, theme, toggleTheme, isLoggedIn, cur
                   <div key={n.id} className={`nav-notif-item ${!n.is_read ? "unread" : ""}`}
                     onClick={() => {
                       setShowNotifs(false);
-                      if (n.property_id) onNavigate("propertyDetails", n.property_id);
+                      onNavigate("profile", { tab: "chat" });
                     }}>
                     <div className="nav-notif-dot-col">
                       {!n.is_read && <span className="nav-notif-dot" />}
