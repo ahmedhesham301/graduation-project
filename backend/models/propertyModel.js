@@ -8,7 +8,8 @@ export async function findPropertyById(id, pendingMedia = null) {
         p.id, p.seller_id,
         u.full_name AS seller_name, u.email AS seller_email, u.phone AS seller_phone, p.condition,
         pt.name AS type,ST_Y(p.coordinates) AS lat,ST_X(p.coordinates) AS lon,
-        p.area, p.floors, p.rooms, p.bathrooms, c.name AS city, d.name AS district, p.description, p.price, p.deleted_at, p.sold_at, p.sold_price
+        p.area, p.floors, p.rooms, p.bathrooms, c.name AS city, d.name AS district, p.description, p.price, p.deleted_at, p.sold_at, p.sold_price,
+        EXISTS (SELECT 1 FROM property_media WHERE property_id = p.id AND extension = 'zip' AND uploaded_at IS NOT NULL) AS has_360_view
         FROM properties p
         JOIN users u
             ON u.id = p.seller_id

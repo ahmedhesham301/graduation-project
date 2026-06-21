@@ -135,6 +135,7 @@ export default function PropertyDetails({
   /* ── Fetch & unzip VR tour after property loads ── */
   useEffect(() => {
     if (!propertyId || !property) return;
+    if (!property.has_360_view) { setShowVR(false); return; }
 
     const objectUrls = [];
 
