@@ -1,0 +1,54 @@
+graph LR
+    %% Actors
+    Buyer([Buyer])
+    Seller([Seller])
+
+    %% Buyer Use Cases
+    subgraph BuyerUC["Buyer Use Cases"]
+        UC1["Register / Login"]
+        UC2["Search & Filter Properties"]
+        UC3["View Property Details"]
+        UC4["Contact Seller"]
+        UC5["Save to Favorites"]
+        UC6["Remove from Favorites"]
+        UC7["Virtual Tour"]
+        UC8["Manage Account"]
+        UC9["Logout"]
+    end
+
+    %% Seller Use Cases
+    subgraph SellerUC["Seller Use Cases"]
+        UC10["Register / Login"]
+        UC11["Verify Account"]
+        UC12["Post Property"]
+        UC13["Edit Property"]
+        UC14["Delete Property"]
+        UC15["Mark as Sold"]
+        UC16["Search & Filter Properties"]
+        UC17["View Property Details"]
+        UC18["Manage Account"]
+        UC19["Logout"]
+    end
+
+    %% Buyer Connections
+    Buyer --> UC1
+    Buyer --> UC2
+    Buyer --> UC3
+    Buyer --> UC4
+    Buyer --> UC5
+    Buyer --> UC6
+    Buyer --> UC7
+    Buyer --> UC8
+    Buyer --> UC9
+
+    %% Seller Connections
+    Seller --> UC10
+    Seller --> UC11
+    Seller --> UC12
+    Seller --> UC13
+    Seller --> UC14
+    Seller --> UC15
+    Seller --> UC16
+    Seller --> UC17
+    Seller --> UC18
+    Seller --> UC19

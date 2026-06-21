@@ -1,0 +1,96 @@
+graph TD
+    A["3akarati Real Estate Platform"] --> B["Presentation Layer"]
+    A --> C["Application Layer"]
+    A --> D["Data Layer"]
+    A --> E["Infrastructure Layer"]
+
+    %% Presentation Layer
+    B --> B1["Authentication Module"]
+    B --> B2["Property Module"]
+    B --> B3["User Profile Module"]
+    B --> B4["Communication Module"]
+    B --> B5["Seller Dashboard"]
+    B --> B6["Admin Dashboard"]
+
+    B1 --> B1a["SignIn / SignUp"]
+    B1 --> B1b["Google OAuth"]
+
+    B2 --> B2a["Home Page"]
+    B2 --> B2b["Search & Filter"]
+    B2 --> B2c["Property Details"]
+    B2 --> B2d["Add Property"]
+    B2 --> B2e["My Properties"]
+
+    B3 --> B3a["Profile Settings"]
+    B3 --> B3b["Favorites"]
+    B3 --> B3c["Become a Seller"]
+
+    B4 --> B4a["Real-time Chat"]
+    B4 --> B4b["AI Chatbot"]
+
+    B5 --> B5a["Seller Analytics"]
+    B5 --> B5b["Offers Management"]
+    B5 --> B5c["Checkout"]
+
+    B6 --> B6a["User Management"]
+    B6 --> B6b["Property Moderation"]
+    B6 --> B6c["Reports & Analytics"]
+    B6 --> B6d["Activity & Security Logs"]
+    B6 --> B6e["Site Settings"]
+
+    %% Application Layer
+    C --> C1["Auth Service"]
+    C --> C2["Property Service"]
+    C --> C3["Media Service"]
+    C --> C4["Chat Service"]
+    C --> C5["Offers Service"]
+    C --> C6["Analytics Service"]
+    C --> C7["AI Service"]
+    C --> C8["Admin Service"]
+
+    C1 --> C1a["Sessions & Password Hashing"]
+    C1 --> C1b["Rate Limiting & CSRF"]
+
+    C2 --> C2a["CRUD Operations"]
+    C2 --> C2b["Geospatial Search"]
+    C2 --> C2c["Moderation"]
+
+    C3 --> C3a["S3 Presigned URLs"]
+    C3 --> C3b["Direct Upload Flow"]
+
+    C4 --> C4a["Socket.IO"]
+    C4 --> C4b["Inbox & Conversations"]
+
+    C5 --> C5a["Make / Counter Offers"]
+    C5 --> C5b["Accept / Reject / Checkout"]
+
+    C6 --> C6a["Seller Stats (CTE)"]
+    C6 --> C6b["Market Trends (Redis)"]
+
+    C7 --> C7a["Gemini Chatbot"]
+    C7 --> C7b["ML Price Predictor"]
+
+    C8 --> C8a["Dashboard & Reports"]
+    C8 --> C8b["Audit Logs"]
+
+    %% Data Layer
+    D --> D1["PostgreSQL + PostGIS"]
+    D --> D2["Redis"]
+    D --> D3["S3 / RustFS"]
+
+    D1 --> D1a["17 Tables, Spatial Indexing"]
+    D2 --> D2a["Sessions, Rate Limiting, Caching"]
+    D3 --> D3a["Media Storage"]
+
+    %% Infrastructure Layer
+    E --> E1["Docker Compose"]
+    E --> E2["Terraform (AWS)"]
+    E --> E3["Kubernetes (EKS)"]
+    E --> E4["GitHub Actions CI/CD"]
+    E --> E5["Nginx"]
+
+    E1 --> E1a["Dev: 5 Services"]
+    E2 --> E2a["VPC, EKS, RDS, S3"]
+    E3 --> E3a["Deployments, HPA, Ingress"]
+    E4 --> E4a["3 Pipelines: Backend, Frontend, ML"]
+    E5 --> E5a["Reverse Proxy"]

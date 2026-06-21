@@ -1,0 +1,176 @@
+%% 3akarati - Database Design (ERD)
+%% PostgreSQL + PostGIS schema. PK = primary key, FK = foreign key, UK = unique.
+erDiagram
+    users {
+        int id PK
+        varchar full_name
+        varchar email UK
+        varchar phone
+        varchar password_hash
+        user_role role "buyer | seller | admin"
+        timestamptz created_at
+    }
+
+    seller_profile {
+        int id PK
+        int user_id FK
+        seller_status status "unverified | pending | verified | rejected | banned"
+        varchar business_name
+        varchar business_type
+        varchar national_id
+        varchar rejection_reason
+        timestamptz submitted_at
+        timestamptz reviewed_at
+    }
+
+    properties {
+        int id PK
+        int seller_id FK
+        int type_id FK
+        int city_id FK
+        int district_id FK
+        geometry coordinates "Point, SRID 4326"
+        int area
+        int floors
+        int rooms
+        int bathrooms
+        text description
+        bigint price
+        boolean pending_media
+        property_condition condition
+        moderation_status moderation_status
+        varchar rejection_reason
+        bigint sold_price
+        timestamptz sold_at
+        timestamptz deleted_at
+        timestamptz created_at
+    }
+
+    property_media {
+        int id PK
+        int property_id FK
+        uuid s3_key
+        media_extension extension "jpeg | jpg | png | webp | zip"
+        timestamptz created_at
+        timestamptz uploaded_at
+    }
+
+    property_types {
+        int id PK
+        varchar name
+    }
+
+    features {
+        int id PK
+        varchar name
+    }
+
+    property_features {
+        int id PK
+        int property_id FK
+        int feature_id FK
+    }
+
+    cities {
+        int id PK
+        varchar name
+    }
+
+    districts {
+        int id PK
+        int city_id FK
+        varchar name
+    }
+
+    saved {
+        int id PK
+        int user_id FK
+        int property_id FK
+    }
+
+    property_views {
+        int id PK
+        int property_id FK
+        int user_id FK
+        varchar viewer_session_id
+        timestamptz viewed_at
+    }
+
+    contact_events {
+        int id PK
+        int property_id FK
+        int user_id FK
+        varchar contact_session_id
+        contact_method contact_method "phone | email | whatsapp | chat"
+        timestamptz contacted_at
+    }
+
+    property_price_history {
+        int id PK
+        int property_id FK
+        bigint old_price
+        bigint new_price
+        timestamptz changed_at
+    }
+
+    purchase_offers {
+        int id PK
+        int property_id FK
+        int buyer_id FK
+        bigint offer_price
+        bigint counter_price
+        offer_status status "pending | accepted | rejected | cancelled | countered | completed"
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    chat_messages {
+        int id PK
+        int sender_id FK
+        int receiver_id FK
+        int property_id FK
+        text content
+        timestamptz created_at
+    }
+
+    admin_activity_log {
+        int id PK
+        int admin_id FK
+        varchar action
+        varchar target_type
+        int target_id
+        text details
+        timestamptz created_at
+    }
+
+    site_settings {
+        varchar key PK
+        text value
+        timestamptz updated_at
+    }
+
+    %% ---- Relationships (crow's-foot) ----
+    users ||--o| seller_profile : "has"
+    users ||--o{ properties : "lists"
+    users ||--o{ saved : "saves"
+    users ||--o{ property_views : "views"
+    users ||--o{ contact_events : "contacts"
+    users ||--o{ purchase_offers : "makes"
+    users ||--o{ chat_messages : "sends"
+    users ||--o{ chat_messages : "receives"
+    users ||--o{ admin_activity_log : "performs"
+
+    property_types ||--o{ properties : "categorizes"
+    cities ||--o{ properties : "locates"
+    districts ||--o{ properties : "locates"
+    cities ||--o{ districts : "contains"
+
+    properties ||--o{ property_media : "has"
+    properties ||--o{ property_features : "has"
+    features ||--o{ property_features : "tagged in"
+    properties ||--o{ saved : "saved as"
+    properties ||--o{ property_views : "receives"
+    properties ||--o{ contact_events : "receives"
+    properties ||--o{ property_price_history : "tracks"
+    properties ||--o{ purchase_offers : "receives"
+    properties ||--o{ chat_messages : "about"

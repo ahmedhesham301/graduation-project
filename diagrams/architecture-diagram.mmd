@@ -1,0 +1,75 @@
+graph TB
+    %% Internet
+    Internet([Internet])
+    IGW["Internet Gateway"]
+
+    %% Public Subnets
+    subgraph AZ1["Availability Zone 1"]
+        PS1["Public Subnet"]
+        ALB1["ALB"]
+        PRS1["Private Subnet"]
+        EKS1["EKS Worker Node"]
+        DBS1["Database Subnet"]
+        RDS1["RDS"]
+    end
+
+    subgraph AZ2["Availability Zone 2"]
+        PS2["Public Subnet"]
+        ALB2["ALB"]
+        NAT["NAT Instance + Bastion Host"]
+        PRS2["Private Subnet"]
+        EKS2["EKS Worker Node"]
+        DBS2["Database Subnet"]
+        RDS2["RDS"]
+    end
+
+    subgraph AZ3["Availability Zone 3"]
+        PS3["Public Subnet"]
+        ALB3["ALB"]
+        PRS3["Private Subnet"]
+        EKS3["EKS Worker Node"]
+        DBS3["Database Subnet"]
+        RDS3["RDS"]
+    end
+
+    %% External Connections
+    Internet --> IGW
+    IGW --> ALB1
+    IGW --> ALB2
+    IGW --> ALB3
+    IGW --> NAT
+
+    %% ALB to EKS
+    ALB1 --> EKS1
+    ALB2 --> EKS2
+    ALB3 --> EKS3
+
+    %% EKS to RDS
+    EKS1 --> RDS1
+    EKS2 --> RDS2
+    EKS3 --> RDS3
+
+    %% Subnet labels
+    PS1 -.- ALB1
+    PS2 -.- ALB2
+    PS2 -.- NAT
+    PS3 -.- ALB3
+    PRS1 -.- EKS1
+    PRS2 -.- EKS2
+    PRS3 -.- EKS3
+    DBS1 -.- RDS1
+    DBS2 -.- RDS2
+    DBS3 -.- RDS3
+
+    %% Styles
+    classDef public fill:#e1f5fe,stroke:#0288d1
+    classDef private fill:#fff3e0,stroke:#f57c00
+    classDef database fill:#fce4ec,stroke:#c62828
+    classDef compute fill:#e8f5e9,stroke:#388e3c
+    classDef lb fill:#ede7f6,stroke:#512da8
+
+    class PS1,PS2,PS3 public
+    class PRS1,PRS2,PRS3 private
+    class DBS1,DBS2,DBS3 database
+    class EKS1,EKS2,EKS3 compute
+    class ALB1,ALB2,ALB3 lb
