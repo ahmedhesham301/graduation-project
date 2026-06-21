@@ -146,6 +146,7 @@ export default function ChatHistory({ onBack, onNavigate }) {
     if (!socket) return;
     socketRef.current = socket;
 
+    socket.emit('register_user', Number(currentUserId));
     socket.emit('join_chat', {
       senderId: Number(currentUserId),
       receiverId: Number(selectedChat.otherUserId),

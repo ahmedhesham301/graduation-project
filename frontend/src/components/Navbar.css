@@ -69,6 +69,47 @@
   transform: translateY(-1px);
 }
 
+/* ── Notifications ── */
+.nav-notif-wrap { position: relative; }
+.nav-notif-badge {
+  position: absolute; top: -2px; right: -2px;
+  min-width: 16px; height: 16px; padding: 0 4px;
+  background: #e53935; color: #fff; font-size: 10px; font-weight: 700;
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+}
+.nav-notif-dropdown {
+  position: absolute; top: calc(100% + 8px); right: 0;
+  width: 360px; max-height: 420px;
+  background: var(--card-bg, #fff); border: 1px solid var(--border, #e5e7eb);
+  border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+  overflow: hidden; z-index: 1001;
+}
+.nav-notif-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-bottom: 1px solid var(--border, #e5e7eb);
+  font-size: 14px; font-weight: 600; color: var(--text, #1f2937);
+}
+.nav-notif-mark-read {
+  background: none; border: none; color: #1a8cca; font-size: 12px;
+  font-weight: 500; cursor: pointer;
+}
+.nav-notif-mark-read:hover { text-decoration: underline; }
+.nav-notif-list { max-height: 360px; overflow-y: auto; }
+.nav-notif-empty { padding: 32px 16px; text-align: center; color: var(--muted, #9ca3af); font-size: 13px; }
+.nav-notif-item {
+  display: flex; gap: 8px; padding: 10px 16px; cursor: pointer;
+  border-bottom: 1px solid var(--border, #f3f4f6); transition: background 0.15s;
+}
+.nav-notif-item:hover { background: var(--hover-bg, #f9fafb); }
+.nav-notif-item.unread { background: rgba(26,140,202,0.04); }
+.nav-notif-dot-col { display: flex; align-items: flex-start; padding-top: 6px; width: 8px; flex-shrink: 0; }
+.nav-notif-dot { width: 6px; height: 6px; border-radius: 50%; background: #1a8cca; }
+.nav-notif-content { flex: 1; min-width: 0; }
+.nav-notif-title { font-size: 13px; font-weight: 600; color: var(--text, #1f2937); margin-bottom: 2px; }
+.nav-notif-message { font-size: 12px; color: var(--muted, #6b7280); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nav-notif-time { font-size: 11px; color: var(--muted, #9ca3af); margin-top: 2px; }
+
 /* ── RESPONSIVE ── */
 @media (max-width: 1024px) {
   .nav-signin-btn { display: block; }

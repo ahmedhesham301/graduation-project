@@ -57,6 +57,7 @@ export default function PropertyChat({ propertyId, sellerId, currentUser = { id:
     if (!socket) return;
     socketRef.current = socket;
 
+    socket.emit('register_user', currentUser.id);
     socket.emit('join_chat', {
       senderId: asSeller ? sellerId : currentUser.id,
       receiverId: asSeller ? currentUser.id : sellerId,
