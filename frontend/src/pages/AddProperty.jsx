@@ -755,14 +755,17 @@ export default function AddProperty({ onBack, onNavigate }) {
 
           {/* ── Submit ── */}
           <div className="ap-submit-row">
-            <button type="button" className="ap-draft" onClick={handleSaveDraft} disabled={loading}>
-              {loading ? "Saving…" : "Save as Draft"}
-            </button>
             <button type="submit" className="ap-submit" disabled={loading}>
               {loading ? "Submitting…" : "Submit Listing"}
             </button>
           </div>
         </form>
+
+        <div className="ap-submit-row" style={{ marginTop: "12px" }}>
+          <button type="button" className="ap-draft" onClick={handleSaveDraft} disabled={loading}>
+            {loading ? "Saving…" : "Save as Draft"}
+          </button>
+        </div>
       </div>
 
       {/* Footer */}
