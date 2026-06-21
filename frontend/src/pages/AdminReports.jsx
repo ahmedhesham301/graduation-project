@@ -205,7 +205,7 @@ export default function AdminReports() {
                         <BarChart data={salesTrendData}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#374151" />
                             <XAxis dataKey="month" axisLine={false} tickLine={false} />
-                            <YAxis axisLine={false} tickLine={false} />
+                            <YAxis axisLine={false} tickLine={false} width={80} tickFormatter={(v) => v >= 1000000 ? `${(v/1000000).toFixed(1)}M` : v >= 1000 ? `${(v/1000).toFixed(0)}K` : v} />
                             <Tooltip
                                 contentStyle={{ background: "#1f2937", border: "1px solid #374151", borderRadius: 12 }}
                                 formatter={(value) => [`${Number(value).toLocaleString()} EGP`, 'Value']}
