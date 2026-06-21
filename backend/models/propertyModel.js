@@ -45,30 +45,19 @@ export async function createPropertyRecord(sellerId, type, lat, lon, area, floor
 }
 
 export async function createDraftRecord(sellerId, data) {
-    const {
-        type = null, lat = null, lon = null, area = null, floors = null,
-        rooms = null, bathrooms = null, city = null, district = null,
-        description = null, price = null, condition = null
-    } = data;
-
     const query = {
         name: 'create-draft',
-        text: `INSERT INTO properties 
-                (seller_id, type_id, coordinates, area, floors, rooms, bathrooms, city_id, district_id, description, price, condition, is_draft, pending_media)
-               VALUES 
-                ($1,
-                 ${type ? `(SELECT id FROM property_types WHERE name=$2)` : 'NULL'},
-                 ${lat && lon ? `POINT($3, $4)::geometry` : 'NULL'},
-                 ${area ? '$5' : 'NULL'}, ${floors ? '$6' : 'NULL'}, ${rooms ? '$7' : 'NULL'}, ${bathrooms ? '$8' : 'NULL'},
-                 ${city ? `(SELECT id FROM cities WHERE name = $9)` : 'NULL'},
-                 ${district ? `(SELECT id FROM districts WHERE name = $10 AND city_id = (SELECT id FROM cities WHERE name = $9))` : 'NULL'},
-                 $11, ${price ? '$12' : 'NULL'}, ${condition ? '$13' : 'NULL'},
-                 TRUE, TRUE)
+        text: `INSERT INTO properties (seller_id, is_draft, pending_media)
+               VALUES ($1, TRUE, TRUE)
                RETURNING *`,
-        values: [sellerId, type, lon, lat, area, floors, rooms, bathrooms, city, district, description || null, price, condition].filter(v => v !== undefined)
+        values: [sellerId]
     };
     const { rows } = await pool.query(query);
-    return rows[0];
+    const draft = rows[0];
+
+    // Update any provided fields
+    const updated = await updateDraftRecord(draft.id, sellerId, data);
+    return updated || draft;
 }
 
 export async function updateDraftRecord(propertyId, sellerId, data) {
