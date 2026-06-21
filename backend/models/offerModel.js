@@ -17,9 +17,9 @@ export async function getBuyerOffers(buyerId) {
         text: `SELECT po.*, p.price as listing_price, pt.name as type, c.name as city, d.name as district, p.seller_id
                FROM purchase_offers po
                JOIN properties p ON p.id = po.property_id
-               JOIN property_types pt ON pt.id = p.type_id
-               JOIN cities c ON c.id = p.city_id
-               JOIN districts d ON d.id = p.district_id
+               LEFT JOIN property_types pt ON pt.id = p.type_id
+               LEFT JOIN cities c ON c.id = p.city_id
+               LEFT JOIN districts d ON d.id = p.district_id
                WHERE po.buyer_id = $1
                ORDER BY po.created_at DESC`,
         values: [buyerId]
@@ -33,9 +33,9 @@ export async function getSellerOffers(sellerId) {
         text: `SELECT po.*, p.price as listing_price, pt.name as type, c.name as city, d.name as district, u.full_name as buyer_name, u.email as buyer_email, u.phone as buyer_phone
                FROM purchase_offers po
                JOIN properties p ON p.id = po.property_id
-               JOIN property_types pt ON pt.id = p.type_id
-               JOIN cities c ON c.id = p.city_id
-               JOIN districts d ON d.id = p.district_id
+               LEFT JOIN property_types pt ON pt.id = p.type_id
+               LEFT JOIN cities c ON c.id = p.city_id
+               LEFT JOIN districts d ON d.id = p.district_id
                JOIN users u ON u.id = po.buyer_id
                WHERE p.seller_id = $1
                ORDER BY po.created_at DESC`,
