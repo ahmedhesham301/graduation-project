@@ -11,16 +11,18 @@ export default function Checkout({ offer, onBack, onComplete }) {
 
     const price = Number(offer.counter_price || offer.offer_price);
 
-    // Interest structure: more months = higher fee
+    // Interest structure: more months = higher fee (real estate scale)
     const interestRates = {
-        3: 0.02,   // 2%
-        6: 0.035,  // 3.5%
-        9: 0.05,   // 5%
-        12: 0.07,  // 7%
-        18: 0.09,  // 9%
-        24: 0.12,  // 12%
-        30: 0.15,  // 15%
-        36: 0.18   // 18%
+        6: 0.02,    // 2%
+        12: 0.04,   // 4%
+        24: 0.07,   // 7%
+        36: 0.10,   // 10%
+        48: 0.13,   // 13%
+        60: 0.16,   // 16%
+        84: 0.20,   // 20%
+        120: 0.25,  // 25%
+        180: 0.32,  // 32%
+        240: 0.40   // 40%
     };
 
     const serviceFee = price * 0.01;
@@ -91,7 +93,7 @@ export default function Checkout({ offer, onBack, onComplete }) {
                             <CreditCard size={24} />
                             <div className="method-info">
                                 <span className="method-name">Installments</span>
-                                <span className="method-desc">Pay over 3 to 36 months</span>
+                                <span className="method-desc">Pay over 6 to 240 months</span>
                             </div>
                         </label>
                     </div>
@@ -100,9 +102,10 @@ export default function Checkout({ offer, onBack, onComplete }) {
                         <div className="installment-picker">
                             <label>Select Duration (Months)</label>
                             <select value={installments} onChange={(e) => setInstallments(Number(e.target.value))}>
-                                {Object.keys(interestRates).sort((a,b) => a-b).map(m => (
-                                    <option key={m} value={m}>{m} Months ({(interestRates[m] * 100).toFixed(1)}% Fee)</option>
-                                ))}
+                                {Object.keys(interestRates).sort((a,b) => a-b).map(m => {
+                                    const years = m >= 12 ? ` (${Math.floor(m/12)}yr${m >= 24 ? 's' : ''})` : '';
+                                    return <option key={m} value={m}>{m} months{years} — {(interestRates[m] * 100).toFixed(0)}% fee</option>;
+                                })}
                             </select>
                             <div className="monthly-calc">
                                 <span>Monthly Payment:</span>
