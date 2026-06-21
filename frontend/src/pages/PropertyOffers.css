@@ -36,6 +36,26 @@
   color: var(--text);
 }
 
+.po-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.po-tab {
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: 1.5px solid #dde3ec;
+  background: #fff;
+  color: #666;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.po-tab:hover { border-color: #1a8cca; color: #1a8cca; }
+.po-tab.active { background: #1a8cca; border-color: #1a8cca; color: #fff; }
+
 .po-empty {
   text-align: center;
   padding: 60px 20px;

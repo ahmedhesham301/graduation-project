@@ -14,12 +14,13 @@ export async function createOffer(propertyId, buyerId, offerPrice) {
 
 export async function getBuyerOffers(buyerId) {
     const query = {
-        text: `SELECT po.*, p.price as listing_price, pt.name as type, c.name as city, d.name as district, p.seller_id
+        text: `SELECT po.*, p.price as listing_price, pt.name as type, c.name as city, d.name AS district, p.seller_id, u.full_name as seller_name
                FROM purchase_offers po
                JOIN properties p ON p.id = po.property_id
                LEFT JOIN property_types pt ON pt.id = p.type_id
                LEFT JOIN cities c ON c.id = p.city_id
                LEFT JOIN districts d ON d.id = p.district_id
+               JOIN users u ON u.id = p.seller_id
                WHERE po.buyer_id = $1
                ORDER BY po.created_at DESC`,
         values: [buyerId]
